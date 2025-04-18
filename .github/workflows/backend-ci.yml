@@ -32,8 +32,4 @@ jobs:
       #   run: |
       #     echo "Vérification couverture > 80% - À activer plus tard"
 
-      - name: Archive test reports (optionnel)
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-results
-          path: target/surefire-reports/
+      
