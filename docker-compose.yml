@@ -6,10 +6,7 @@ services:
       context: ../frontend
       dockerfile: Dockerfile
     ports:
-      - "4200:4200"
-    volumes:
-      - ../frontend:/app
-      - /app/node_modules
+      - "8081:80"
     stdin_open: true
     tty: true
 
