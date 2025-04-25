@@ -52,6 +52,7 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
 		<dependency>
   			<groupId>org.postgresql</groupId>
   			<artifactId>postgresql</artifactId>
@@ -64,16 +65,34 @@
 			<version>1.18.30</version>
 			<scope>provided</scope>
 		</dependency>
-
 	</dependencies>
 
 	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
+  <plugins>
+    <!-- Plugin Spring Boot -->
+    <plugin>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-maven-plugin</artifactId>
+    </plugin>
+
+    <!-- Plugin Javadoc -->
+    <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-javadoc-plugin</artifactId>
+      <version>3.5.0</version>
+      <executions>
+        <execution>
+          <id>generate-docs</id>
+          <phase>verify</phase>
+          <goals>
+            <goal>javadoc</goal>
+          </goals>
+        </execution>
+      </executions>
+    </plugin>
+  </plugins>
+
+</build>
+
 
 </project>
