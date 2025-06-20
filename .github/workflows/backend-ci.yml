@@ -36,7 +36,6 @@ jobs:
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
-
       - name: Enforce 80% code coverage (à activer plus tard)
         run: |
           echo "Vérification couverture > 80% - À activer plus tard"
