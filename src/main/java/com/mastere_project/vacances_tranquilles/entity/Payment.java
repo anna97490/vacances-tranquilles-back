@@ -36,54 +36,5 @@ public class Payment {
     @OneToOne
     @JoinColumn(name = "schedule_id")
     private Schedule schedule;  // Lien vers la prestation réservée
-
-    // Getters & Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Double getAmount() {
-        return amount;
-    }
-
-    public void setAmount(Double amount) {
-        this.amount = amount;
-    }
-
-    public Date getPaymenDate() {
-        return paymentDate;
-    }
-
-    public void setDatePaiement(Date paymentDate) {
-        this.paymentDate = paymentDate;
-    }
-
-    public String getMethod() {
-        return method;
-    }
-
-    public void setMethod(String method) {
-        this.method = method;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public Schedule getSchedule() {
-        return schedule;
-    }
-
-    public void setSchedule(Schedule schedule) {
-        this.schedule = schedule;
-    }
 }
 

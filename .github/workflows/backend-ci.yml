@@ -25,9 +25,11 @@ jobs:
           distribution: 'temurin'
           java-version: 17
 
+      - name: Grant execute permission to mvnw
+        run: chmod +x mvnw
+
       - name: Build and run tests + SonarCloud analysis
         run: ./mvnw clean verify sonar:sonar -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.host.url=https://sonarcloud.io
-
 
       - name: Enforce 80% code coverage (à activer plus tard)
         run: |

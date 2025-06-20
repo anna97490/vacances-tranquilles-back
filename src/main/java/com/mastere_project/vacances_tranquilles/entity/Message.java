@@ -34,46 +34,5 @@ public class Message {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user; // L'auteur du message
-
-    // Getters & Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public Date getSentAt() {
-        return sentAt;
-    }
-
-    public void setSentAt(Date sentAt) {
-        this.sentAt = sentAt;
-    }
-
-    public Conversation getConversation() {
-        return conversation;
-    }
-
-    public void setConversation(Conversation conversation) {
-        this.conversation = conversation;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
 }
 
