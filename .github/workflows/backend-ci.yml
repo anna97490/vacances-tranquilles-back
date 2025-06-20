@@ -29,7 +29,13 @@ jobs:
         run: chmod +x mvnw
 
       - name: Build and run tests + SonarCloud analysis
-        run: ./mvnw clean verify sonar:sonar -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.host.url=https://sonarcloud.io
+        run: |
+          ./mvnw clean verify sonar:sonar \
+            -Dsonar.projectKey=anna97490_vacances-tranquilles-back \
+            -Dsonar.organization=anna97490 \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
 
       - name: Enforce 80% code coverage (à activer plus tard)
         run: |

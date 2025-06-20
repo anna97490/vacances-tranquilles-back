@@ -31,6 +31,7 @@
 		<sonar.projectKey>anna97490_vacances-tranquilles-back</sonar.projectKey>
 		<sonar.organization>anna97490</sonar.organization>
 	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
