@@ -1,21 +1,11 @@
 package com.mastere_project.vacances_tranquilles.entity;
 
-import java.sql.Date;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "payment")
+@Table(name = "payments")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,16 +15,16 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String status;
     private Double amount;
-    private Date paymentDate;
-    private String method; // Stripe, virement, etc.
+    private LocalDateTime paymentDate;
+    private String paymentMethod;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;  // Payeur (particulier)
-
-    @OneToOne
-    @JoinColumn(name = "schedule_id")
-    private Schedule schedule;  // Lien vers la prestation réservée
+//    @ManyToOne
+//    @JoinColumn(name = "service_id")
+//    private Service service;
+//
+//    @OneToOne
+//    @JoinColumn(name = "reservation_id")
+//    private Reservation reservation;
 }
-

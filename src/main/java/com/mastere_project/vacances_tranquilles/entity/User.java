@@ -1,12 +1,13 @@
 package com.mastere_project.vacances_tranquilles.entity;
 
+import com.mastere_project.vacances_tranquilles.model.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.List;
 
 @Entity
-@Table(name = "user")
+@Table(name = "users")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -32,7 +33,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String role; // PARTICULIER, PRESTATAIRE, ADMIN
+    private Role role; // PARTICULIER, PRESTATAIRE, ADMIN
 
     private String phoneNumber;
     private String address;
@@ -43,19 +44,22 @@ public class User {
     private String siretSiren;
     private String companyName;
 
-    // Relations
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Service> prestations;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Schedule> agendas;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Payment> paiements;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Conversation> conversations;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Message> messages;
+//    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
+//    private List<Reservation> reservationAsCustomer;
+//
+//    @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL)
+//    private List<Reservation> reservationAsProvider;
+//
+//    @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL)
+//    private List<Schedule> schedules;
+//
+//    @OneToMany(mappedBy = "user1", cascade = CascadeType.ALL)
+//    private List<Conversation> conversationsInitiated;
+//
+//    @OneToMany(mappedBy = "user2", cascade = CascadeType.ALL)
+//    private List<Conversation> conversationsReceived;
+//
+//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+//    private List<Message> messages;
 }

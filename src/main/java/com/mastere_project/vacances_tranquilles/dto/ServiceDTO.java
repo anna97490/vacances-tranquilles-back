@@ -10,11 +10,8 @@ public class ServiceDTO {
     private Long id;
     private String title;
     private String description;
-    private Double price;
     private String category;
-    private boolean isAvailable;
-    private String postalCode;
-
-    private Long providerId;      // ID du prestataire
-    private String providerName;  // Nom complet du prestataire (optionnel mais pratique)
+    private Double price;
+    private String imageUrl;
+    private Long providerId;
 }

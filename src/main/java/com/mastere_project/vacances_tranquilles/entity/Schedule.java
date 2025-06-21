@@ -1,20 +1,12 @@
 package com.mastere_project.vacances_tranquilles.entity;
 
-import java.sql.Date;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
-@Table(name = "schedule")
+@Table(name = "schedules")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,14 +16,15 @@ public class Schedule {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Date date;
-    private boolean isBooked;
+    private LocalDate date;
+    private LocalTime startTime;
+    private LocalTime endTime;
 
-    @ManyToOne
-    @JoinColumn(name = "prestation_id")
-    private Service prestation;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user; // Particulier qui a réservé
+//    @ManyToOne
+//    @JoinColumn(name = "provider_id")
+//    private User provider;
+//
+//    @ManyToOne
+//    @JoinColumn(name = "reservation_id")
+//    private Reservation reservation;
 }

@@ -28,15 +28,18 @@ public class Service {
 
     private String title;
     private String description;
-    private Double price;
     private String category;
-    private boolean isAvailable;
-    private String postalCode; 
+    private Double price;
+    private String imageUrl;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;  // Prestataire
+//    @ManyToOne
+//    @JoinColumn(name = "provider_id")
+//    private User provider;
+//
+//    @OneToMany(mappedBy = "service", cascade = CascadeType.ALL)
+//    private List<Reservation> reservations;
+//
+//    @OneToMany(mappedBy = "service", cascade = CascadeType.ALL)
+//    private List<Payment> payments;
 
-    @OneToMany(mappedBy = "prestation", cascade = CascadeType.ALL)
-    private List<Schedule> schedules;
 }

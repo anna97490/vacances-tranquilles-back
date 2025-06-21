@@ -1,20 +1,11 @@
 package com.mastere_project.vacances_tranquilles.entity;
 
-import java.sql.Date;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "message")
+@Table(name = "messages")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,14 +16,13 @@ public class Message {
     private Long id;
 
     private String content;
-    private Date sentAt;
+    private LocalDateTime sentAt;
 
-    @ManyToOne
-    @JoinColumn(name = "conversation_id")
-    private Conversation conversation;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user; // L'auteur du message
+//    @ManyToOne
+//    @JoinColumn(name = "conversation_id")
+//    private Conversation conversation;
+//
+//    @ManyToOne
+//    @JoinColumn(name = "user_id")
+//    private User user;
 }
-

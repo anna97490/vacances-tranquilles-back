@@ -1,6 +1,6 @@
 package com.mastere_project.vacances_tranquilles.repository;
 
-import com.mastere_project.vacances_tranquilles.model.User;
+import com.mastere_project.vacances_tranquilles.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
