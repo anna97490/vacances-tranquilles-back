@@ -51,6 +51,7 @@ jobs:
       - name: SonarCloud analysis (non-blocking)
         continue-on-error: true
         run: ./mvnw clean verify sonar:sonar -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.host.url=https://sonarcloud.io
+        
 
   auto-bump-version:
     if: github.ref == 'refs/heads/main'
