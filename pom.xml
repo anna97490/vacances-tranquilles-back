@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.mastere-project</groupId>
-	<artifactId>vacances-tranquilles</artifactId>
+	<artifactId>vacances-tranquilles-back</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>vacances-tranquilles</name>
+	<name>vacances-tranquilles-back</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
 	<licenses>
