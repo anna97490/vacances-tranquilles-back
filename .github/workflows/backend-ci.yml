@@ -48,7 +48,6 @@ jobs:
             echo "Code coverage is sufficient ($percent%)."
           fi
 
-          
       - name: SonarCloud analysis (non-blocking)
         continue-on-error: true
         env:
@@ -104,7 +103,6 @@ jobs:
           git add pom.xml
           git commit -m "ci: bump version to $new_version [skip ci]"
           git push origin main
-
 
   # Ajouter uplaod des logs si failure sur Render
 
