@@ -48,6 +48,7 @@ jobs:
             echo "Code coverage is sufficient ($percent%)."
           fi
 
+          
       - name: SonarCloud analysis (non-blocking)
         continue-on-error: true
         env:
