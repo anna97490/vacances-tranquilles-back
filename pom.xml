@@ -107,10 +107,10 @@
 		<version>0.8.8</version>
 		<executions>
 			<execution>
-			<id>prepare-agent</id>
-			<goals>
-				<goal>prepare-agent</goal>
-			</goals>
+				<id>prepare-agent</id>
+				<goals>
+					<goal>prepare-agent</goal>
+				</goals>
 			</execution>
 			<execution>
 				<id>report</id>
@@ -118,11 +118,16 @@
 				<goals>
 					<goal>report</goal>
 				</goals>
+				<configuration>
+					<excludes>
+					<exclude>**/dto/**</exclude>
+					<exclude>**/model/**</exclude>
+					<exclude>**/entity/**</exclude>
+					</excludes>
+				</configuration>
 			</execution>
 		</executions>
 	</plugin>
-
-	
   </plugins>
 
 </build>

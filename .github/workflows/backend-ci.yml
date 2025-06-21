@@ -30,9 +30,20 @@ jobs:
 
       - name: Run unit tests and check code coverage ≥ 80%
         run: |
-          ./mvnw test
-          coverage=$(grep -Po '(?<=<line-rate>)[^<]+' target/site/jacoco/jacoco.xml | head -1)
-          percent=$(awk "BEGIN { printf \"%.0f\n\", $coverage * 100 }")
+          ./mvnw clean verify
+
+          missed=$(grep '<counter type="LINE"' target/site/jacoco/jacoco.xml | tail -1 | sed -E 's/.*missed="([0-9]+)".*/\1/')
+          covered=$(grep '<counter type="LINE"' target/site/jacoco/jacoco.xml | tail -1 | sed -E 's/.*covered="([0-9]+)".*/\1/')
+
+          total=$((missed + covered))
+
+          if [ "$total" -eq 0 ]; then
+            echo "Aucune ligne de code mesurée. Abandon."
+            exit 1
+          fi
+
+          percent=$(awk "BEGIN { printf \"%.0f\n\", ($covered / $total) * 100 }")
+
           echo "Coverage = $percent%"
           if [ "$percent" -lt 80 ]; then
             echo "Code coverage ($percent%) is below 80%. Failing the job."
