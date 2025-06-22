@@ -1,6 +1,6 @@
 package com.mastere_project.vacances_tranquilles.model.enums;
 
-public enum Role {
+public enum UserRole {
     CLIENT,
     PRESTATAIRE,
     ADMIN
