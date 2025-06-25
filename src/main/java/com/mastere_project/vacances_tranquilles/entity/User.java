@@ -1,10 +1,8 @@
 package com.mastere_project.vacances_tranquilles.entity;
 
-import com.mastere_project.vacances_tranquilles.model.enums.Role;
+import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -33,11 +31,18 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role; // PARTICULIER, PRESTATAIRE, ADMIN
+    private UserRole userRole; // PARTICULIER, PRESTATAIRE, ADMIN
 
+    @Column(nullable = false)
     private String phoneNumber;
+
+    @Column(nullable = false)
     private String address;
+
+    @Column(nullable = false)
     private String city;
+
+    @Column(nullable = false)
     private String postalCode;
 
     // Champs uniquement pertinents pour les prestataires
@@ -63,3 +68,5 @@ public class User {
 //    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
 //    private List<Message> messages;
 }
+
+
