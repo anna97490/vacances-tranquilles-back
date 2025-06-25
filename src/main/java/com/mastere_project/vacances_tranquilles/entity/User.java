@@ -33,9 +33,16 @@ public class User {
     @Column(nullable = false)
     private UserRole userRole; // PARTICULIER, PRESTATAIRE, ADMIN
 
+    @Column(nullable = false)
     private String phoneNumber;
+
+    @Column(nullable = false)
     private String address;
+
+    @Column(nullable = false)
     private String city;
+
+    @Column(nullable = false)
     private String postalCode;
 
     // Champs uniquement pertinents pour les prestataires

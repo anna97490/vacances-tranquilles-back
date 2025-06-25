@@ -7,27 +7,32 @@ import lombok.Data;
 @Data
 public class RegisterProviderDTO {
 
-    @NotBlank
+    @NotBlank(message = "Le prénom est obligatoire")
     private String firstName;
 
-    @NotBlank
+    @NotBlank(message = "Le nom est obligatoire")
     private String lastName;
 
     @Email
-    @NotBlank
+    @NotBlank(message = "L'email est obligatoire")
     private String email;
 
-    @NotBlank
+    @NotBlank(message = "Le mot de passe est obligatoire")
     private String password;
 
-    @NotBlank
+    @NotBlank(message = "Le numéro de téléphone est obligatoire")
+    private String phoneNumber;
+
+    @NotBlank(message = "L'adresse est obligatoire")
+    private String address;
+
+    @NotBlank(message = "La ville est obligatoire")
+    private String city;
+
+    @NotBlank(message = "Le code postal est obligatoire")
+    private String postalCode;
+
     private String companyName;
 
-    @NotBlank
     private String siretSiren;
-
-    private String phoneNumber;
-    private String address;
-    private String city;
-    private String postalCode;
 }

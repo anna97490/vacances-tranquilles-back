@@ -6,21 +6,28 @@ import jakarta.validation.constraints.NotBlank;
 
 @Data
 public class RegisterClientDTO {
-    @NotBlank
+    @NotBlank(message = "Le prénom est obligatoire")
     private String firstName;
 
-    @NotBlank
+    @NotBlank(message = "Le nom est obligatoire")
     private String lastName;
 
     @Email
-    @NotBlank
+    @NotBlank(message = "L'email est obligatoire")
     private String email;
 
-    @NotBlank
+    @NotBlank(message = "Le mot de passe est obligatoire")
     private String password;
 
+    @NotBlank(message = "Le numéro de téléphone est obligatoire")
     private String phoneNumber;
+
+    @NotBlank(message = "L'adresse est obligatoire")
     private String address;
+
+    @NotBlank(message = "La ville est obligatoire")
     private String city;
+
+    @NotBlank(message = "Le code postal est obligatoire")
     private String postalCode;
 }

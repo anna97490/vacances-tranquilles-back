@@ -1,5 +1,6 @@
 package com.mastere_project.vacances_tranquilles.dto;
 
+import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,7 +13,7 @@ public class UserDTO {
     private String lastName;
     private String profilePicture;
     private String email;
-    private String role;
+    private UserRole userRole;
     private String phoneNumber;
     private String address;
     private String city;

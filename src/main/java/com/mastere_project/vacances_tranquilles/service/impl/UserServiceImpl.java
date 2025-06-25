@@ -3,6 +3,9 @@ package com.mastere_project.vacances_tranquilles.service.impl;
 import com.mastere_project.vacances_tranquilles.dto.RegisterClientDTO;
 import com.mastere_project.vacances_tranquilles.dto.RegisterProviderDTO;
 import com.mastere_project.vacances_tranquilles.entity.User;
+import com.mastere_project.vacances_tranquilles.exception.EmailAlreadyExistsException;
+import com.mastere_project.vacances_tranquilles.exception.MissingFieldException;
+import com.mastere_project.vacances_tranquilles.mapper.UserMapper;
 import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import com.mastere_project.vacances_tranquilles.repository.UserRepository;
 import com.mastere_project.vacances_tranquilles.service.UserService;
@@ -16,47 +19,34 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
     @Override
     public void registerClient(RegisterClientDTO dto) {
-        // TODO: Penser à ajouter une gestion des erreurs plus propre, par exemple avec des exceptions personnalisées
         if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new IllegalArgumentException("Email déjà utilisé");
+            throw new EmailAlreadyExistsException("Un compte avec cet email existe déjà.");
         }
 
-        // TODO: Créer un mapper pour convertir DTO en entité User
-        User user = new User();
-        user.setFirstName(dto.getFirstName());
-        user.setLastName(dto.getLastName());
-        user.setEmail(dto.getEmail());
-        user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setPhoneNumber(dto.getPhoneNumber());
-        user.setAddress(dto.getAddress());
-        user.setPostalCode(dto.getPostalCode());
-        user.setCity(dto.getCity());
-        user.setUserRole(UserRole.CLIENT);
+        User user = userMapper.toUser(dto);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
     }
 
     @Override
     public void registerProvider(RegisterProviderDTO dto) {
-        if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new IllegalArgumentException("Email déjà utilisé");
+        if (dto.getCompanyName() == null || dto.getCompanyName().isBlank()) {
+            throw new MissingFieldException("Le nom de la société est obligatoire pour les prestataires.");
         }
 
-        User user = new User();
-        user.setFirstName(dto.getFirstName());
-        user.setLastName(dto.getLastName());
-        user.setEmail(dto.getEmail());
-        user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setPhoneNumber(dto.getPhoneNumber());
-        user.setAddress(dto.getAddress());
-        user.setPostalCode(dto.getPostalCode());
-        user.setCity(dto.getCity());
-        user.setCompanyName(dto.getCompanyName());
-        user.setSiretSiren(dto.getSiretSiren());
-        user.setUserRole(UserRole.PRESTATAIRE);
+        if (dto.getSiretSiren() == null || dto.getSiretSiren().isBlank()) {
+            throw new MissingFieldException("Le numéro SIRET/SIREN est obligatoire pour les prestataires.");
+        }
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            throw new EmailAlreadyExistsException("Un compte avec cet email existe déjà.");
+        }
+
+        User user = userMapper.toUser(dto);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
     }
-
 }
