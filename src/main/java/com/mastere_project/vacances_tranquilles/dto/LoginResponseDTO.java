@@ -1,0 +1,13 @@
+package com.mastere_project.vacances_tranquilles.dto;
+
+import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
+public class LoginResponseDTO {
+    private String token;
+    private UserRole userRole;
+}

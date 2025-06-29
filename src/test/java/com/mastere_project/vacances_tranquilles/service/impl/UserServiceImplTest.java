@@ -16,13 +16,23 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import com.mastere_project.vacances_tranquilles.dto.LoginResponseDTO;
+import com.mastere_project.vacances_tranquilles.dto.UserDTO;
+import com.mastere_project.vacances_tranquilles.exception.EmailNotFoundException;
+import com.mastere_project.vacances_tranquilles.exception.WrongPasswordException;
+import com.mastere_project.vacances_tranquilles.util.jwt.JwtConfig;
+import org.junit.jupiter.api.Nested;
+import org.mockito.Mock;
+import java.util.Optional;
 
 class UserServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
+
     @Mock
     private PasswordEncoder passwordEncoder;
+    
     @Mock
     private UserMapper userMapper;
 
@@ -172,5 +182,96 @@ class UserServiceImplTest {
 
         // Ici, PAS de vérification sur le repository
         verifyNoInteractions(userRepository, passwordEncoder, userMapper);
+    }
+    @Mock
+    private JwtConfig jwt;
+
+    @Test
+    @DisplayName("Doit authentifier et retourner un token et le rôle si email et mot de passe sont corrects")
+    void loginSuccessfully() {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail("test@example.com");
+        userDTO.setPassword("password123");
+
+        User user = new User();
+        user.setEmail("test@example.com");
+        user.setPassword("encodedPassword");
+        user.setUserRole(UserRole.CLIENT);
+
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(userDTO.getPassword(), user.getPassword())).thenReturn(true);
+        when(jwt.generateToken(user.getEmail())).thenReturn("jwt-token");
+
+        // On injecte le mock JwtConfig dans userService
+        userService = new UserServiceImpl(userRepository, passwordEncoder, userMapper, jwt);
+
+        LoginResponseDTO response = userService.login(userDTO);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getToken()).isEqualTo("jwt-token");
+        assertThat(response.getUserRole()).isEqualTo(UserRole.CLIENT);
+
+        verify(userRepository).findByEmail(userDTO.getEmail());
+        verify(passwordEncoder).matches(userDTO.getPassword(), user.getPassword());
+        verify(jwt).generateToken(user.getEmail());
+    }
+
+    @Test
+    @DisplayName("Doit lever EmailNotFoundException si l'utilisateur n'existe pas")
+    void loginThrowsExceptionIfEmailNotFound() {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail("notfound@example.com");
+        userDTO.setPassword("password");
+
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.login(userDTO))
+                .isInstanceOf(EmailNotFoundException.class)
+                .hasMessageContaining("Aucun compte trouvé pour l'email");
+
+        verify(userRepository).findByEmail(userDTO.getEmail());
+        verifyNoMoreInteractions(userRepository);
+        verifyNoInteractions(passwordEncoder, jwt);
+    }
+
+    @Test
+    @DisplayName("Doit lever WrongPasswordException si le mot de passe est incorrect")
+    void loginThrowsExceptionIfPasswordIncorrect() {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail("test@example.com");
+        userDTO.setPassword("wrongpassword");
+
+        User user = new User();
+        user.setEmail("test@example.com");
+        user.setPassword("encodedPassword");
+        user.setUserRole(UserRole.CLIENT);
+
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(userDTO.getPassword(), user.getPassword())).thenReturn(false);
+
+        assertThatThrownBy(() -> userService.login(userDTO))
+                .isInstanceOf(WrongPasswordException.class)
+                .hasMessageContaining("Mot de passe incorrect pour l'email");
+
+        verify(userRepository).findByEmail(userDTO.getEmail());
+        verify(passwordEncoder).matches(userDTO.getPassword(), user.getPassword());
+        verifyNoInteractions(jwt);
+    }
+
+    @Test
+    @DisplayName("Doit lever RuntimeException en cas d'erreur inattendue")
+    void loginThrowsRuntimeExceptionOnUnexpectedError() {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail("test@example.com");
+        userDTO.setPassword("password");
+
+        when(userRepository.findByEmail(userDTO.getEmail())).thenThrow(new RuntimeException("DB down"));
+
+        assertThatThrownBy(() -> userService.login(userDTO))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Erreur serveur inattendue lors de la tentative de connexion");
+
+        verify(userRepository).findByEmail(userDTO.getEmail());
+        verifyNoInteractions(passwordEncoder, jwt);
     }
 }
