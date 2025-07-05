@@ -23,14 +23,12 @@ class AuthControllerTest {
 
     private MockMvc mockMvc;
     private UserService userService;
-    private JwtConfig jwtConfig;
     private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
         userService = mock(UserService.class);
-        jwtConfig = mock(JwtConfig.class);
-        AuthController authController = new AuthController(userService, jwtConfig);
+        AuthController authController = new AuthController(userService);
         mockMvc = MockMvcBuilders.standaloneSetup(authController).build();
         objectMapper = new ObjectMapper();
     }
