@@ -105,6 +105,7 @@ jobs:
           git push origin main
 
   # Ajouter uplaod des logs si failure sur Render
+  # Ajouter regles sur tests integration
 
   deploy-to-render:
     if: github.ref == 'refs/heads/main'

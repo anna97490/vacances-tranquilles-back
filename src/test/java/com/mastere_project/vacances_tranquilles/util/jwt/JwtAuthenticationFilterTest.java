@@ -5,35 +5,42 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+
 import java.io.IOException;
-import static org.junit.jupiter.api.Assertions.*;
+
 import static org.mockito.Mockito.*;
 
 class JwtAuthenticationFilterTest {
 
+    @Mock
     private JwtConfig jwtConfig;
-    private JwtAuthenticationFilter filter;
+    @Mock
     private HttpServletRequest request;
+    @Mock
     private HttpServletResponse response;
+    @Mock
     private FilterChain filterChain;
+
+    @InjectMocks
+    private JwtAuthenticationFilter filter;
 
     @BeforeEach
     void setUp() {
-        jwtConfig = mock(JwtConfig.class);
+        MockitoAnnotations.openMocks(this);
         filter = new JwtAuthenticationFilter(jwtConfig);
-        request = mock(HttpServletRequest.class);
-        response = mock(HttpServletResponse.class);
-        filterChain = mock(FilterChain.class);
         SecurityContextHolder.clearContext();
     }
 
     @Test
-    void testDoFilterInternal_WithValidToken_SetsAuthentication() throws ServletException, IOException {
+    @DisplayName("doFilterInternal - should authenticate with valid token")
+    void doFilterInternal_shouldAuthenticateWithValidToken() throws ServletException, IOException {
         String token = "valid.jwt.token";
         String email = "user@example.com";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
@@ -42,33 +49,15 @@ class JwtAuthenticationFilterTest {
 
         filter.doFilterInternal(request, response, filterChain);
 
-        assertNotNull(SecurityContextHolder.getContext().getAuthentication());
-        assertEquals(email, SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        assert authentication != null;
+        assert authentication.getPrincipal().equals(email);
         verify(filterChain).doFilter(request, response);
     }
 
     @Test
-    void testDoFilterInternal_WithNoAuthorizationHeader_DoesNotSetAuthentication() throws ServletException, IOException {
-        when(request.getHeader("Authorization")).thenReturn(null);
-
-        filter.doFilterInternal(request, response, filterChain);
-
-        assertNull(SecurityContextHolder.getContext().getAuthentication());
-        verify(filterChain).doFilter(request, response);
-    }
-
-    @Test
-    void testDoFilterInternal_WithInvalidAuthorizationHeader_DoesNotSetAuthentication() throws ServletException, IOException {
-        when(request.getHeader("Authorization")).thenReturn("InvalidHeader");
-
-        filter.doFilterInternal(request, response, filterChain);
-
-        assertNull(SecurityContextHolder.getContext().getAuthentication());
-        verify(filterChain).doFilter(request, response);
-    }
-
-    @Test
-    void testDoFilterInternal_WithInvalidToken_DoesNotSetAuthentication() throws ServletException, IOException {
+    @DisplayName("doFilterInternal - should not authenticate with invalid token")
+    void doFilterInternal_shouldNotAuthenticateWithInvalidToken() throws ServletException, IOException {
         String token = "invalid.jwt.token";
         String email = "user@example.com";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
@@ -77,25 +66,48 @@ class JwtAuthenticationFilterTest {
 
         filter.doFilterInternal(request, response, filterChain);
 
-        assertNull(SecurityContextHolder.getContext().getAuthentication());
+        assert SecurityContextHolder.getContext().getAuthentication() == null;
         verify(filterChain).doFilter(request, response);
     }
 
     @Test
-    void testDoFilterInternal_AuthenticationAlreadySet_DoesNotOverride() throws ServletException, IOException {
+    @DisplayName("doFilterInternal - should skip if no Authorization header")
+    void doFilterInternal_shouldSkipIfNoAuthorizationHeader() throws ServletException, IOException {
+        when(request.getHeader("Authorization")).thenReturn(null);
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        assert SecurityContextHolder.getContext().getAuthentication() == null;
+        verify(filterChain).doFilter(request, response);
+    }
+
+    @Test
+    @DisplayName("doFilterInternal - should skip if Authorization header does not start with Bearer")
+    void doFilterInternal_shouldSkipIfHeaderNotBearer() throws ServletException, IOException {
+        when(request.getHeader("Authorization")).thenReturn("Basic something");
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        assert SecurityContextHolder.getContext().getAuthentication() == null;
+        verify(filterChain).doFilter(request, response);
+    }
+
+    @Test
+    @DisplayName("doFilterInternal - should skip if already authenticated")
+    void doFilterInternal_shouldSkipIfAlreadyAuthenticated() throws ServletException, IOException {
+        Authentication mockAuth = mock(Authentication.class);
+        SecurityContextHolder.getContext().setAuthentication(mockAuth);
         String token = "valid.jwt.token";
         String email = "user@example.com";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
         when(jwtConfig.extractEmail(token)).thenReturn(email);
         when(jwtConfig.validateToken(token, email)).thenReturn(true);
 
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("already@set.com", null, null)
-        );
-
         filter.doFilterInternal(request, response, filterChain);
 
-        assertEquals("already@set.com", SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        // L'authentification ne doit pas être remplacée
+        assert SecurityContextHolder.getContext().getAuthentication() == mockAuth;
         verify(filterChain).doFilter(request, response);
     }
 }
+
