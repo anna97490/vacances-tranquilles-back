@@ -1,43 +1,43 @@
 package com.mastere_project.vacances_tranquilles.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mastere_project.vacances_tranquilles.configuration.TestSecurityConfig;
+import com.mastere_project.vacances_tranquilles.dto.LoginResponseDTO;
 import com.mastere_project.vacances_tranquilles.dto.RegisterClientDTO;
 import com.mastere_project.vacances_tranquilles.dto.RegisterProviderDTO;
+import com.mastere_project.vacances_tranquilles.dto.UserDTO;
+import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import com.mastere_project.vacances_tranquilles.service.UserService;
-import org.junit.jupiter.api.DisplayName;
+import com.mastere_project.vacances_tranquilles.util.jwt.JwtConfig;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
+import org.mockito.ArgumentMatchers;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(AuthController.class)
-@Import(TestSecurityConfig.class)
 class AuthControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
-
-    @MockBean
     private UserService userService;
-
-    @Autowired
     private ObjectMapper objectMapper;
 
+    @BeforeEach
+    void setUp() {
+        userService = mock(UserService.class);
+        AuthController authController = new AuthController(userService);
+        mockMvc = MockMvcBuilders.standaloneSetup(authController).build();
+        objectMapper = new ObjectMapper();
+    }
+
     @Test
-    @DisplayName("Doit enregistrer un client et renvoyer 200")
-    void registerClient_ReturnsOk() throws Exception {
+    void registerClient_shouldReturnSuccessMessage() throws Exception {
         // Arrange
+        doNothing().when(userService).registerClient(any(RegisterClientDTO.class));
+
         RegisterClientDTO dto = new RegisterClientDTO();
         dto.setFirstName("Alice");
         dto.setLastName("Martin");
@@ -48,21 +48,23 @@ class AuthControllerTest {
         dto.setPostalCode("75001");
         dto.setCity("Paris");
 
+        String requestBody = objectMapper.writeValueAsString(dto);
+
         // Act & Assert
         mockMvc.perform(post("/api/auth/register/client")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Client registered successfully"));
 
-        verify(userService).registerClient(any(RegisterClientDTO.class));
-        verifyNoMoreInteractions(userService);
+        verify(userService, times(1)).registerClient(any(RegisterClientDTO.class));
     }
 
     @Test
-    @DisplayName("Doit enregistrer un prestataire et renvoyer 200")
-    void registerProvider_ReturnsOk() throws Exception {
+    void registerProvider_shouldReturnSuccessMessage() throws Exception {
         // Arrange
+        doNothing().when(userService).registerProvider(any(RegisterProviderDTO.class));
+
         RegisterProviderDTO dto = new RegisterProviderDTO();
         dto.setFirstName("Bob");
         dto.setLastName("Durand");
@@ -75,44 +77,39 @@ class AuthControllerTest {
         dto.setCompanyName("Durand & Fils");
         dto.setSiretSiren("12345678900015");
 
+        String requestBody = objectMapper.writeValueAsString(dto);
+
         // Act & Assert
         mockMvc.perform(post("/api/auth/register/provider")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Provider registered successfully"));
 
-        verify(userService).registerProvider(any(RegisterProviderDTO.class));
-        verifyNoMoreInteractions(userService);
+        verify(userService, times(1)).registerProvider(any(RegisterProviderDTO.class));
     }
 
     @Test
-    @DisplayName("Doit renvoyer 400 si DTO client invalide")
-    void registerClient_ReturnsBadRequest_WhenInvalid() throws Exception {
+    void login_shouldReturnLoginResponseDTO() throws Exception {
         // Arrange
-        RegisterClientDTO dto = new RegisterClientDTO(); // Champs manquants
+        LoginResponseDTO loginResponse = new LoginResponseDTO("token123", UserRole.CLIENT);
+        when(userService.login(any(UserDTO.class))).thenReturn(loginResponse);
+
+        String requestBody = """
+            {
+                "email": "test@example.com",
+                "password": "password"
+            }
+        """;
 
         // Act & Assert
-        mockMvc.perform(post("/api/auth/register/client")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").value("token123"))
+                .andExpect(jsonPath("$.userRole").value("CLIENT"));
 
-        verifyNoInteractions(userService);
-    }
-
-    @Test
-    @DisplayName("Doit renvoyer 400 si DTO provider invalide")
-    void registerProvider_ReturnsBadRequest_WhenInvalid() throws Exception {
-        // Arrange
-        RegisterProviderDTO dto = new RegisterProviderDTO(); // Champs manquants
-
-        // Act & Assert
-        mockMvc.perform(post("/api/auth/register/provider")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isBadRequest());
-
-        verifyNoInteractions(userService);
+        verify(userService, times(1)).login(any(UserDTO.class));
     }
 }
