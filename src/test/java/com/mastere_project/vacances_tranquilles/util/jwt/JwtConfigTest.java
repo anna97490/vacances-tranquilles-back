@@ -1,13 +1,16 @@
 package com.mastere_project.vacances_tranquilles.util.jwt;
 
 import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.util.Date;
+import javax.crypto.spec.SecretKeySpec;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -17,10 +20,6 @@ class JwtConfigTest {
     @BeforeEach
     void setUp() throws Exception {
         jwtConfig = new JwtConfig();
-        // Forcer la clé secrète à une valeur connue pour les tests
-        Field secretKeyField = JwtConfig.class.getDeclaredField("secretKey");
-        secretKeyField.setAccessible(true);
-        secretKeyField.set(jwtConfig, "12345678901234567890123456789012"); // 32 chars
     }
 
     @Test
@@ -77,15 +76,22 @@ class JwtConfigTest {
 
     @Test
     @DisplayName("extractRole - should throw if role is missing")
-    void extractRole_shouldThrowIfRoleMissing() {
-        // Générer un token sans claim "role" (en utilisant la librairie directement)
-        String secret = "12345678901234567890123456789012";
-        String token = io.jsonwebtoken.Jwts.builder()
+    void extractRole_shouldThrowIfRoleMissing() throws Exception {
+        // Utiliser la réflexion pour accéder à la clé privée de jwtConfig
+        Field secretKeyField = JwtConfig.class.getDeclaredField("secretKey");
+        secretKeyField.setAccessible(true);
+        String secretKey = (String) secretKeyField.get(jwtConfig);
+        
+        // Créer un token avec la même clé mais sans le claim "role"
+        Key key = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), SignatureAlgorithm.HS256.getJcaName());
+        
+        String token = Jwts.builder()
                 .setSubject("user@domain.com")
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 10000))
-                .signWith(SignatureAlgorithm.HS256, secret.getBytes())
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+        
         assertThatThrownBy(() -> jwtConfig.extractRole(token))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("rôle n'est pas présent");

@@ -19,10 +19,10 @@ import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 public class JwtConfig {
 
     // Chargement de la configuration .env
-    private static final Dotenv dotenv = Dotenv.load();
+    private static final Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
 
     // Clé secrète utilisée pour signer les tokens JWT.
-    private final String secretKey = dotenv.get("JWT_SECRET");
+    private final String secretKey = dotenv.get("JWT_SECRET", "defaultSecretKeyForTesting12345678901234567890123456789012");
 
     // Durée de validité du token JWT, ici : 1 heure (60 * 60 * 1000 ms).
     private static final long EXPIRATION_TIME_MS = 60 * 60 * 1000;
