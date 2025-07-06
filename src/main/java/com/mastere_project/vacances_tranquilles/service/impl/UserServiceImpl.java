@@ -52,6 +52,7 @@ public class UserServiceImpl implements UserService {
         this.jwt = jwtConfig;
     }
 
+    
     /**
      * Inscrit un nouveau client.
      * @param dto les informations du client à enregistrer
