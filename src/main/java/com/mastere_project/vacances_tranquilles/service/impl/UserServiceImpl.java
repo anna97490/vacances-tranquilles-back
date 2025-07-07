@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
      * 
      * @param userRepository  le repository utilisateur
      * @param passwordEncoder l'encodeur de mot de passe
-     * @param userMapper      le mapper DTO <-> entité utilisateur
+     * @param userMapper      le mapper DTO entité utilisateur
      * @param jwtConfig       la configuration JWT
      */
     public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, UserMapper userMapper,
