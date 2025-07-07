@@ -7,7 +7,6 @@ import com.mastere_project.vacances_tranquilles.exception.EmailNotFoundException
 import com.mastere_project.vacances_tranquilles.exception.MissingFieldException;
 import com.mastere_project.vacances_tranquilles.exception.WrongPasswordException;
 import com.mastere_project.vacances_tranquilles.mapper.UserMapper;
-import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import com.mastere_project.vacances_tranquilles.repository.UserRepository;
 import com.mastere_project.vacances_tranquilles.service.UserService;
 import com.mastere_project.vacances_tranquilles.util.jwt.JwtConfig;
@@ -23,7 +22,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
- * Implémentation du service utilisateur gérant l'inscription, la connexion et la sécurité des utilisateurs.
+ * Implémentation du service utilisateur gérant l'inscription, la connexion et
+ * la sécurité des utilisateurs.
  */
 @Service
 public class UserServiceImpl implements UserService {
@@ -40,12 +40,14 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Constructeur du service utilisateur.
-     * @param userRepository le repository utilisateur
+     * 
+     * @param userRepository  le repository utilisateur
      * @param passwordEncoder l'encodeur de mot de passe
-     * @param userMapper le mapper DTO <-> entité utilisateur
-     * @param jwtConfig la configuration JWT
+     * @param userMapper      le mapper DTO <-> entité utilisateur
+     * @param jwtConfig       la configuration JWT
      */
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, UserMapper userMapper, JwtConfig jwtConfig) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, UserMapper userMapper,
+            JwtConfig jwtConfig) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.userMapper = userMapper;
@@ -54,6 +56,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Inscrit un nouveau client.
+     * 
      * @param dto les informations du client à enregistrer
      * @throws EmailAlreadyExistsException si l'email existe déjà
      */
@@ -68,11 +71,11 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
-    
     /**
      * Inscrit un nouveau prestataire.
+     * 
      * @param dto les informations du prestataire à enregistrer
-     * @throws MissingFieldException si des champs obligatoires sont manquants
+     * @throws MissingFieldException       si des champs obligatoires sont manquants
      * @throws EmailAlreadyExistsException si l'email existe déjà
      */
     @Override
@@ -93,14 +96,14 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
-
     /**
      * Authentifie un utilisateur (client ou prestataire).
+     * 
      * @param userDTO les informations de connexion (email, mot de passe)
      * @return un objet LoginResponseDTO contenant le token JWT et le rôle
      * @throws EmailNotFoundException si l'email n'existe pas
      * @throws WrongPasswordException si le mot de passe est incorrect
-     * @throws RuntimeException en cas d'erreur inattendue ou de compte bloqué
+     * @throws RuntimeException       en cas d'erreur inattendue ou de compte bloqué
      */
     @Override
     public LoginResponseDTO login(UserDTO userDTO) {
@@ -139,9 +142,10 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-
     /**
-     * Incrémente le nombre de tentatives de connexion pour un email et bloque le compte si nécessaire.
+     * Incrémente le nombre de tentatives de connexion pour un email et bloque le
+     * compte si nécessaire.
+     * 
      * @param email l'email de l'utilisateur
      */
     private void incrementLoginAttempts(String email) {
@@ -154,4 +158,4 @@ public class UserServiceImpl implements UserService {
             loginAttempts.put(email, attempts);
         }
     }
-} 
+}

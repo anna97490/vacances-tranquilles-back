@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
+/**
+ * Entité JPA représentant un paiement lié à une réservation ou un service.
+ */
 @Entity
 @Table(name = "payments")
 @Data
@@ -20,11 +23,11 @@ public class Payment {
     private LocalDateTime paymentDate;
     private String paymentMethod;
 
-//    @ManyToOne
-//    @JoinColumn(name = "service_id")
-//    private Service service;
-//
-//    @OneToOne
-//    @JoinColumn(name = "reservation_id")
-//    private Reservation reservation;
+    // @ManyToOne
+    // @JoinColumn(name = "service_id")
+    // private Service service;
+    //
+    // @OneToOne
+    // @JoinColumn(name = "reservation_id")
+    // private Reservation reservation;
 }

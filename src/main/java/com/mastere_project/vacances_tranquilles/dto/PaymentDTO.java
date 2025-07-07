@@ -5,6 +5,9 @@ import java.util.Date;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * DTO représentant un paiement effectué par un utilisateur.
+ */
 @Data
 @NoArgsConstructor
 public class PaymentDTO {

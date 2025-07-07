@@ -5,19 +5,17 @@ import com.mastere_project.vacances_tranquilles.dto.RegisterClientDTO;
 import com.mastere_project.vacances_tranquilles.dto.RegisterProviderDTO;
 import com.mastere_project.vacances_tranquilles.dto.UserDTO;
 import com.mastere_project.vacances_tranquilles.service.UserService;
-import com.mastere_project.vacances_tranquilles.util.jwt.JwtConfig;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
- * Contrôleur d'authentification gérant l'inscription et la connexion des utilisateurs.
- * Fournit des endpoints pour l'inscription client, l'inscription prestataire et la connexion.
+ * Contrôleur d'authentification gérant l'inscription et la connexion des
+ * utilisateurs.
+ * Fournit des endpoints pour l'inscription client, l'inscription prestataire et
+ * la connexion.
  */
 @RequiredArgsConstructor
 @RestController
@@ -28,6 +26,7 @@ public class AuthController {
 
     /**
      * Inscription d'un nouveau client.
+     * 
      * @param registerClientDTO Données du client à enregistrer
      * @return Réponse HTTP 200 si succès
      */
@@ -37,9 +36,9 @@ public class AuthController {
         return ResponseEntity.ok("Client registered successfully");
     }
 
-
     /**
      * Inscription d'un nouveau prestataire.
+     * 
      * @param registerProviderDTO Données du prestataire à enregistrer
      * @return Réponse HTTP 200 si succès
      */
@@ -49,9 +48,9 @@ public class AuthController {
         return ResponseEntity.ok("Provider registered successfully");
     }
 
-
     /**
      * Connexion d'un utilisateur (client ou prestataire).
+     * 
      * @param userDTO Données de connexion (email, mot de passe)
      * @return Token JWT et rôle utilisateur si succès
      */
@@ -60,4 +59,4 @@ public class AuthController {
         LoginResponseDTO response = userService.login(userDTO);
         return ResponseEntity.ok(response);
     }
-} 
+}

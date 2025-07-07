@@ -7,10 +7,8 @@ import com.mastere_project.vacances_tranquilles.dto.RegisterProviderDTO;
 import com.mastere_project.vacances_tranquilles.dto.UserDTO;
 import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import com.mastere_project.vacances_tranquilles.service.UserService;
-import com.mastere_project.vacances_tranquilles.util.jwt.JwtConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -96,11 +94,11 @@ class AuthControllerTest {
         when(userService.login(any(UserDTO.class))).thenReturn(loginResponse);
 
         String requestBody = """
-            {
-                "email": "test@example.com",
-                "password": "password"
-            }
-        """;
+                    {
+                        "email": "test@example.com",
+                        "password": "password"
+                    }
+                """;
 
         // Act & Assert
         mockMvc.perform(post("/api/auth/login")

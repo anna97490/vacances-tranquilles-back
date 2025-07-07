@@ -14,22 +14,43 @@ import com.mastere_project.vacances_tranquilles.util.jwt.JwtConfig;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Configuration de la sécurité Spring Security pour l'application.
+ * Définit les filtres, l'encodage des mots de passe et les règles d'accès.
+ */
 @RequiredArgsConstructor
 @Configuration
 public class SecurityConfig {
 
     private final JwtConfig jwt;
 
+    /**
+     * Fournit un encodeur de mots de passe utilisant BCrypt.
+     * 
+     * @return PasswordEncoder
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Fournit le filtre d'authentification JWT.
+     * 
+     * @return JwtAuthenticationFilter
+     */
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwt);
     }
 
+    /**
+     * Configure la chaîne de filtres de sécurité HTTP.
+     * 
+     * @param http la configuration HttpSecurity
+     * @return SecurityFilterChain configurée
+     * @throws Exception en cas d'erreur de configuration
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http

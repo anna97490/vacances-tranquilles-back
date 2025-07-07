@@ -4,13 +4,15 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
+/**
+ * Entité JPA représentant une réservation entre un client et un prestataire.
+ */
 @Entity
 @Table(name = "reservations")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Reservation {
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,18 +25,18 @@ public class Reservation {
     private LocalDateTime endDate;
     private Double totalPrice;
 
-//    @ManyToOne
-//    @JoinColumn(name = "customer_id")
-//    private User customer;
-//
-//    @ManyToOne
-//    @JoinColumn(name = "provider_id")
-//    private User provider;
+    // @ManyToOne
+    // @JoinColumn(name = "customer_id")
+    // private User customer;
+    //
+    // @ManyToOne
+    // @JoinColumn(name = "provider_id")
+    // private User provider;
 
-//    @ManyToOne
-//    @JoinColumn(name = "service_id")
-//    private Service service;
-//
-//    @OneToOne(mappedBy = "reservation", cascade = CascadeType.ALL)
-//    private Payment payment;
+    // @ManyToOne
+    // @JoinColumn(name = "service_id")
+    // private Service service;
+    //
+    // @OneToOne(mappedBy = "reservation", cascade = CascadeType.ALL)
+    // private Payment payment;
 }
