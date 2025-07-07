@@ -4,6 +4,10 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+/**
+ * DTO représentant une réservation effectuée par un client auprès d'un
+ * prestataire.
+ */
 @Data
 public class ReservationDTO {
     private Long id;

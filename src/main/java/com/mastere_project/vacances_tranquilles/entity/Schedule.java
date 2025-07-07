@@ -5,6 +5,9 @@ import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+/**
+ * Entité JPA représentant un créneau de disponibilité d'un prestataire.
+ */
 @Entity
 @Table(name = "schedules")
 @Data
@@ -20,11 +23,11 @@ public class Schedule {
     private LocalTime startTime;
     private LocalTime endTime;
 
-//    @ManyToOne
-//    @JoinColumn(name = "provider_id")
-//    private User provider;
-//
-//    @ManyToOne
-//    @JoinColumn(name = "reservation_id")
-//    private Reservation reservation;
+    // @ManyToOne
+    // @JoinColumn(name = "provider_id")
+    // private User provider;
+    //
+    // @ManyToOne
+    // @JoinColumn(name = "reservation_id")
+    // private Reservation reservation;
 }

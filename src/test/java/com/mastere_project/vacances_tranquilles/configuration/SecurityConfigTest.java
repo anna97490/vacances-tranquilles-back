@@ -4,15 +4,12 @@ import com.mastere_project.vacances_tranquilles.util.jwt.JwtAuthenticationFilter
 import com.mastere_project.vacances_tranquilles.util.jwt.JwtConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
-
 
 class SecurityConfigTest {
 
@@ -57,7 +54,8 @@ class SecurityConfigTest {
         verify(http).csrf(any());
         verify(http).authorizeHttpRequests(any());
         verify(http).sessionManagement(any());
-        verify(http).addFilterBefore(any(JwtAuthenticationFilter.class), eq(UsernamePasswordAuthenticationFilter.class));
+        verify(http).addFilterBefore(any(JwtAuthenticationFilter.class),
+                eq(UsernamePasswordAuthenticationFilter.class));
         verify(http).build();
     }
 }

@@ -1,20 +1,17 @@
 package com.mastere_project.vacances_tranquilles.entity;
 
-import java.util.List;
-
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Entité JPA représentant un service proposé par un prestataire.
+ */
 @Entity
 @Table(name = "service")
 @Data
@@ -31,15 +28,5 @@ public class Service {
     private String category;
     private Double price;
     private String imageUrl;
-
-//    @ManyToOne
-//    @JoinColumn(name = "provider_id")
-//    private User provider;
-//
-//    @OneToMany(mappedBy = "service", cascade = CascadeType.ALL)
-//    private List<Reservation> reservations;
-//
-//    @OneToMany(mappedBy = "service", cascade = CascadeType.ALL)
-//    private List<Payment> payments;
 
 }

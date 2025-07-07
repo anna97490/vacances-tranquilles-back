@@ -77,7 +77,7 @@ class UserServiceImplTest {
         when(userRepository.existsByEmail("test@example.com")).thenReturn(true);
 
         assertThatThrownBy(() -> userService.registerClient(dto))
-            .isInstanceOf(EmailAlreadyExistsException.class);
+                .isInstanceOf(EmailAlreadyExistsException.class);
     }
 
     @Test
@@ -87,7 +87,7 @@ class UserServiceImplTest {
         when(dto.getCompanyName()).thenReturn(null);
 
         assertThatThrownBy(() -> userService.registerProvider(dto))
-            .isInstanceOf(MissingFieldException.class);
+                .isInstanceOf(MissingFieldException.class);
     }
 
     @Test
@@ -98,7 +98,7 @@ class UserServiceImplTest {
         when(dto.getSiretSiren()).thenReturn(null);
 
         assertThatThrownBy(() -> userService.registerProvider(dto))
-            .isInstanceOf(MissingFieldException.class);
+                .isInstanceOf(MissingFieldException.class);
     }
 
     @Test
@@ -111,7 +111,7 @@ class UserServiceImplTest {
         when(userRepository.existsByEmail("test@example.com")).thenReturn(true);
 
         assertThatThrownBy(() -> userService.registerProvider(dto))
-            .isInstanceOf(EmailAlreadyExistsException.class);
+                .isInstanceOf(EmailAlreadyExistsException.class);
     }
 
     @Test
@@ -142,7 +142,7 @@ class UserServiceImplTest {
         when(userRepository.findByEmail("notfound@example.com")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.login(userDTO))
-            .isInstanceOf(EmailNotFoundException.class);
+                .isInstanceOf(EmailNotFoundException.class);
     }
 
     @Test
@@ -159,7 +159,7 @@ class UserServiceImplTest {
         when(passwordEncoder.matches("wrongpass", "encodedPassword")).thenReturn(false);
 
         assertThatThrownBy(() -> userService.login(userDTO))
-            .isInstanceOf(WrongPasswordException.class);
+                .isInstanceOf(WrongPasswordException.class);
     }
 
     @Test
@@ -304,4 +304,3 @@ class UserServiceImplTest {
         assertThat(attempts.get("block@example.com")).isNull();
     }
 }
-

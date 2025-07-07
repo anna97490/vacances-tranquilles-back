@@ -4,6 +4,9 @@ import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * DTO représentant un utilisateur (client ou prestataire) de la plateforme.
+ */
 @Data
 @NoArgsConstructor
 public class UserDTO {
@@ -23,4 +26,3 @@ public class UserDTO {
     private String siret;
     private String companyName;
 }
-
