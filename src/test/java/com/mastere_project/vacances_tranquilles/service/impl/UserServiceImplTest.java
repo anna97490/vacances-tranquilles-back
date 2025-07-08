@@ -193,8 +193,8 @@ class UserServiceImplTest {
         when(userRepository.findByEmail("user@example.com")).thenThrow(new RuntimeException("DB down"));
 
         assertThatThrownBy(() -> userService.login(userDTO))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("Erreur serveur inattendue");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Erreur serveur inattendue");
     }
 
     @Test
@@ -211,10 +211,17 @@ class UserServiceImplTest {
         blockedUntilField.set(userService, blockedMap);
 
         assertThatThrownBy(() -> userService.login(userDTO))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("Trop de tentatives échouées");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Trop de tentatives échouées");
     }
 
+    // Suppression du warning "unchecked" :
+    // La réflexion retourne toujours un Object, donc un cast explicite est
+    // nécessaire.
+    // Ici, nous savons que le champ est bien du bon type car nous contrôlons le
+    // contexte du test.
+    // Ce pattern est acceptable uniquement en test, jamais en production.
+    @SuppressWarnings("unchecked")
     @Test
     @DisplayName("incrementLoginAttempts - should increment but not block if under max")
     void incrementLoginAttempts_shouldIncrementButNotBlock() throws Exception {
@@ -238,9 +245,16 @@ class UserServiceImplTest {
         assertThat(blockedMap.get("test2@example.com")).isNull();
         // Et que le compteur a bien augmenté
         attempts = (Map<String, Integer>) loginAttemptsField.get(userService);
-        assertThat(attempts.get("test2@example.com")).isEqualTo(3);
+        assertThat(attempts).containsEntry("test2@example.com", 3);
     }
 
+     // Suppression du warning "unchecked" :
+    // La réflexion retourne toujours un Object, donc un cast explicite est
+    // nécessaire.
+    // Ici, nous savons que le champ est bien du bon type car nous contrôlons le
+    // contexte du test.
+    // Ce pattern est acceptable uniquement en test, jamais en production.
+    @SuppressWarnings("unchecked")
     @Test
     @DisplayName("login - should reset counters after successful login")
     void login_shouldResetCountersAfterSuccess() throws Exception {
@@ -278,6 +292,13 @@ class UserServiceImplTest {
         assertThat(blockedMap.get("reset@example.com")).isNull();
     }
 
+     // Suppression du warning "unchecked" :
+    // La réflexion retourne toujours un Object, donc un cast explicite est
+    // nécessaire.
+    // Ici, nous savons que le champ est bien du bon type car nous contrôlons le
+    // contexte du test.
+    // Ce pattern est acceptable uniquement en test, jamais en production.
+    @SuppressWarnings("unchecked")
     @Test
     @DisplayName("incrementLoginAttempts - should block user after max attempts")
     void incrementLoginAttempts_shouldBlockUser() throws Exception {

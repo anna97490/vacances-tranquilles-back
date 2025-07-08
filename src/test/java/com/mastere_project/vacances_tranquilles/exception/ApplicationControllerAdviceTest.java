@@ -61,4 +61,59 @@ class ApplicationControllerAdviceTest {
         assertThat(response.getBody().getMessage()).contains("Erreur 1");
         assertThat(response.getBody().getMessage()).contains("Erreur 2");
     }
-} 
+
+    @Test
+    @DisplayName("handleAccountLockedException should return 423 and error entity")
+    void handleAccountLockedException_shouldReturn423() {
+        AccountLockedException ex = new AccountLockedException("Compte bloqué");
+        ResponseEntity<ErrorEntity> response = advice.handleAccountLockedException(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.LOCKED);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("ACCOUNT_LOCKED");
+        assertThat(response.getBody().getMessage()).isEqualTo("Compte bloqué");
+    }
+
+    @Test
+    @DisplayName("handleLoginInternalException should return 500 and error entity")
+    void handleLoginInternalException_shouldReturn500() {
+        LoginInternalException ex = new LoginInternalException("Erreur interne", new RuntimeException());
+        ResponseEntity<ErrorEntity> response = advice.handleLoginInternalException(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("LOGIN_INTERNAL_ERROR");
+        assertThat(response.getBody().getMessage()).isEqualTo("Erreur interne");
+    }
+
+    @Test
+    @DisplayName("handleEmailNotFoundException should return 401 and error entity")
+    void handleEmailNotFoundException_shouldReturn401() {
+        EmailNotFoundException ex = new EmailNotFoundException("Email inconnu");
+        ResponseEntity<ErrorEntity> response = advice.handleEmailNotFoundException(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("EMAIL_NOT_FOUND");
+        assertThat(response.getBody().getMessage()).isEqualTo("Email inconnu");
+    }
+
+    @Test
+    @DisplayName("handleWrongPasswordException should return 401 and error entity")
+    void handleWrongPasswordException_shouldReturn401() {
+        WrongPasswordException ex = new WrongPasswordException("Mot de passe incorrect");
+        ResponseEntity<ErrorEntity> response = advice.handleWrongPasswordException(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("WRONG_PASSWORD");
+        assertThat(response.getBody().getMessage()).isEqualTo("Mot de passe incorrect");
+    }
+
+    @Test
+    @DisplayName("handleUnexpectedLoginException should return 500 and error entity")
+    void handleUnexpectedLoginException_shouldReturn500() {
+        UnexpectedLoginException ex = new UnexpectedLoginException("Erreur inattendue", new RuntimeException());
+        ResponseEntity<ErrorEntity> response = advice.handleUnexpectedLoginException(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("UNEXPECTED_LOGIN_ERROR");
+        assertThat(response.getBody().getMessage()).isEqualTo("Erreur inattendue");
+    }
+}

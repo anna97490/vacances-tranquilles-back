@@ -2,8 +2,10 @@ package com.mastere_project.vacances_tranquilles.service.impl;
 
 import com.mastere_project.vacances_tranquilles.dto.*;
 import com.mastere_project.vacances_tranquilles.entity.User;
+import com.mastere_project.vacances_tranquilles.exception.AccountLockedException;
 import com.mastere_project.vacances_tranquilles.exception.EmailAlreadyExistsException;
 import com.mastere_project.vacances_tranquilles.exception.EmailNotFoundException;
+import com.mastere_project.vacances_tranquilles.exception.LoginInternalException;
 import com.mastere_project.vacances_tranquilles.exception.MissingFieldException;
 import com.mastere_project.vacances_tranquilles.exception.WrongPasswordException;
 import com.mastere_project.vacances_tranquilles.mapper.UserMapper;
@@ -33,7 +35,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final JwtConfig jwt;
     private static final int MAX_ATTEMPTS = 5;
-    private static final long BLOCK_TIME_MS = 10 * 60 * 1000; // 10 minutes
+    private static final long BLOCK_TIME_MS = 10 * 60 * 1000L; // 10 minutes
     private final Map<String, Integer> loginAttempts = new ConcurrentHashMap<>();
     private final Map<String, Long> blockedUntil = new ConcurrentHashMap<>();
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
@@ -54,7 +56,6 @@ public class UserServiceImpl implements UserService {
         this.jwt = jwtConfig;
     }
 
-    
     /**
      * Inscrit un nouveau client.
      * 
@@ -110,7 +111,7 @@ public class UserServiceImpl implements UserService {
     public LoginResponseDTO login(UserDTO userDTO) {
         String email = userDTO.getEmail();
         if (blockedUntil.containsKey(email) && blockedUntil.get(email) > System.currentTimeMillis()) {
-            throw new RuntimeException("Trop de tentatives échouées. Réessayez plus tard.");
+            throw new AccountLockedException("Trop de tentatives échouées. Réessayez plus tard.");
         }
         try {
             Optional<User> optionalUser = userRepository.findByEmail(email);
@@ -139,7 +140,8 @@ public class UserServiceImpl implements UserService {
         } catch (EmailNotFoundException | WrongPasswordException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Erreur serveur inattendue lors de la tentative de connexion", e);
+            throw new LoginInternalException(
+                    "Erreur serveur inattendue lors de la tentative de connexion", e);
         }
     }
 
