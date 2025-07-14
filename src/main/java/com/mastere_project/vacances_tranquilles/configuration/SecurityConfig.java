@@ -54,6 +54,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+         // CSRF désactivé car l’API est stateless et utilise JWT dans l’en-tête Authorization.
+        // Aucun cookie d’authentification n’est utilisé, donc le risque CSRF est inexistant.
+        // Voir : https://docs.spring.io/spring-security/site/docs/3.2.x/reference/htmlsingle/html5/
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll() // Autorise login et register
