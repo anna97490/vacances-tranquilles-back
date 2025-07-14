@@ -86,6 +86,7 @@ jobs:
             echo "type=patch" >> $GITHUB_OUTPUT
           else
             echo "type=none" >> $GITHUB_OUTPUT
+          fi
 
       - name: Bump version in pom.xml
         if: steps.version_type.outputs.type != 'none'
