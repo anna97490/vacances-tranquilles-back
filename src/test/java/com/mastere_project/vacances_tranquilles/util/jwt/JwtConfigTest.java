@@ -18,7 +18,7 @@ class JwtConfigTest {
     private JwtConfig jwtConfig;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         jwtConfig = new JwtConfig();
     }
 
@@ -64,7 +64,7 @@ class JwtConfigTest {
 
     @Test
     @DisplayName("isTokenExpired - should return true for expired token")
-    void isTokenExpired_shouldReturnTrueForExpiredToken() throws Exception {
+    void isTokenExpired_shouldReturnTrueForExpiredToken() {
         // Générer un token expiré en modifiant la date d'expiration
         String email = "expired@domain.com";
         UserRole role = UserRole.CLIENT;

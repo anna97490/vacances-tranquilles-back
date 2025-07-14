@@ -31,7 +31,7 @@ public class AuthController {
      * @return Réponse HTTP 200 si succès
      */
     @PostMapping("/register/client")
-    public ResponseEntity<?> registerClient(@Valid @RequestBody RegisterClientDTO registerClientDTO) {
+    public ResponseEntity<String> registerClient(@Valid @RequestBody RegisterClientDTO registerClientDTO) {
         userService.registerClient(registerClientDTO);
         return ResponseEntity.ok("Client registered successfully");
     }
@@ -43,7 +43,7 @@ public class AuthController {
      * @return Réponse HTTP 200 si succès
      */
     @PostMapping("/register/provider")
-    public ResponseEntity<?> registerProvider(@Valid @RequestBody RegisterProviderDTO registerProviderDTO) {
+    public ResponseEntity<String> registerProvider(@Valid @RequestBody RegisterProviderDTO registerProviderDTO) {
         userService.registerProvider(registerProviderDTO);
         return ResponseEntity.ok("Provider registered successfully");
     }
