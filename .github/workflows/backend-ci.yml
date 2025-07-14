@@ -103,7 +103,8 @@ jobs:
           esac
           new_version="$major.$minor.$patch-SNAPSHOT"
           echo "Nouvelle version : $new_version"
-          sed -i "0,/<version>.*<\/version>/s//<version> $new_version <\/version>/" pom.xml
+          # Remplace uniquement la deuxième balise <version> (celle du projet)
+          sed -i '0,/<version>.*<\/version>/!{n; s/<version>.*<\/version>/<version>'$new_version'<\/version>/;}' pom.xml
           git add pom.xml
           git commit -m "ci: bump version to $new_version [skip ci]"
           git push origin main
