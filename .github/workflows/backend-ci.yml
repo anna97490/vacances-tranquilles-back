@@ -1,5 +1,8 @@
 name: Backend CI - Build and Test
 
+permissions:
+  contents: write
+
 on:
   push:
     branches:
@@ -88,7 +91,7 @@ jobs:
       - name: Bump version in pom.xml
         if: steps.version_type.outputs.type != 'none'
         run: |
-          current_version=$(grep -m 1 '<version>' pom.xml | sed -E 's/.*<version>(.+)<\/version>.*/\1/')
+          current_version=$(grep '<version>' pom.xml | sed -n '2p' | sed -E 's/.*<version>(.+)<\/version>.*/\1/')
           IFS='.' read -r major minor patch <<< "${current_version//-SNAPSHOT/}"
           case "${{ steps.version_type.outputs.type }}" in
             major)
