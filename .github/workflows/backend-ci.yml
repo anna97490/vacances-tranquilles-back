@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - staging
-      - 'feature/**'
+      - "feature/**"
   pull_request:
     branches:
       - staging
@@ -22,7 +22,7 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: "temurin"
           java-version: 17
 
       - name: Grant execute permission to mvnw
@@ -87,7 +87,7 @@ jobs:
       - name: Bump version in pom.xml
         if: steps.version_type.outputs.type != 'none'
         run: |
-          current_version=$(grep -m 1 '<version>' pom.xml | sed -E 's/.*<version>(.+)<\/version>.*/\1/')
+          current_version=$grep '<version>' pom.xml | sed -n '2p' | sed -E 's/.*<version>(.+)<\/version>.*/\1/')
           IFS='.' read -r major minor patch <<< "${current_version//-SNAPSHOT/}"
           case "${{ steps.version_type.outputs.type }}" in
             major)
@@ -97,9 +97,16 @@ jobs:
             patch)
               patch=$((patch + 1)) ;;
           esac
-          new_version="$major.$minor.$patch-SNAPSHOT"
+          new_version="$major.$minor.$patch"
           echo "Nouvelle version : $new_version"
-          sed -i "0,/<version>.*<\/version>/s//<version>$new_version<\/version>/" pom.xml
+          awk '{
+            print
+            if ($0 ~ /<artifactId>vacances-tranquilles<\/artifactId>/) {
+              getline
+              gsub(/<version>.*<\/version>/, "<version>'"$new_version"'</version>")
+              print
+            }
+          }' pom.xml > pom.tmp && mv pom.tmp pom.xml
           git add pom.xml
           git commit -m "ci: bump version to $new_version [skip ci]"
           git push origin main
