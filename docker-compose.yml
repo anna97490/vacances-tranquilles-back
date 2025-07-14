@@ -1,55 +1,55 @@
-version: "3.8"
+# version: "3.8"
 
-services:
-  frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
-    ports:
-      - "8081:80"
-    stdin_open: true
-    tty: true
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
+# services:
+#   frontend:
+#     build:
+#       context: ../frontend
+#       dockerfile: Dockerfile
+#     ports:
+#       - "8081:80"
+#     stdin_open: true
+#     tty: true
+#     healthcheck:
+#       test: ["CMD", "curl", "-f", "http://localhost"]
+#       interval: 30s
+#       timeout: 10s
+#       retries: 5
 
-  backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
-    depends_on:
-      - postgres
-    environment:
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET} 
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
+#   backend:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile
+#     ports:
+#       - "8080:8080"
+#     depends_on:
+#       - postgres
+#     environment:
+#       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+#       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+#       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+#       JWT_SECRET: ${JWT_SECRET} 
+#     healthcheck:
+#       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+#       interval: 30s
+#       timeout: 10s
+#       retries: 5
 
-  postgres:
-    image: postgres:16
-    container_name: postgres
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+#   postgres:
+#     image: postgres:16
+#     container_name: postgres
+#     ports:
+#       - "5432:5432"
+#     environment:
+#       POSTGRES_DB: ${POSTGRES_DB}
+#       POSTGRES_USER: ${POSTGRES_USER}
+#       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+#     healthcheck:
+#       test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
+#       interval: 10s
+#       timeout: 5s
+#       retries: 5
 
-volumes:
-  postgres_data:
+# volumes:
+#   postgres_data:

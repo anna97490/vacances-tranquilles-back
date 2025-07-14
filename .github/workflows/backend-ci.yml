@@ -73,7 +73,7 @@ jobs:
       - name: Detect commit types
         id: version_type
         run: |
-          COMMITS=$(git log origin/main..HEAD --pretty=format:"%s")
+          COMMITS=$(git log -n 10 --pretty=format:"%s")
           echo "$COMMITS" > commits.txt
           if grep -q "BREAKING CHANGE\|!\|feat!" commits.txt; then
             echo "type=major" >> $GITHUB_OUTPUT
@@ -100,7 +100,7 @@ jobs:
           esac
           new_version="$major.$minor.$patch-SNAPSHOT"
           echo "Nouvelle version : $new_version"
-          sed -i "0,/<version>.*<\/version>/s//<version>$new_version<\/version>/" pom.xml
+          sed -i "0,/<version>.*<\/version>/s//<version> $new_version <\/version>/" pom.xml
           git add pom.xml
           git commit -m "ci: bump version to $new_version [skip ci]"
           git push origin main
