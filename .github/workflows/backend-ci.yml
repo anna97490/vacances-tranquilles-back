@@ -104,9 +104,6 @@ jobs:
           git commit -m "ci: bump version to $new_version [skip ci]"
           git push origin main
 
-  # Ajouter uplaod des logs si failure sur Render
-  # Ajouter regles sur tests integration
-
   deploy-to-render:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest

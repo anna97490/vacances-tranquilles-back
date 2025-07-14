@@ -49,8 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // Si l'email est extrait et aucune authentification encore définie, alors
         // valider le token
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            if (jwt.validateToken(token, email)) {
+        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null && jwt.validateToken(token, email)) {
                 // Création de l'authentification Spring Security
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email,
                         null, null);
@@ -58,7 +57,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // Stockage de l'authentification dans le contexte de sécurité
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
         }
 
         // Continuer la chaîne de filtres

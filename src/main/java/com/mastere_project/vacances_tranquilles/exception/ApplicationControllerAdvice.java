@@ -56,4 +56,69 @@ public class ApplicationControllerAdvice {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * Gère l'exception levée lorsqu'un compte utilisateur est temporairement bloqué
+     * suite à trop de tentatives échouées.
+     *
+     * @param ex l'exception AccountLockedException
+     * @return une réponse HTTP 423 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(AccountLockedException.class)
+    public ResponseEntity<ErrorEntity> handleAccountLockedException(AccountLockedException ex) {
+        ErrorEntity error = new ErrorEntity("ACCOUNT_LOCKED", ex.getMessage());
+        return ResponseEntity.status(423).body(error);
+    }
+
+    /**
+     * Gère l'exception levée en cas d'erreur interne inattendue lors de la
+     * connexion.
+     *
+     * @param ex l'exception LoginInternalException
+     * @return une réponse HTTP 500 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(LoginInternalException.class)
+    public ResponseEntity<ErrorEntity> handleLoginInternalException(LoginInternalException ex) {
+        ErrorEntity error = new ErrorEntity("LOGIN_INTERNAL_ERROR", ex.getMessage());
+        return ResponseEntity.status(500).body(error);
+    }
+
+    /**
+     * Gère l'exception levée lorsqu'aucun utilisateur n'est trouvé pour un email
+     * donné.
+     *
+     * @param ex l'exception EmailNotFoundException
+     * @return une réponse HTTP 401 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(EmailNotFoundException.class)
+    public ResponseEntity<ErrorEntity> handleEmailNotFoundException(EmailNotFoundException ex) {
+        ErrorEntity error = new ErrorEntity("EMAIL_NOT_FOUND", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    /**
+     * Gère l'exception levée lorsqu'un mot de passe incorrect est fourni lors de
+     * l'authentification.
+     *
+     * @param ex l'exception WrongPasswordException
+     * @return une réponse HTTP 401 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(WrongPasswordException.class)
+    public ResponseEntity<ErrorEntity> handleWrongPasswordException(WrongPasswordException ex) {
+        ErrorEntity error = new ErrorEntity("WRONG_PASSWORD", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    /**
+     * Gère l'exception levée lorsqu'une erreur inattendue survient lors de la
+     * tentative de connexion.
+     *
+     * @param ex l'exception UnexpectedLoginException
+     * @return une réponse HTTP 500 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(UnexpectedLoginException.class)
+    public ResponseEntity<ErrorEntity> handleUnexpectedLoginException(UnexpectedLoginException ex) {
+        ErrorEntity error = new ErrorEntity("UNEXPECTED_LOGIN_ERROR", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
 }

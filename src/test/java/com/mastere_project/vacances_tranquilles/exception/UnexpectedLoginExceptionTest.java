@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class UnexpectedLoginExceptionTest {
+class UnexpectedLoginExceptionTest {
 
     @Test
     void constructor_setsMessageAndCause() {
