@@ -62,6 +62,10 @@ public class User {
     @OneToMany(mappedBy = "user2")
     private List<Conversation> conversationsAsUser2 = new ArrayList<>();
 
+    /**
+     * Retourne la liste de toutes les conversations de l'utilisateur (en tant que user1 ou user2).
+     * @return liste de toutes les conversations
+     */
     @Transient
     public List<Conversation> getAllConversations() {
         List<Conversation> all = new ArrayList<>();
