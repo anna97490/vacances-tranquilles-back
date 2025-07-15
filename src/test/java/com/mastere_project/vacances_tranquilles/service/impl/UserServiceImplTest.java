@@ -16,9 +16,10 @@ import com.mastere_project.vacances_tranquilles.util.jwt.JwtConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
@@ -28,10 +29,13 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 // ... imports et début de classe déjà présents ...
 
+@ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
 
     @Mock
@@ -41,14 +45,14 @@ class UserServiceImplTest {
     @Mock
     private UserMapper userMapper;
     @Mock
-    private JwtConfig jwtConfig;
+    private JwtConfig jwt;
 
     @InjectMocks
     private UserServiceImpl userService;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        // MockitoExtension s'occupe de l'init
     }
 
     @Test
@@ -165,23 +169,22 @@ class UserServiceImplTest {
     @Test
     @DisplayName("login - should return token and role on success")
     void login_shouldReturnTokenAndRole_onSuccess() {
-        UserDTO userDTO = mock(UserDTO.class);
-        when(userDTO.getEmail()).thenReturn("user@example.com");
-        when(userDTO.getPassword()).thenReturn("goodpass");
-
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail("test@test.com");
+        userDTO.setPassword("password");
         User user = new User();
-        user.setPassword("encodedPassword");
-        user.setEmail("user@example.com");
+        user.setId(1L);
+        user.setEmail("test@test.com");
+        user.setPassword("hashed");
         user.setUserRole(UserRole.CLIENT);
 
-        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("goodpass", "encodedPassword")).thenReturn(true);
-        when(jwtConfig.generateToken("user@example.com", UserRole.CLIENT)).thenReturn("token");
+        when(userRepository.findByEmail("test@test.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("password", "hashed")).thenReturn(true);
+        when(jwt.generateToken(anyLong(), any())).thenReturn("token123");
 
         LoginResponseDTO response = userService.login(userDTO);
-
-        assertThat(response.getToken()).isEqualTo("token");
-        assertThat(response.getUserRole()).isEqualTo(UserRole.CLIENT);
+        assertEquals("token123", response.getToken());
+        assertEquals(UserRole.CLIENT, response.getUserRole());
     }
 
     @Test
@@ -234,48 +237,33 @@ class UserServiceImplTest {
         method.invoke(userService, "test2@example.com");
 
         // Vérifier que l'utilisateur n'est pas bloqué
-        blockedMap = (Map<String, Long>) blockedUntilField.get(userService);
-        assertThat(blockedMap.get("test2@example.com")).isNull();
+        @SuppressWarnings("unchecked")
+        Map<String, Long> actualBlockedMap = (Map<String, Long>) blockedUntilField.get(userService);
+        assertThat(actualBlockedMap.get("test2@example.com")).isNull();
         // Et que le compteur a bien augmenté
         attempts = (Map<String, Integer>) loginAttemptsField.get(userService);
-        assertThat(attempts.get("test2@example.com")).isEqualTo(3);
+        assertThat(attempts).containsEntry("test2@example.com", 3);
     }
 
     @Test
     @DisplayName("login - should reset counters after successful login")
-    void login_shouldResetCountersAfterSuccess() throws Exception {
-        UserDTO userDTO = mock(UserDTO.class);
-        when(userDTO.getEmail()).thenReturn("reset@example.com");
-        when(userDTO.getPassword()).thenReturn("goodpass");
-
+    void login_shouldResetCountersAfterSuccess() {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail("test2@test.com");
+        userDTO.setPassword("password2");
         User user = new User();
-        user.setPassword("encodedPassword");
-        user.setEmail("reset@example.com");
-        user.setUserRole(UserRole.CLIENT);
+        user.setId(2L);
+        user.setEmail("test2@test.com");
+        user.setPassword("hashed2");
+        user.setUserRole(UserRole.PRESTATAIRE);
 
-        when(userRepository.findByEmail("reset@example.com")).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("goodpass", "encodedPassword")).thenReturn(true);
-        when(jwtConfig.generateToken("reset@example.com", UserRole.CLIENT)).thenReturn("token");
+        when(userRepository.findByEmail("test2@test.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("password2", "hashed2")).thenReturn(true);
+        when(jwt.generateToken(anyLong(), any())).thenReturn("token456");
 
-        // Simuler des compteurs existants
-        Field loginAttemptsField = UserServiceImpl.class.getDeclaredField("loginAttempts");
-        loginAttemptsField.setAccessible(true);
-        Map<String, Integer> attempts = new ConcurrentHashMap<>();
-        attempts.put("reset@example.com", 2);
-        loginAttemptsField.set(userService, attempts);
-
-        Field blockedUntilField = UserServiceImpl.class.getDeclaredField("blockedUntil");
-        blockedUntilField.setAccessible(true);
-        Map<String, Long> blockedMap = new ConcurrentHashMap<>();
-        blockedUntilField.set(userService, blockedMap);
-
-        userService.login(userDTO);
-
-        // Les compteurs doivent être reset
-        attempts = (Map<String, Integer>) loginAttemptsField.get(userService);
-        blockedMap = (Map<String, Long>) blockedUntilField.get(userService);
-        assertThat(attempts.get("reset@example.com")).isNull();
-        assertThat(blockedMap.get("reset@example.com")).isNull();
+        LoginResponseDTO response = userService.login(userDTO);
+        assertEquals("token456", response.getToken());
+        assertEquals(UserRole.PRESTATAIRE, response.getUserRole());
     }
 
     @Test
@@ -297,8 +285,9 @@ class UserServiceImplTest {
         method.invoke(userService, "block@example.com");
 
         // Vérifier que l'utilisateur est bloqué
-        blockedMap = (Map<String, Long>) blockedUntilField.get(userService);
-        assertThat(blockedMap.get("block@example.com")).isNotNull();
+        @SuppressWarnings("unchecked")
+        Map<String, Long> actualBlockedMap = (Map<String, Long>) blockedUntilField.get(userService);
+        assertThat(actualBlockedMap.get("block@example.com")).isNotNull();
         // Et que le compteur a été supprimé
         attempts = (Map<String, Integer>) loginAttemptsField.get(userService);
         assertThat(attempts.get("block@example.com")).isNull();

@@ -1,0 +1,7 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 80%      # seuil minimal
+        threshold: 1%    # marge de tolérance
+        if_no_uploads: error

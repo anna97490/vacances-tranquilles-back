@@ -7,21 +7,38 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.stream.Collectors;
 
+/**
+ * Contrôleur global de gestion des exceptions pour l'application.
+ * Intercepte les exceptions personnalisées et retourne une réponse structurée avec un code et un message d'erreur.
+ */
 @ControllerAdvice
 public class ApplicationControllerAdvice {
 
+    /**
+     * Gère l'exception EmailAlreadyExistsException (email déjà utilisé).
+     */
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<ErrorEntity> handleEmailAlreadyExists(EmailAlreadyExistsException ex) {
         ErrorEntity error = new ErrorEntity("EMAIL_ALREADY_USED", ex.getMessage());
+        
         return new ResponseEntity<>(error, HttpStatus.CONFLICT); // 409
     }
 
+
+    /**
+     * Gère l'exception MissingFieldException (champ requis manquant).
+     */
     @ExceptionHandler(MissingFieldException.class)
     public ResponseEntity<ErrorEntity> handleMissingField(MissingFieldException ex) {
         ErrorEntity error = new ErrorEntity("MISSING_REQUIRED_FIELD", ex.getMessage());
+        
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
+
+    /**
+     * Gère les erreurs de validation des arguments de méthode (ex : @Valid).
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorEntity> handleValidationErrors(MethodArgumentNotValidException ex) {
         String message = ex.getBindingResult().getFieldErrors().stream()
@@ -29,8 +46,84 @@ public class ApplicationControllerAdvice {
                 .collect(Collectors.joining("; "));
 
         ErrorEntity error = new ErrorEntity("VALIDATION_ERROR", message);
+        
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
 
+    /**
+     * Gère l'exception ConversationNotFoundException (conversation non trouvée).
+     */
+    @ExceptionHandler(ConversationNotFoundException.class)
+    public ResponseEntity<ErrorEntity> handleConversationNotFound(ConversationNotFoundException ex) {
+        ErrorEntity error = new ErrorEntity("CONVERSATION_NOT_FOUND", ex.getMessage());
+        
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+
+    /**
+     * Gère l'exception ConversationForbiddenException (accès interdit à la conversation).
+     */
+    @ExceptionHandler(ConversationForbiddenException.class)
+    public ResponseEntity<ErrorEntity> handleConversationForbidden(ConversationForbiddenException ex) {
+        ErrorEntity error = new ErrorEntity("FORBIDDEN", ex.getMessage());
+        
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+    }
+
+
+    /**
+     * Gère l'exception ConversationAlreadyExistsException (conversation déjà existante).
+     */
+    @ExceptionHandler(ConversationAlreadyExistsException.class)
+    public ResponseEntity<ErrorEntity> handleConversationAlreadyExists(ConversationAlreadyExistsException ex) {
+        ErrorEntity error = new ErrorEntity("CONVERSATION_ALREADY_EXISTS", ex.getMessage());
+        
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+
+    /**
+     * Gère l'exception UserNotFoundException (utilisateur non trouvé).
+     */
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorEntity> handleUserNotFound(UserNotFoundException ex) {
+        ErrorEntity error = new ErrorEntity("USER_NOT_FOUND", ex.getMessage());
+        
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+
+    /**
+     * Gère l'exception WrongPasswordException (mot de passe incorrect).
+     */
+    @ExceptionHandler(WrongPasswordException.class)
+    public ResponseEntity<ErrorEntity> handleWrongPassword(WrongPasswordException ex) {
+        ErrorEntity error = new ErrorEntity("WRONG_PASSWORD", ex.getMessage());
+        
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
+
+    /**
+     * Gère l'exception EmailNotFoundException (email non trouvé).
+     */
+    @ExceptionHandler(EmailNotFoundException.class)
+    public ResponseEntity<ErrorEntity> handleEmailNotFound(EmailNotFoundException ex) {
+        ErrorEntity error = new ErrorEntity("EMAIL_NOT_FOUND", ex.getMessage());
+        
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+
+    /**
+     * Gère l'exception UnexpectedLoginException (erreur inattendue lors du login).
+     */
+    @ExceptionHandler(UnexpectedLoginException.class)
+    public ResponseEntity<ErrorEntity> handleUnexpectedLogin(UnexpectedLoginException ex) {
+        ErrorEntity error = new ErrorEntity("UNEXPECTED_LOGIN", ex.getMessage());
+        
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

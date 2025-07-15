@@ -5,15 +5,11 @@ import com.mastere_project.vacances_tranquilles.dto.RegisterClientDTO;
 import com.mastere_project.vacances_tranquilles.dto.RegisterProviderDTO;
 import com.mastere_project.vacances_tranquilles.dto.UserDTO;
 import com.mastere_project.vacances_tranquilles.service.UserService;
-import com.mastere_project.vacances_tranquilles.util.jwt.JwtConfig;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Contrôleur d'authentification gérant l'inscription et la connexion des utilisateurs.

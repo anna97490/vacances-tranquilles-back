@@ -1,0 +1,88 @@
+package com.mastere_project.vacances_tranquilles.controller;
+
+import com.mastere_project.vacances_tranquilles.dto.MessageDTO;
+import com.mastere_project.vacances_tranquilles.service.MessageService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/messages")
+@RequiredArgsConstructor
+public class MessageController {
+
+    private final MessageService messageService;
+
+    /**
+     * Envoie un nouveau message dans une conversation.
+     * 
+     * @param messageDTO le message à envoyer
+     * @param principal  l'utilisateur authentifié (expéditeur)
+     * @return le message sauvegardé
+     */
+    @PostMapping
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<MessageDTO> sendMessage(
+            @RequestBody MessageDTO messageDTO,
+            Principal principal) {
+
+        Long senderId = Long.parseLong(principal.getName());
+        messageDTO.setSenderId(senderId);
+        MessageDTO saved = messageService.sendMessage(messageDTO);
+
+        return ResponseEntity.ok(saved);
+    }
+
+
+    /**
+     * Récupère tous les messages d'une conversation et marque comme lus ceux
+     * envoyés par l'autre utilisateur.
+     * 
+     * @param conversationId l'identifiant de la conversation
+     * @param principal      l'utilisateur authentifié
+     * @return la liste des messages de la conversation
+     */
+    @GetMapping("/conversation/{conversationId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<MessageDTO>> getMessagesByConversation(
+            @PathVariable Long conversationId,
+            Principal principal) {
+
+        Long userId = Long.parseLong(principal.getName());
+        List<MessageDTO> messages = messageService.getMessagesByConversationId(conversationId, userId);
+        
+        return ResponseEntity.ok(messages);
+    }
+
+
+    /**
+     * Modifie un message existant (seul l'auteur peut modifier).
+     * 
+     * @param id         l'identifiant du message
+     * @param messageDTO le contenu modifié
+     * @param principal  l'utilisateur authentifié
+     * @return le message modifié ou une erreur si non autorisé
+     */
+    @PutMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<MessageDTO> updateMessage(
+            @PathVariable Long id,
+            @RequestBody MessageDTO messageDTO,
+            Principal principal) {
+
+        Long userId = Long.parseLong(principal.getName());
+        
+        try {
+            MessageDTO updated = messageService.updateMessage(id, messageDTO, userId);
+            return ResponseEntity.ok(updated);
+        } catch (com.mastere_project.vacances_tranquilles.exception.ConversationNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (com.mastere_project.vacances_tranquilles.exception.ConversationForbiddenException e) {
+            return ResponseEntity.status(403).build();
+        }
+    }
+}

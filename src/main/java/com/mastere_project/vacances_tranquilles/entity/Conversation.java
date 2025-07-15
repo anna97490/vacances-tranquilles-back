@@ -3,6 +3,7 @@ package com.mastere_project.vacances_tranquilles.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -16,16 +17,18 @@ public class Conversation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private LocalDateTime createdAt;
+    // Un client ou prestataire peut être user1 ou user2
+    @ManyToOne
+    @JoinColumn(name = "user1_id", nullable = false)
+    private User user1;
 
-//    @ManyToOne
-//    @JoinColumn(name = "user1_id")
-//    private User user1;
-//
-//    @ManyToOne
-//    @JoinColumn(name = "user2_id")
-//    private User user2;
-//
-//    @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL)
-//    private List<Message> messages;
+    @ManyToOne
+    @JoinColumn(name = "user2_id", nullable = false)
+    private User user2;
+
+    @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Message> messages = new ArrayList<>();
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

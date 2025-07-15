@@ -4,6 +4,9 @@ import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "users")
 @Data
@@ -49,6 +52,25 @@ public class User {
     private String siretSiren;
     private String companyName;
 
+    // Relations avec les conversations
+    @OneToMany(mappedBy = "user1")
+    private List<Conversation> conversationsAsUser1 = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user2")
+    private List<Conversation> conversationsAsUser2 = new ArrayList<>();
+
+    @Transient
+    public List<Conversation> getAllConversations() {
+        List<Conversation> all = new ArrayList<>();
+        all.addAll(conversationsAsUser1);
+        all.addAll(conversationsAsUser2);
+        return all;
+    }
+
+    // Messages envoyés
+    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Message> messagesSent = new ArrayList<>();
+
 
 //    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
 //    private List<Reservation> reservationAsCustomer;
@@ -59,14 +81,6 @@ public class User {
 //    @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL)
 //    private List<Schedule> schedules;
 //
-//    @OneToMany(mappedBy = "user1", cascade = CascadeType.ALL)
-//    private List<Conversation> conversationsInitiated;
-//
-//    @OneToMany(mappedBy = "user2", cascade = CascadeType.ALL)
-//    private List<Conversation> conversationsReceived;
-//
-//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-//    private List<Message> messages;
 }
 
 

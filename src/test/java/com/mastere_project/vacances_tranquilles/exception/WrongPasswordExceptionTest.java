@@ -9,12 +9,14 @@ class WrongPasswordExceptionTest {
     void testExceptionMessage() {
         String message = "Incorrect password";
         WrongPasswordException exception = new WrongPasswordException(message);
+        
         assertEquals(message, exception.getMessage());
     }
 
     @Test
     void testExceptionIsRuntimeException() {
         WrongPasswordException exception = new WrongPasswordException("msg");
+        
         assertTrue(exception instanceof RuntimeException);
     }
 }

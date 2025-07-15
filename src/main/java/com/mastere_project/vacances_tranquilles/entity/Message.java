@@ -15,14 +15,20 @@ public class Message {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String content;
-    private LocalDateTime sentAt;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "conversation_id")
+    private Conversation conversation;
 
-//    @ManyToOne
-//    @JoinColumn(name = "conversation_id")
-//    private Conversation conversation;
-//
-//    @ManyToOne
-//    @JoinColumn(name = "user_id")
-//    private User user;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "sender_id")
+    private User sender;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String content;
+
+    @Column(nullable = false)
+    private LocalDateTime sentAt = LocalDateTime.now();
+
+    @Column(nullable = false)
+    private boolean read = false;
 }

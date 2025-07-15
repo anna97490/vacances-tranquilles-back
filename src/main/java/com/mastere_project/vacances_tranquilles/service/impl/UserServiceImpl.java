@@ -7,7 +7,6 @@ import com.mastere_project.vacances_tranquilles.exception.EmailNotFoundException
 import com.mastere_project.vacances_tranquilles.exception.MissingFieldException;
 import com.mastere_project.vacances_tranquilles.exception.WrongPasswordException;
 import com.mastere_project.vacances_tranquilles.mapper.UserMapper;
-import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import com.mastere_project.vacances_tranquilles.repository.UserRepository;
 import com.mastere_project.vacances_tranquilles.service.UserService;
 import com.mastere_project.vacances_tranquilles.util.jwt.JwtConfig;
@@ -130,7 +129,7 @@ public class UserServiceImpl implements UserService {
             loginAttempts.remove(email);
             blockedUntil.remove(email);
 
-            String token = jwt.generateToken(user.getEmail(), user.getUserRole());
+            String token = jwt.generateToken(user.getId(), user.getUserRole());
             return new LoginResponseDTO(token, user.getUserRole());
 
         } catch (EmailNotFoundException | WrongPasswordException e) {

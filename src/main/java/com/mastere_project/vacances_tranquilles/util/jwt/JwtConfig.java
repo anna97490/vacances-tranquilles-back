@@ -25,17 +25,17 @@ public class JwtConfig {
     private final String secretKey = dotenv.get("JWT_SECRET", "defaultSecretKeyForTesting12345678901234567890123456789012");
 
     // Durée de validité du token JWT, ici : 1 heure (60 * 60 * 1000 ms).
-    private static final long EXPIRATION_TIME_MS = 60 * 60 * 1000;
+    private static final long EXPIRATION_TIME_MS = 60L * 60 * 1000;
 
     /**
-     * Génère un token JWT pour un utilisateur donné et son rôle.
-     * @param email l'email de l'utilisateur
+     * Génère un token JWT pour un utilisateur donné (id et rôle).
+     * @param id l'id de l'utilisateur
      * @param role le rôle de l'utilisateur
      * @return le token JWT généré
      */
-    public String generateToken(String email, UserRole role) {
+    public String generateToken(Long id, UserRole role) {
         return Jwts.builder()
-                .setSubject(email)
+                .setSubject(String.valueOf(id)) // l'id devient le subject
                 .claim("role", role.name())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME_MS))
@@ -43,6 +43,14 @@ public class JwtConfig {
                 .compact();
     }
 
+    /**
+     * Extrait l'id utilisateur depuis un token JWT (subject).
+     * @param token le token JWT
+     * @return l'id utilisateur
+     */
+    public Long extractUserId(String token) {
+        return Long.parseLong(extractClaim(token, Claims::getSubject));
+    }
 
     /**
      * Extrait le rôle utilisateur depuis un token JWT.
@@ -58,7 +66,6 @@ public class JwtConfig {
         return UserRole.valueOf(roleName);
     }
 
-
     /**
      * Extrait l'email (subject) depuis un token JWT.
      * @param token le token JWT
@@ -68,16 +75,15 @@ public class JwtConfig {
         return extractClaim(token, Claims::getSubject);
     }
 
-
     /**
-     * Valide un token JWT pour un utilisateur donné.
+     * Valide un token JWT pour un utilisateur donné (id).
      * @param token le token JWT
-     * @param userEmail l'email attendu
-     * @return true si le token est valide et correspond à l'email, false sinon
+     * @param userId l'id attendu
+     * @return true si le token est valide et correspond à l'id, false sinon
      */
-    public boolean validateToken(String token, String userEmail) {
-        final String extractedEmail = extractEmail(token);
-        return (extractedEmail.equals(userEmail) && !isTokenExpired(token));
+    public boolean validateToken(String token, Long userId) {
+        final Long extractedId = extractUserId(token);
+        return (extractedId.equals(userId) && !isTokenExpired(token));
     }
 
 

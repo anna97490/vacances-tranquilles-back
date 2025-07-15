@@ -16,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import java.io.IOException;
 
 import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 class JwtAuthenticationFilterTest {
 
@@ -42,16 +43,15 @@ class JwtAuthenticationFilterTest {
     @DisplayName("doFilterInternal - should authenticate with valid token")
     void doFilterInternal_shouldAuthenticateWithValidToken() throws ServletException, IOException {
         String token = "valid.jwt.token";
-        String email = "user@example.com";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
-        when(jwtConfig.extractEmail(token)).thenReturn(email);
-        when(jwtConfig.validateToken(token, email)).thenReturn(true);
+        when(jwtConfig.extractUserId(token)).thenReturn(1L);
+        when(jwtConfig.validateToken(token, 1L)).thenReturn(true);
 
         filter.doFilterInternal(request, response, filterChain);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        assert authentication != null;
-        assert authentication.getPrincipal().equals(email);
+        assertNotNull(authentication);
+        assertEquals(1L, authentication.getPrincipal());
         verify(filterChain).doFilter(request, response);
     }
 
@@ -59,10 +59,9 @@ class JwtAuthenticationFilterTest {
     @DisplayName("doFilterInternal - should not authenticate with invalid token")
     void doFilterInternal_shouldNotAuthenticateWithInvalidToken() throws ServletException, IOException {
         String token = "invalid.jwt.token";
-        String email = "user@example.com";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
-        when(jwtConfig.extractEmail(token)).thenReturn(email);
-        when(jwtConfig.validateToken(token, email)).thenReturn(false);
+        when(jwtConfig.extractUserId(token)).thenReturn(2L);
+        when(jwtConfig.validateToken(token, 2L)).thenReturn(false);
 
         filter.doFilterInternal(request, response, filterChain);
 
@@ -98,10 +97,9 @@ class JwtAuthenticationFilterTest {
         Authentication mockAuth = mock(Authentication.class);
         SecurityContextHolder.getContext().setAuthentication(mockAuth);
         String token = "valid.jwt.token";
-        String email = "user@example.com";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
-        when(jwtConfig.extractEmail(token)).thenReturn(email);
-        when(jwtConfig.validateToken(token, email)).thenReturn(true);
+        when(jwtConfig.extractUserId(token)).thenReturn(3L);
+        when(jwtConfig.validateToken(token, 3L)).thenReturn(true);
 
         filter.doFilterInternal(request, response, filterChain);
 

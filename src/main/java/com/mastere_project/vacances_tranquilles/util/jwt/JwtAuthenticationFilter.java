@@ -39,20 +39,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
         String token = null;
-        String email = null;
+        Long userId = null;
 
         // Extraction du token JWT depuis l'en-tête Authorization
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
-            email = jwt.extractEmail(token);
+            userId = jwt.extractUserId(token);
         }
 
-        // Si l'email est extrait et aucune authentification encore définie, alors
+        // Si l'id est extrait et aucune authentification encore définie, alors
         // valider le token
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            if (jwt.validateToken(token, email)) {
+        if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (jwt.validateToken(token, userId)) {
                 // Création de l'authentification Spring Security
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email,
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId,
                         null, null);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
