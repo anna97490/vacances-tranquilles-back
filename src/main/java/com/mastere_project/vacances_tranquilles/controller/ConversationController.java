@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.List;
 
-// DTO for conversation creation request
+/**
+ * Contrôleur REST pour la gestion des conversations entre utilisateurs.
+ */
 @Data
 class ConversationCreateRequest {
     private Long otherUserId;

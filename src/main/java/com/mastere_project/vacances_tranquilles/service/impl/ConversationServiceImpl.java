@@ -12,8 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Implémentation du service pour la gestion des conversations entre utilisateurs.
- * Fournit les opérations de récupération, création et consultation de conversations.
+ * Service d'implémentation pour la gestion des conversations entre utilisateurs.
  */
 @Service
 public class ConversationServiceImpl implements ConversationService {

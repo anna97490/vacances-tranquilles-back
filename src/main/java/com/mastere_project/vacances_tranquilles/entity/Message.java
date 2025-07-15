@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
+/**
+ * Représente un message envoyé dans une conversation.
+ */
 @Entity
 @Table(name = "messages")
 @Data

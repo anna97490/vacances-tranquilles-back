@@ -4,6 +4,9 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+/**
+ * DTO pour l'inscription d'un prestataire.
+ */
 @Data
 public class RegisterProviderDTO {
 

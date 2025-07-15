@@ -9,6 +9,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Représente un service proposé par un prestataire.
+ */
 @Entity
 @Table(name = "service")
 @Data

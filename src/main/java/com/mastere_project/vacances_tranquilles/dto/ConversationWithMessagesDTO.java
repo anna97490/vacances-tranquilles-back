@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * DTO pour une conversation avec ses messages associés.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

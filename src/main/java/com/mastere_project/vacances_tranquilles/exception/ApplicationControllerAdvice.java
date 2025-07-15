@@ -3,127 +3,124 @@ package com.mastere_project.vacances_tranquilles.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.stream.Collectors;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
 /**
- * Contrôleur global de gestion des exceptions pour l'application.
- * Intercepte les exceptions personnalisées et retourne une réponse structurée avec un code et un message d'erreur.
+ * Gère les exceptions globales de l'application et fournit des réponses d'erreur formatées.
  */
 @ControllerAdvice
 public class ApplicationControllerAdvice {
 
     /**
-     * Gère l'exception EmailAlreadyExistsException (email déjà utilisé).
+     * Gère l'exception EmailAlreadyExistsException.
+     * @param ex l'exception levée
+     * @return une réponse HTTP 409 avec l'entité d'erreur
      */
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<ErrorEntity> handleEmailAlreadyExists(EmailAlreadyExistsException ex) {
         ErrorEntity error = new ErrorEntity("EMAIL_ALREADY_USED", ex.getMessage());
-        
-        return new ResponseEntity<>(error, HttpStatus.CONFLICT); // 409
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
-
     /**
-     * Gère l'exception MissingFieldException (champ requis manquant).
+     * Gère l'exception MissingFieldException.
+     * @param ex l'exception levée
+     * @return une réponse HTTP 400 avec l'entité d'erreur
      */
     @ExceptionHandler(MissingFieldException.class)
     public ResponseEntity<ErrorEntity> handleMissingField(MissingFieldException ex) {
         ErrorEntity error = new ErrorEntity("MISSING_REQUIRED_FIELD", ex.getMessage());
-        
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        return ResponseEntity.badRequest().body(error);
     }
 
-
     /**
-     * Gère les erreurs de validation des arguments de méthode (ex : @Valid).
+     * Gère les erreurs de validation des arguments de méthode.
+     * @param ex l'exception levée
+     * @return une réponse HTTP 400 avec l'entité d'erreur
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorEntity> handleValidationErrors(MethodArgumentNotValidException ex) {
-        String message = ex.getBindingResult().getFieldErrors().stream()
-                .map(fieldError -> String.format("%s", fieldError.getDefaultMessage()))
-                .collect(Collectors.joining("; "));
-
-        ErrorEntity error = new ErrorEntity("VALIDATION_ERROR", message);
-        
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        StringBuilder sb = new StringBuilder();
+        ex.getBindingResult().getFieldErrors().forEach(error -> sb.append(error.getDefaultMessage()).append("; "));
+        ErrorEntity error = new ErrorEntity("VALIDATION_ERROR", sb.toString());
+        return ResponseEntity.badRequest().body(error);
     }
 
-
     /**
-     * Gère l'exception ConversationNotFoundException (conversation non trouvée).
+     * Gère l'exception ConversationNotFoundException.
+     * @param ex l'exception levée
+     * @return une réponse HTTP 404 avec l'entité d'erreur
      */
     @ExceptionHandler(ConversationNotFoundException.class)
     public ResponseEntity<ErrorEntity> handleConversationNotFound(ConversationNotFoundException ex) {
         ErrorEntity error = new ErrorEntity("CONVERSATION_NOT_FOUND", ex.getMessage());
-        
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
-
     /**
-     * Gère l'exception ConversationForbiddenException (accès interdit à la conversation).
+     * Gère l'exception ConversationForbiddenException.
+     * @param ex l'exception levée
+     * @return une réponse HTTP 403 avec l'entité d'erreur
      */
     @ExceptionHandler(ConversationForbiddenException.class)
     public ResponseEntity<ErrorEntity> handleConversationForbidden(ConversationForbiddenException ex) {
         ErrorEntity error = new ErrorEntity("FORBIDDEN", ex.getMessage());
-        
-        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
-
     /**
-     * Gère l'exception ConversationAlreadyExistsException (conversation déjà existante).
+     * Gère l'exception ConversationAlreadyExistsException.
+     * @param ex l'exception levée
+     * @return une réponse HTTP 409 avec l'entité d'erreur
      */
     @ExceptionHandler(ConversationAlreadyExistsException.class)
     public ResponseEntity<ErrorEntity> handleConversationAlreadyExists(ConversationAlreadyExistsException ex) {
         ErrorEntity error = new ErrorEntity("CONVERSATION_ALREADY_EXISTS", ex.getMessage());
-        
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
-
     /**
-     * Gère l'exception UserNotFoundException (utilisateur non trouvé).
+     * Gère l'exception UserNotFoundException.
+     * @param ex l'exception levée
+     * @return une réponse HTTP 404 avec l'entité d'erreur
      */
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorEntity> handleUserNotFound(UserNotFoundException ex) {
         ErrorEntity error = new ErrorEntity("USER_NOT_FOUND", ex.getMessage());
-        
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
-
     /**
-     * Gère l'exception WrongPasswordException (mot de passe incorrect).
+     * Gère l'exception WrongPasswordException.
+     * @param ex l'exception levée
+     * @return une réponse HTTP 401 avec l'entité d'erreur
      */
     @ExceptionHandler(WrongPasswordException.class)
     public ResponseEntity<ErrorEntity> handleWrongPassword(WrongPasswordException ex) {
         ErrorEntity error = new ErrorEntity("WRONG_PASSWORD", ex.getMessage());
-        
-        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
-
     /**
-     * Gère l'exception EmailNotFoundException (email non trouvé).
+     * Gère l'exception EmailNotFoundException.
+     * @param ex l'exception levée
+     * @return une réponse HTTP 404 avec l'entité d'erreur
      */
     @ExceptionHandler(EmailNotFoundException.class)
     public ResponseEntity<ErrorEntity> handleEmailNotFound(EmailNotFoundException ex) {
         ErrorEntity error = new ErrorEntity("EMAIL_NOT_FOUND", ex.getMessage());
-        
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
-
     /**
-     * Gère l'exception UnexpectedLoginException (erreur inattendue lors du login).
+     * Gère l'exception UnexpectedLoginException.
+     * @param ex l'exception levée
+     * @return une réponse HTTP 400 avec l'entité d'erreur
      */
     @ExceptionHandler(UnexpectedLoginException.class)
     public ResponseEntity<ErrorEntity> handleUnexpectedLogin(UnexpectedLoginException ex) {
         ErrorEntity error = new ErrorEntity("UNEXPECTED_LOGIN", ex.getMessage());
-        
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        return ResponseEntity.badRequest().body(error);
     }
 }

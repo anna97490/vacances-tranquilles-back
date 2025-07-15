@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
+/**
+ * Représente une réservation effectuée par un utilisateur.
+ */
 @Entity
 @Table(name = "reservations")
 @Data

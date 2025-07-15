@@ -14,8 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * Implémentation du service pour la gestion des messages dans les conversations.
- * Fournit les opérations de récupération, envoi et modification de messages.
+ * Service d'implémentation pour la gestion des messages dans les conversations.
  */
 @Service
 public class MessageServiceImpl implements MessageService {

@@ -3,6 +3,9 @@ package com.mastere_project.vacances_tranquilles.dto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * DTO pour la représentation d'un message.
+ */
 @Data
 @NoArgsConstructor
 public class MessageDTO {

@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.List;
 
+/**
+ * Contrôleur REST pour la gestion des messages dans les conversations.
+ */
 @RestController
 @RequestMapping("/api/messages")
 @RequiredArgsConstructor

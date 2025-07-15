@@ -7,6 +7,9 @@ import lombok.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Représente un utilisateur de la plateforme.
+ */
 @Entity
 @Table(name = "users")
 @Data

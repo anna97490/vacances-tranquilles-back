@@ -4,6 +4,9 @@ import lombok.Data;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
+/**
+ * DTO pour l'inscription d'un client.
+ */
 @Data
 public class RegisterClientDTO {
     @NotBlank(message = "Le prénom est obligatoire")

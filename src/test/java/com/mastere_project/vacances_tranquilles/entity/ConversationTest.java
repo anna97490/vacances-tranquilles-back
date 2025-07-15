@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Représente une conversation entre deux utilisateurs.
+ */
 class ConversationTest {
     @Test
     void testGettersSettersEqualsHashCodeToString() {

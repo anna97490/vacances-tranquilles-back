@@ -5,6 +5,9 @@ import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * DTO pour la représentation d'une conversation.
+ */
 @Data
 @NoArgsConstructor
 public class ConversationDTO {
