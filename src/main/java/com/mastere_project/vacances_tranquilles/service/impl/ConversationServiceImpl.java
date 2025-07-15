@@ -21,6 +21,12 @@ public class ConversationServiceImpl implements ConversationService {
     private final UserRepository userRepository;
     private final com.mastere_project.vacances_tranquilles.mapper.ConversationMapper conversationMapper;
 
+    /**
+     * Constructeur du service ConversationServiceImpl.
+     * @param conversationRepository le repository des conversations
+     * @param userRepository le repository des utilisateurs
+     * @param conversationMapper le mapper de conversation
+     */
     public ConversationServiceImpl(
             ConversationRepository conversationRepository,
             UserRepository userRepository,

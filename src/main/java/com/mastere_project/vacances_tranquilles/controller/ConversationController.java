@@ -48,11 +48,11 @@ public class ConversationController {
         return ResponseEntity.ok(conversations);
     }
 
-
     /**
      * Crée une nouvelle conversation avec un autre utilisateur.
      * 
-     * @param request   les informations de création de la conversation (autre utilisateur, statut)
+     * @param request   les informations de création de la conversation (autre
+     *                  utilisateur, statut)
      * @param principal l'utilisateur authentifié
      * @return la conversation créée ou une erreur
      */
@@ -80,7 +80,6 @@ public class ConversationController {
         }
     }
 
-
     /**
      * Récupère une conversation par son ID avec ses messages.
      * Marque comme lus les messages non lus envoyés par l'autre utilisateur.
@@ -97,7 +96,7 @@ public class ConversationController {
 
         Long userId = Long.parseLong(principal.getName());
         ConversationDTO conversation;
-        
+
         try {
             conversation = conversationService.getConversationById(id, userId);
         } catch (com.mastere_project.vacances_tranquilles.exception.ConversationNotFoundException e) {

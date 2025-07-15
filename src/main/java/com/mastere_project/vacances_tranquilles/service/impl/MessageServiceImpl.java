@@ -23,6 +23,13 @@ public class MessageServiceImpl implements MessageService {
     private final ConversationRepository conversationRepository;
     private final UserRepository userRepository;
 
+    /**
+     * Constructeur du service MessageServiceImpl.
+     * @param messageRepository le repository des messages
+     * @param messageMapper le mapper de message
+     * @param conversationRepository le repository des conversations
+     * @param userRepository le repository des utilisateurs
+     */
     public MessageServiceImpl(
             MessageRepository messageRepository,
             MessageMapper messageMapper,
