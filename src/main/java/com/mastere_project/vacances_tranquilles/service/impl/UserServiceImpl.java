@@ -134,7 +134,7 @@ public class UserServiceImpl implements UserService {
             loginAttempts.remove(email);
             blockedUntil.remove(email);
 
-            String token = jwt.generateToken(user.getEmail(), user.getUserRole());
+            String token = jwt.generateToken(user.getId(), user.getUserRole());
             return new LoginResponseDTO(token, user.getUserRole());
 
         } catch (EmailNotFoundException | WrongPasswordException e) {
