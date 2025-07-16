@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.mastere-project</groupId>
 	<artifactId>vacances-tranquilles</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.1.0</version>
 	<name>vacances-tranquilles</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
@@ -164,7 +164,7 @@
 			</execution>
 			<execution>
 				<id>report</id>
-				<phase>test</phase>
+				<phase>verify</phase>
 				<goals>
 					<goal>report</goal>
 				</goals>
