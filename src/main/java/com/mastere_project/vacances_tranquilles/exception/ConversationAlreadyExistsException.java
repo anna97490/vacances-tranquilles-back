@@ -6,7 +6,8 @@ package com.mastere_project.vacances_tranquilles.exception;
 public class ConversationAlreadyExistsException extends RuntimeException {
     
     /**
-     * Construit une nouvelle exception avec le message fourni.
+     * Construit une nouvelle exception ConversationAlreadyExistsException avec le message fourni.
+     *
      * @param message le détail de l'erreur
      */
     public ConversationAlreadyExistsException(String message) {

@@ -9,17 +9,19 @@ import com.mastere_project.vacances_tranquilles.entity.Message;
 public interface MessageMapper {
 
     /**
-     * Convertit une entité Message en DTO.
-     * @param message l'entité Message
-     * @return le DTO MessageDTO
+     * Convertit une entité Message en MessageDTO.
+     *
+     * @param message l'entité Message à convertir
+     * @return le DTO MessageDTO correspondant
      */
     MessageDTO toDto(Message message);
     
     
     /**
      * Convertit un DTO MessageDTO en entité Message.
-     * @param dto le DTO MessageDTO
-     * @return l'entité Message
+     *
+     * @param dto le DTO MessageDTO à convertir
+     * @return l'entité Message correspondante
      */
     Message toEntity(MessageDTO dto);
 } 

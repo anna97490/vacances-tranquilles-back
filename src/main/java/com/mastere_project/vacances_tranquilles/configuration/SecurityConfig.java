@@ -25,31 +25,32 @@ public class SecurityConfig {
 
      /**
       * Fournit un encodeur de mots de passe utilisant BCrypt.
-      * 
-      * @return PasswordEncoder
+      *
+      * @return un encodeur de mots de passe basé sur BCrypt
       */
      @Bean
      public PasswordEncoder passwordEncoder() {
           return new BCryptPasswordEncoder();
      }
 
+     
      /**
       * Fournit le filtre d'authentification JWT.
-      * 
-      * @return JwtAuthenticationFilter
+      *
+      * @return le filtre d'authentification JWT
       */
      @Bean
      public JwtAuthenticationFilter jwtAuthenticationFilter() {
           return new JwtAuthenticationFilter(jwt);
      }
 
+
      /**
-      * Configure la chaîne de filtres de sécurité HTTP.
-      * 
-      * @param http la configuration HttpSecurity
-      * @return SecurityFilterChain configurée
-      *        
-      * @throws Exception en cas d'erreur de configuration
+      * Configure la chaîne de filtres de sécurité HTTP pour l'application.
+      *
+      * @param http l'objet de configuration de la sécurité HTTP
+      * @return la chaîne de filtres de sécurité configurée
+      * @throws Exception si une erreur de configuration survient
       */
      @Bean
      public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

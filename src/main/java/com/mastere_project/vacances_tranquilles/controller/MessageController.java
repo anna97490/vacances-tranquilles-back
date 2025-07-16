@@ -22,10 +22,10 @@ public class MessageController {
 
     /**
      * Envoie un nouveau message dans une conversation.
-     * 
+     *
      * @param messageDTO le message à envoyer
-     * @param principal  l'utilisateur authentifié (expéditeur)
-     * @return le message sauvegardé
+     * @param principal  le principal représentant l'utilisateur authentifié (expéditeur)
+     * @return une réponse contenant le message sauvegardé
      */
     @PostMapping
     @PreAuthorize("isAuthenticated()")
@@ -42,12 +42,11 @@ public class MessageController {
 
 
     /**
-     * Récupère tous les messages d'une conversation et marque comme lus ceux
-     * envoyés par l'autre utilisateur.
-     * 
-     * @param conversationId l'identifiant de la conversation
-     * @param principal      l'utilisateur authentifié
-     * @return la liste des messages de la conversation
+     * Récupère tous les messages d'une conversation et marque comme lus ceux envoyés par l'autre utilisateur.
+     *
+     * @param conversationId l'identifiant de la conversation dont on veut les messages
+     * @param principal      le principal représentant l'utilisateur authentifié
+     * @return une réponse contenant la liste des messages de la conversation
      */
     @GetMapping("/conversation/{conversationId}")
     @PreAuthorize("isAuthenticated()")
@@ -64,11 +63,11 @@ public class MessageController {
 
     /**
      * Modifie un message existant (seul l'auteur peut modifier).
-     * 
-     * @param id         l'identifiant du message
-     * @param messageDTO le contenu modifié
-     * @param principal  l'utilisateur authentifié
-     * @return le message modifié ou une erreur si non autorisé
+     *
+     * @param id         l'identifiant du message à modifier
+     * @param messageDTO le contenu modifié du message
+     * @param principal  le principal représentant l'utilisateur authentifié
+     * @return une réponse contenant le message modifié ou une erreur si non autorisé ou non trouvé
      */
     @PutMapping("/{id}")
     @PreAuthorize("isAuthenticated()")

@@ -6,7 +6,8 @@ package com.mastere_project.vacances_tranquilles.exception;
 public class EmailAlreadyExistsException extends RuntimeException {
     
     /**
-     * Construit une nouvelle exception avec le message fourni.
+     * Construit une nouvelle exception EmailAlreadyExistsException avec le message fourni.
+     *
      * @param message le détail de l'erreur
      */
     public EmailAlreadyExistsException(String message) {

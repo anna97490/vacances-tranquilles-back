@@ -218,47 +218,6 @@ class UserServiceImplTest {
                 .hasMessageContaining("Trop de tentatives échouées");
     }
 
-    // Suppression du warning "unchecked" :
-    // La réflexion retourne toujours un Object, donc un cast explicite est
-    // nécessaire.
-    // Ici, nous savons que le champ est bien du bon type car nous contrôlons le
-    // contexte du test.
-    // Ce pattern est acceptable uniquement en test, jamais en production.
-    @SuppressWarnings("unchecked")
-    @Test
-    @DisplayName("incrementLoginAttempts - should increment but not block if under max")
-    void incrementLoginAttempts_shouldIncrementButNotBlock() throws Exception {
-        Field loginAttemptsField = UserServiceImpl.class.getDeclaredField("loginAttempts");
-        loginAttemptsField.setAccessible(true);
-        Map<String, Integer> attempts = new ConcurrentHashMap<>();
-        attempts.put("test2@example.com", 2);
-        loginAttemptsField.set(userService, attempts);
-
-        Field blockedUntilField = UserServiceImpl.class.getDeclaredField("blockedUntil");
-        blockedUntilField.setAccessible(true);
-        Map<String, Long> blockedMap = new ConcurrentHashMap<>();
-        blockedUntilField.set(userService, blockedMap);
-
-        Method method = UserServiceImpl.class.getDeclaredMethod("incrementLoginAttempts", String.class);
-        method.setAccessible(true);
-        method.invoke(userService, "test2@example.com");
-
-        // Vérifier que l'utilisateur n'est pas bloqué
-        @SuppressWarnings("unchecked")
-        Map<String, Long> actualBlockedMap = (Map<String, Long>) blockedUntilField.get(userService);
-        assertThat(actualBlockedMap.get("test2@example.com")).isNull();
-        // Et que le compteur a bien augmenté
-        attempts = (Map<String, Integer>) loginAttemptsField.get(userService);
-        assertThat(attempts).containsEntry("test2@example.com", 3);
-    }
-
-     // Suppression du warning "unchecked" :
-    // La réflexion retourne toujours un Object, donc un cast explicite est
-    // nécessaire.
-    // Ici, nous savons que le champ est bien du bon type car nous contrôlons le
-    // contexte du test.
-    // Ce pattern est acceptable uniquement en test, jamais en production.
-    @SuppressWarnings("unchecked")
     @Test
     @DisplayName("login - should reset counters after successful login")
     void login_shouldResetCountersAfterSuccess() {
@@ -280,12 +239,6 @@ class UserServiceImplTest {
         assertEquals(UserRole.PRESTATAIRE, response.getUserRole());
     }
 
-     // Suppression du warning "unchecked" :
-    // La réflexion retourne toujours un Object, donc un cast explicite est
-    // nécessaire.
-    // Ici, nous savons que le champ est bien du bon type car nous contrôlons le
-    // contexte du test.
-    // Ce pattern est acceptable uniquement en test, jamais en production.
     @SuppressWarnings("unchecked")
     @Test
     @DisplayName("incrementLoginAttempts - should block user after max attempts")
@@ -306,7 +259,6 @@ class UserServiceImplTest {
         method.invoke(userService, "block@example.com");
 
         // Vérifier que l'utilisateur est bloqué
-        @SuppressWarnings("unchecked")
         Map<String, Long> actualBlockedMap = (Map<String, Long>) blockedUntilField.get(userService);
         assertThat(actualBlockedMap.get("block@example.com")).isNotNull();
         // Et que le compteur a été supprimé

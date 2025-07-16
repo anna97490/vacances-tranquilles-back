@@ -4,10 +4,10 @@ package com.mastere_project.vacances_tranquilles.entity.enums;
  * Enumération des rôles possibles pour un utilisateur.
  */
 public enum Role {
-    /** Client utilisateur. */
+    /** Rôle pour un utilisateur client. */
     CLIENT,
-    /** Prestataire utilisateur. */
+    /** Rôle pour un utilisateur prestataire. */
     PRESTATAIRE,
-    /** Administrateur. */
+    /** Rôle pour un administrateur de la plateforme. */
     ADMIN
 }

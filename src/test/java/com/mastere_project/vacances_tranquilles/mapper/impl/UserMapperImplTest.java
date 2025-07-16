@@ -62,7 +62,7 @@ class UserMapperImplTest {
         assertThat(user.getAddress()).isEqualTo("2 avenue de Lyon");
         assertThat(user.getPostalCode()).isEqualTo("69000");
         assertThat(user.getCity()).isEqualTo("Lyon");
-        assertThat(user.getUserRole()).isEqualTo(UserRole.PROVIDER);
+        assertThat(user.getUserRole()).isEqualTo(UserRole.PRESTATAIRE);
         assertThat(user.getCompanyName()).isEqualTo("Durand SARL");
         assertThat(user.getSiretSiren()).isEqualTo("12345678900015");
     }

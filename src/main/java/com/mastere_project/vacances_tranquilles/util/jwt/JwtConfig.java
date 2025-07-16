@@ -29,7 +29,8 @@ public class JwtConfig {
 
     /**
      * Génère un token JWT pour un utilisateur donné (id et rôle).
-     * @param id l'id de l'utilisateur
+     *
+     * @param id l'identifiant de l'utilisateur
      * @param role le rôle de l'utilisateur
      * @return le token JWT généré
      */
@@ -43,19 +44,23 @@ public class JwtConfig {
                 .compact();
     }
 
+
     /**
      * Extrait l'id utilisateur depuis un token JWT (subject).
+     *
      * @param token le token JWT
-     * @return l'id utilisateur
+     * @return l'id utilisateur extrait du token
      */
     public Long extractUserId(String token) {
         return Long.parseLong(extractClaim(token, Claims::getSubject));
     }
 
+
     /**
      * Extrait le rôle utilisateur depuis un token JWT.
+     *
      * @param token le token JWT
-     * @return le rôle utilisateur
+     * @return le rôle utilisateur extrait du token
      * @throws IllegalArgumentException si le rôle n'est pas présent dans le token
      */
     public UserRole extractRole(String token) {
@@ -66,19 +71,23 @@ public class JwtConfig {
         return UserRole.valueOf(roleName);
     }
 
+
     /**
      * Extrait l'email (subject) depuis un token JWT.
+     *
      * @param token le token JWT
-     * @return l'email extrait
+     * @return l'email extrait du token
      */
     public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
+    
     /**
      * Valide un token JWT pour un utilisateur donné (id).
+     *
      * @param token le token JWT
-     * @param userId l'id attendu
+     * @param userId l'identifiant attendu de l'utilisateur
      * @return true si le token est valide et correspond à l'id, false sinon
      */
     public boolean validateToken(String token, Long userId) {

@@ -15,8 +15,9 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     
     /**
      * Recherche tous les messages d'une conversation, triés par date d'envoi croissante.
+     *
      * @param conversationId l'identifiant de la conversation
-     * @return la liste des messages triés par date d'envoi
+     * @return la liste des messages triés par date d'envoi croissante
      */
     List<Message> findByConversationIdOrderBySentAtAsc(Long conversationId);
 } 

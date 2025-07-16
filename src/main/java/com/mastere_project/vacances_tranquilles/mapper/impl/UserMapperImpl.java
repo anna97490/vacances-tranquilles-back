@@ -12,6 +12,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserMapperImpl implements UserMapper {
 
+    /**
+     * Convertit un RegisterClientDTO en entité User.
+     *
+     * @param dto le DTO contenant les informations du client
+     * @return l'entité User correspondante
+     */
     @Override
     public User toUser(RegisterClientDTO dto) {
         User user = new User();
@@ -27,6 +33,13 @@ public class UserMapperImpl implements UserMapper {
         return user;
     }
 
+    
+    /**
+     * Convertit un RegisterProviderDTO en entité User.
+     *
+     * @param dto le DTO contenant les informations du prestataire
+     * @return l'entité User correspondante
+     */
     @Override
     public User toUser(RegisterProviderDTO dto) {
         User user = new User();
@@ -38,12 +51,19 @@ public class UserMapperImpl implements UserMapper {
         user.setAddress(dto.getAddress());
         user.setPostalCode(dto.getPostalCode());
         user.setCity(dto.getCity());
-        user.setUserRole(UserRole.PROVIDER);
+        user.setUserRole(UserRole.PRESTATAIRE);
         user.setCompanyName(dto.getCompanyName());
         user.setSiretSiren(dto.getSiretSiren());
         return user;
     }
 
+
+    /**
+     * Convertit une entité User en UserDTO.
+     *
+     * @param user l'entité User à convertir
+     * @return le DTO utilisateur correspondant
+     */
     @Override
     public UserDTO toUserDTO(User user) {
         UserDTO dto = new UserDTO();

@@ -6,7 +6,8 @@ package com.mastere_project.vacances_tranquilles.exception;
 public class UserNotFoundException extends RuntimeException {
     
     /**
-     * Construit une nouvelle exception avec le message fourni.
+     * Construit une nouvelle exception UserNotFoundException avec le message fourni.
+     *
      * @param message le détail de l'erreur
      */
     public UserNotFoundException(String message) {

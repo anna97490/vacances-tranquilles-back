@@ -12,7 +12,9 @@ import lombok.Data;
 @AllArgsConstructor
 public class LoginResponseDTO {
 
+    /** Le token JWT généré lors de la connexion. */
     private String token;
     
+    /** Le rôle de l'utilisateur connecté. */
     private UserRole userRole;
 }

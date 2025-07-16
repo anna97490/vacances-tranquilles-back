@@ -13,12 +13,16 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     /**
      * Recherche un utilisateur par email.
+     *
      * @param email l'email à rechercher
-     * @return un Optional contenant l'utilisateur s'il existe
+     * @return un Optional contenant l'utilisateur s'il existe, sinon vide
      */
     Optional<User> findByEmail(String email);
+
+    
     /**
      * Vérifie si un utilisateur existe avec l'email donné.
+     *
      * @param email l'email à vérifier
      * @return true si l'utilisateur existe, false sinon
      */

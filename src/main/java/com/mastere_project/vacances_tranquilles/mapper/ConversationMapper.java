@@ -9,17 +9,19 @@ import com.mastere_project.vacances_tranquilles.entity.Conversation;
 public interface ConversationMapper {
 
     /**
-     * Convertit une entité Conversation en DTO.
-     * @param conversation l'entité Conversation
-     * @return le DTO ConversationDTO
+     * Convertit une entité Conversation en ConversationDTO.
+     *
+     * @param conversation l'entité Conversation à convertir
+     * @return le DTO ConversationDTO correspondant
      */
     ConversationDTO toDto(Conversation conversation);
     
     
     /**
      * Convertit un DTO ConversationDTO en entité Conversation.
-     * @param dto le DTO ConversationDTO
-     * @return l'entité Conversation
+     *
+     * @param dto le DTO ConversationDTO à convertir
+     * @return l'entité Conversation correspondante
      */
     Conversation toEntity(ConversationDTO dto);
 } 

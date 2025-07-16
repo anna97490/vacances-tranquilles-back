@@ -7,6 +7,7 @@ import com.mastere_project.vacances_tranquilles.dto.*;
 public interface UserService {
     /**
      * Inscrit un nouveau client.
+     *
      * @param registerClientDTO les informations du client à enregistrer
      */
     void registerClient(RegisterClientDTO registerClientDTO);
@@ -14,6 +15,7 @@ public interface UserService {
     
     /**
      * Inscrit un nouveau prestataire.
+     *
      * @param registerProviderDTO les informations du prestataire à enregistrer
      */
     void registerProvider(RegisterProviderDTO registerProviderDTO);
@@ -21,6 +23,7 @@ public interface UserService {
 
     /**
      * Authentifie un utilisateur (client ou prestataire).
+     *
      * @param userDTO les informations de connexion (email, mot de passe)
      * @return un objet LoginResponseDTO contenant le token JWT et le rôle
      */

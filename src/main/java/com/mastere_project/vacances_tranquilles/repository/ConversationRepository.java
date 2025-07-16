@@ -15,27 +15,30 @@ import java.util.Optional;
 public interface ConversationRepository extends JpaRepository<Conversation, Long> {
     /**
      * Recherche toutes les conversations où l'utilisateur est user1 ou user2.
+     *
      * @param user1Id l'identifiant du premier utilisateur
      * @param user2Id l'identifiant du second utilisateur
-     * @return la liste des conversations
+     * @return la liste des conversations trouvées
      */
     List<Conversation> findByUser1IdOrUser2Id(Long user1Id, Long user2Id);
 
     
     /**
      * Recherche une conversation entre deux utilisateurs (user1, user2).
+     *
      * @param user1Id l'identifiant du premier utilisateur
      * @param user2Id l'identifiant du second utilisateur
-     * @return la conversation si elle existe
+     * @return un Optional contenant la conversation si elle existe, sinon vide
      */
     Optional<Conversation> findByUser1IdAndUser2Id(Long user1Id, Long user2Id);
 
 
     /**
      * Recherche une conversation entre deux utilisateurs (user2, user1).
+     *
      * @param user2Id l'identifiant du second utilisateur
      * @param user1Id l'identifiant du premier utilisateur
-     * @return la conversation si elle existe
+     * @return un Optional contenant la conversation si elle existe, sinon vide
      */
     Optional<Conversation> findByUser2IdAndUser1Id(Long user2Id, Long user1Id);
 } 

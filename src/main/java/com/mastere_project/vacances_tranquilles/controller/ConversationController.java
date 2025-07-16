@@ -33,9 +33,9 @@ public class ConversationController {
 
     /**
      * Récupère toutes les conversations de l'utilisateur connecté.
-     * 
-     * @param principal l'utilisateur authentifié
-     * @return la liste des conversations
+     *
+     * @param principal le principal représentant l'utilisateur authentifié
+     * @return une réponse contenant la liste des conversations de l'utilisateur
      */
     @GetMapping
     @PreAuthorize("isAuthenticated()")
@@ -48,13 +48,13 @@ public class ConversationController {
         return ResponseEntity.ok(conversations);
     }
 
+
     /**
      * Crée une nouvelle conversation avec un autre utilisateur.
-     * 
-     * @param request   les informations de création de la conversation (autre
-     *                  utilisateur, statut)
-     * @param principal l'utilisateur authentifié
-     * @return la conversation créée ou une erreur
+     *
+     * @param request   les informations de création de la conversation (identifiant de l'autre utilisateur, statut)
+     * @param principal le principal représentant l'utilisateur authentifié
+     * @return une réponse contenant la conversation créée ou une erreur en cas d'échec
      */
     @PostMapping
     @PreAuthorize("isAuthenticated()")
@@ -80,13 +80,14 @@ public class ConversationController {
         }
     }
 
+    
     /**
      * Récupère une conversation par son ID avec ses messages.
      * Marque comme lus les messages non lus envoyés par l'autre utilisateur.
-     * 
-     * @param id        l'identifiant de la conversation
-     * @param principal l'utilisateur authentifié
-     * @return la conversation et ses messages, ou une erreur si non autorisé
+     *
+     * @param id        l'identifiant de la conversation à récupérer
+     * @param principal le principal représentant l'utilisateur authentifié
+     * @return une réponse contenant la conversation et ses messages, ou une erreur si non autorisé ou non trouvée
      */
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")

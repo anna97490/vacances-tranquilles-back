@@ -36,10 +36,12 @@ public class ConversationServiceImpl implements ConversationService {
         this.conversationMapper = conversationMapper;
     }
 
+    
     /**
      * Récupère toutes les conversations d'un utilisateur.
+     *
      * @param userId l'identifiant de l'utilisateur
-     * @return la liste des conversations
+     * @return la liste des conversations de l'utilisateur
      */
     @Override
     public List<ConversationDTO> getConversationsForUser(Long userId) {
@@ -51,9 +53,10 @@ public class ConversationServiceImpl implements ConversationService {
 
     /**
      * Crée une nouvelle conversation entre deux utilisateurs.
-     * @param creatorId l'identifiant du créateur
+     *
+     * @param creatorId l'identifiant du créateur de la conversation
      * @param otherUserId l'identifiant de l'autre utilisateur
-     * @return la conversation créée
+     * @return la conversation créée sous forme de DTO
      */
     @Override
     public ConversationDTO createConversation(Long creatorId, Long otherUserId) {
@@ -86,9 +89,10 @@ public class ConversationServiceImpl implements ConversationService {
 
     /**
      * Récupère une conversation par son ID si l'utilisateur y participe.
+     *
      * @param conversationId l'identifiant de la conversation
      * @param userId l'identifiant de l'utilisateur
-     * @return la conversation ou une exception si non autorisé
+     * @return la conversation correspondante sous forme de DTO
      */
     @Override
     public ConversationDTO getConversationById(Long conversationId, Long userId) {
