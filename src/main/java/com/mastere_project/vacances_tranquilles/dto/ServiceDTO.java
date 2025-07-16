@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO pour la représentation d'un service.
+ * DTO représentant un service proposé par un prestataire.
  */
 @Data
 @NoArgsConstructor

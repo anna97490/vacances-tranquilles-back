@@ -54,7 +54,8 @@ class SecurityConfigTest {
         verify(http).csrf(any());
         verify(http).authorizeHttpRequests(any());
         verify(http).sessionManagement(any());
-        verify(http).addFilterBefore(any(JwtAuthenticationFilter.class), eq(UsernamePasswordAuthenticationFilter.class));
+        verify(http).addFilterBefore(any(JwtAuthenticationFilter.class),
+                eq(UsernamePasswordAuthenticationFilter.class));
         verify(http).build();
     }
 }

@@ -24,19 +24,13 @@ public class Service {
     private Long id;
 
     private String title;
+    
     private String description;
+    
     private String category;
+    
     private Double price;
+    
     private String imageUrl;
-
-//    @ManyToOne
-//    @JoinColumn(name = "provider_id")
-//    private User provider;
-//
-//    @OneToMany(mappedBy = "service", cascade = CascadeType.ALL)
-//    private List<Reservation> reservations;
-//
-//    @OneToMany(mappedBy = "service", cascade = CascadeType.ALL)
-//    private List<Payment> payments;
 
 }

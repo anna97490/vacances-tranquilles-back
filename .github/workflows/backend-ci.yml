@@ -48,8 +48,8 @@ jobs:
             echo "Code coverage is sufficient ($percent%)."
           fi
 
-      - name: SonarCloud analysis (non-blocking)
-        continue-on-error: true
+      - name: SonarCloud analysis
+        continue-on-error: false
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=anna97490_vacances-tranquilles-back

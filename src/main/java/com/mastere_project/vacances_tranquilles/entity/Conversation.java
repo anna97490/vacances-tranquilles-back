@@ -6,8 +6,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+
 /**
- * Représente une conversation entre deux utilisateurs.
+ * Entité JPA représentant une conversation entre deux utilisateurs.
  */
 @Entity
 @Table(name = "conversations")

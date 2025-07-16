@@ -3,7 +3,6 @@ package com.mastere_project.vacances_tranquilles.entity;
 import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -89,5 +88,3 @@ public class User {
 //    private List<Schedule> schedules;
 //
 }
-
-

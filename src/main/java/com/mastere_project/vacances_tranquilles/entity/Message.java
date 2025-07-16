@@ -5,7 +5,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 /**
- * Représente un message envoyé dans une conversation.
+ * Entité JPA représentant un message échangé dans une conversation.
  */
 @Entity
 @Table(name = "messages")

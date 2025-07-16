@@ -6,11 +6,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
- * DTO pour la réponse de connexion (login) d'un utilisateur.
+ * DTO de réponse à la connexion, contenant le token JWT et le rôle utilisateur.
  */
 @Data
 @AllArgsConstructor
 public class LoginResponseDTO {
+
     private String token;
+    
     private UserRole userRole;
 }

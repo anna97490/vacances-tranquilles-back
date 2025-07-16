@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO pour la représentation d'un message.
+ * DTO représentant un message échangé dans une conversation.
  */
 @Data
 @NoArgsConstructor
@@ -22,4 +22,3 @@ public class MessageDTO {
     
     private boolean read;
 }
-

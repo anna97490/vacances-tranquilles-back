@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO pour la représentation d'une conversation.
+ * DTO représentant une conversation entre deux utilisateurs.
  */
 @Data
 @NoArgsConstructor
@@ -22,4 +22,3 @@ public class ConversationDTO {
 
     private List<Long> messageIds;
 }
-

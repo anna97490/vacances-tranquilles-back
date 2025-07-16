@@ -36,7 +36,7 @@ class ErrorEntityTest {
     void toString_shouldContainFields() {
         ErrorEntity error = new ErrorEntity("C", "M");
         String str = error.toString();
-        
+    
         assertThat(str).contains("C").contains("M");
     }
 
@@ -47,4 +47,4 @@ class ErrorEntityTest {
         assertThat(error.canEqual(new ErrorEntity("X", "Y"))).isTrue();
         assertThat(error.canEqual("not an ErrorEntity")).isFalse();
     }
-} 
+}

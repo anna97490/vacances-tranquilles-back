@@ -38,7 +38,7 @@ public class UserMapperImpl implements UserMapper {
         user.setAddress(dto.getAddress());
         user.setPostalCode(dto.getPostalCode());
         user.setCity(dto.getCity());
-        user.setUserRole(UserRole.PRESTATAIRE);
+        user.setUserRole(UserRole.PROVIDER);
         user.setCompanyName(dto.getCompanyName());
         user.setSiretSiren(dto.getSiretSiren());
         return user;

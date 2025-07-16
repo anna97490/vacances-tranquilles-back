@@ -9,6 +9,8 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class ErrorEntity {
+    /** Le code d'erreur associé à l'exception. */
     private String code;
+    /** Le message détaillant l'erreur. */
     private String message;
 }

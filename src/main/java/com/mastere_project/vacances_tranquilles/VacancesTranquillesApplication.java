@@ -1,4 +1,5 @@
 package com.mastere_project.vacances_tranquilles;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

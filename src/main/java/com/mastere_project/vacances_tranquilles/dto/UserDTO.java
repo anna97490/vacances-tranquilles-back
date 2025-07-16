@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO pour la représentation d'un utilisateur.
+ * DTO représentant un utilisateur (client ou prestataire) de la plateforme.
  */
 @Data
 @NoArgsConstructor
@@ -42,4 +42,3 @@ public class UserDTO {
     
     private java.util.List<Long> messagesSentIds;
 }
-
