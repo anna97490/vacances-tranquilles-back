@@ -173,10 +173,11 @@ class UserServiceImplTest {
         user.setPassword("encodedPassword");
         user.setEmail("user@example.com");
         user.setUserRole(UserRole.CLIENT);
+        user.setId(1L);
 
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("goodpass", "encodedPassword")).thenReturn(true);
-        when(jwtConfig.generateToken("user@example.com", UserRole.CLIENT)).thenReturn("token");
+        when(jwtConfig.generateToken(1L, UserRole.CLIENT)).thenReturn("token");
 
         LoginResponseDTO response = userService.login(userDTO);
 
@@ -266,10 +267,11 @@ class UserServiceImplTest {
         user.setPassword("encodedPassword");
         user.setEmail("reset@example.com");
         user.setUserRole(UserRole.CLIENT);
+        user.setId(1L);
 
         when(userRepository.findByEmail("reset@example.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("goodpass", "encodedPassword")).thenReturn(true);
-        when(jwtConfig.generateToken("reset@example.com", UserRole.CLIENT)).thenReturn("token");
+        when(jwtConfig.generateToken(1L, UserRole.CLIENT)).thenReturn("token");
 
         // Simuler des compteurs existants
         Field loginAttemptsField = UserServiceImpl.class.getDeclaredField("loginAttempts");
