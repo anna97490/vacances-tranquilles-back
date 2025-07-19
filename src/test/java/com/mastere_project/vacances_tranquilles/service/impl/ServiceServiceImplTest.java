@@ -1,0 +1,220 @@
+package com.mastere_project.vacances_tranquilles.service.impl;
+
+import com.mastere_project.vacances_tranquilles.dto.ServiceDTO;
+import com.mastere_project.vacances_tranquilles.entity.Service;
+import com.mastere_project.vacances_tranquilles.entity.User;
+import com.mastere_project.vacances_tranquilles.exception.ServiceNotFoundException;
+import com.mastere_project.vacances_tranquilles.mapper.ServiceMapper;
+import com.mastere_project.vacances_tranquilles.repository.ServiceRepository;
+import com.mastere_project.vacances_tranquilles.repository.UserRepository;
+import com.mastere_project.vacances_tranquilles.util.jwt.SecurityUtils;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.Optional;
+import org.springframework.security.access.AccessDeniedException;
+
+@ExtendWith(MockitoExtension.class)
+class ServiceServiceImplTest {
+    @Mock
+    private ServiceRepository serviceRepository;
+    @Mock
+    private ServiceMapper serviceMapper;
+    @Mock
+    private UserRepository userRepository;
+    @InjectMocks
+    private ServiceServiceImpl serviceService;
+
+    MockedStatic<SecurityUtils> securityUtilsMock;
+
+    @BeforeEach
+    void setUp() {
+        securityUtilsMock = Mockito.mockStatic(SecurityUtils.class);
+    }
+
+    @AfterEach
+    void tearDown() {
+        securityUtilsMock.close();
+    }
+
+    @Test
+    void createService_providerIsCurrentUser() {
+        ServiceDTO dto = new ServiceDTO();
+        User provider = new User();
+        provider.setId(1L);
+        Service entity = new Service();
+        entity.setProvider(provider);
+        Service saved = new Service();
+        saved.setProvider(provider);
+        ServiceDTO expectedDto = new ServiceDTO();
+
+        when(SecurityUtils.getCurrentUserId()).thenReturn(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(provider));
+        when(serviceMapper.toEntity(dto)).thenReturn(entity);
+        when(serviceRepository.save(entity)).thenReturn(saved);
+        when(serviceMapper.toDto(saved)).thenReturn(expectedDto);
+
+        ServiceDTO result = serviceService.createService(dto);
+        assertEquals(expectedDto, result);
+        verify(serviceRepository).save(entity);
+    }
+
+    @Test
+    void createService_userNotFound_throwsException() {
+        when(SecurityUtils.getCurrentUserId()).thenReturn(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        ServiceDTO dto = new ServiceDTO();
+        assertThrows(ServiceNotFoundException.class, () -> serviceService.createService(dto));
+    }
+
+    @Test
+    void partialUpdateService_updatesAllFields_whenFieldsAreNotNull() {
+        // Préparation
+        Service service = new Service();
+        User provider = new User();
+        provider.setId(1L);
+        service.setProvider(provider);
+
+        when(serviceRepository.findById(1L)).thenReturn(Optional.of(service));
+        when(SecurityUtils.getCurrentUserId()).thenReturn(1L);
+
+        ServiceDTO dto = new ServiceDTO();
+        dto.setTitle("Nouveau titre");
+        dto.setDescription("Nouvelle description");
+        dto.setCategory("Nouvelle catégorie");
+        dto.setPrice(99.99);
+
+        Service savedService = new Service();
+        savedService.setProvider(provider);
+        when(serviceRepository.save(any(Service.class))).thenReturn(savedService);
+        when(serviceMapper.toDto(savedService)).thenReturn(new ServiceDTO());
+
+        // Exécution
+        ServiceDTO result = serviceService.partialUpdateService(1L, dto);
+
+        // Vérification
+        verify(serviceRepository).findById(1L);
+        verify(serviceRepository).save(service);
+        assertNotNull(result);
+        assertEquals(provider, service.getProvider());
+        assertEquals("Nouveau titre", service.getTitle());
+        assertEquals("Nouvelle description", service.getDescription());
+        assertEquals("Nouvelle catégorie", service.getCategory());
+        assertEquals(99.99, service.getPrice());
+    }
+
+    @Test
+    void partialUpdateService_doesNotUpdateFields_whenDtoFieldsAreNull() {
+        Service service = new Service();
+        User provider = new User();
+        provider.setId(1L);
+        service.setProvider(provider);
+
+        when(serviceRepository.findById(1L)).thenReturn(Optional.of(service));
+        when(SecurityUtils.getCurrentUserId()).thenReturn(1L);
+
+        ServiceDTO dto = new ServiceDTO(); // Tous les champs sont null
+
+        when(serviceRepository.save(any(Service.class))).thenReturn(service);
+        when(serviceMapper.toDto(service)).thenReturn(new ServiceDTO());
+
+        serviceService.partialUpdateService(1L, dto);
+
+        verify(serviceRepository).save(service);
+        // Tous les champs de service restent null
+        assertNull(service.getTitle());
+        assertNull(service.getDescription());
+        assertNull(service.getCategory());
+        assertNull(service.getPrice());
+    }
+
+    @Test
+    void searchAvailableServices_returnsList_whenParametersAreValid() {
+        String category = "Entretien";
+        String postalCode = "75001";
+        LocalDate date = LocalDate.now().plusDays(1);
+        LocalTime start = LocalTime.of(10, 0);
+        LocalTime end = LocalTime.of(12, 0);
+
+        List<Service> services = List.of(new Service());
+        when(serviceRepository.findAvailableServices(category, postalCode, date, start, end)).thenReturn(services);
+        when(serviceMapper.toDto(any(Service.class))).thenReturn(new ServiceDTO());
+
+        List<ServiceDTO> result = serviceService.searchAvailableServices(category, postalCode, date, start, end);
+
+        assertEquals(1, result.size());
+        verify(serviceRepository).findAvailableServices(category, postalCode, date, start, end);
+    }
+
+    @Test
+    void searchAvailableServices_throwsException_whenStartAfterEnd() {
+        LocalDate date = LocalDate.now().plusDays(1);
+        LocalTime start = LocalTime.of(14, 0);
+        LocalTime end = LocalTime.of(12, 0); // start > end
+
+        assertThrows(IllegalArgumentException.class,
+                () -> serviceService.searchAvailableServices("Cat", "75001", date, start, end));
+    }
+
+    @Test
+    void searchAvailableServices_throwsException_whenDateIsInPast() {
+        LocalDate date = LocalDate.now().minusDays(1);
+        assertThrows(IllegalArgumentException.class,
+                () -> serviceService.searchAvailableServices("Cat", "75001", date, LocalTime.NOON, LocalTime.MIDNIGHT));
+    }
+
+    @Test
+    void deleteService_notOwner_throwsAccesDenied() {
+        Service service = new Service();
+        User provider = new User();
+        provider.setId(2L);
+        service.setProvider(provider);
+        when(serviceRepository.findById(1L)).thenReturn(Optional.of(service));
+        when(SecurityUtils.getCurrentUserId()).thenReturn(1L);
+        assertThrows(AccessDeniedException.class, () -> serviceService.deleteService(1L));
+    }
+
+    @Test
+    void deleteService_serviceNotFound_throwsException() {
+        when(serviceRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(ServiceNotFoundException.class, () -> serviceService.deleteService(1L));
+    }
+
+    @Test
+    void getServiceById_serviceNotFound_throwsException() {
+        when(serviceRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(ServiceNotFoundException.class, () -> serviceService.getServiceById(1L));
+    }
+
+    @Test
+    void partialUpdateService_notOwner_throwsAccesDenied() {
+        Service service = new Service();
+        User provider = new User();
+        provider.setId(2L);
+        service.setProvider(provider);
+        when(serviceRepository.findById(1L)).thenReturn(Optional.of(service));
+        when(SecurityUtils.getCurrentUserId()).thenReturn(1L);
+        ServiceDTO dto = new ServiceDTO();
+        assertThrows(AccessDeniedException.class, () -> serviceService.partialUpdateService(1L, dto));
+    }
+
+    @Test
+    void partialUpdateService_serviceNotFound_throwsException() {
+        when(serviceRepository.findById(1L)).thenReturn(Optional.empty());
+        ServiceDTO dto = new ServiceDTO();
+        assertThrows(ServiceNotFoundException.class, () -> serviceService.partialUpdateService(1L, dto));
+    }
+}
