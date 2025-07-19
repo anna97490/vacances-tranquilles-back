@@ -15,6 +15,5 @@ public class ServiceDTO {
     private String description;
     private String category;
     private Double price;
-    private String imageUrl;
     private Long providerId;
 }
