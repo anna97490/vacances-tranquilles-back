@@ -57,6 +57,20 @@ public class ApplicationControllerAdvice {
     }
 
     /**
+     * Gère les exceptions IllegalArgumentException et retourne une réponse HTTP 400
+     * (BAD_REQUEST).
+     *
+     * @param ex l'exception IllegalArgumentException interceptée
+     * @return une réponse HTTP 400 avec le code et
+     *         le message d'erreur
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorEntity> handleIllegalArgument(IllegalArgumentException ex) {
+        ErrorEntity error = new ErrorEntity("INVALID_ARGUMENT", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
      * Gère l'exception levée lorsqu'un compte utilisateur est temporairement bloqué
      * suite à trop de tentatives échouées.
      *
@@ -119,6 +133,18 @@ public class ApplicationControllerAdvice {
     public ResponseEntity<ErrorEntity> handleUnexpectedLoginException(UnexpectedLoginException ex) {
         ErrorEntity error = new ErrorEntity("UNEXPECTED_LOGIN_ERROR", ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    /**
+     * Gère l'exception levée lorsqu'un service n'est pas trouvé en base.
+     *
+     * @param ex l'exception ServiceNotFoundException
+     * @return une réponse HTTP 404 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(ServiceNotFoundException.class)
+    public ResponseEntity<ErrorEntity> handleServiceNotFound(ServiceNotFoundException ex) {
+        ErrorEntity error = new ErrorEntity("SERVICE_NOT_FOUND", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
 }
