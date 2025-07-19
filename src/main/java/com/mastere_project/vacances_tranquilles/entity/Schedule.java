@@ -23,11 +23,7 @@ public class Schedule {
     private LocalTime startTime;
     private LocalTime endTime;
 
-    // @ManyToOne
-    // @JoinColumn(name = "provider_id")
-    // private User provider;
-    //
-    // @ManyToOne
-    // @JoinColumn(name = "reservation_id")
-    // private Reservation reservation;
+    @ManyToOne
+    @JoinColumn(name = "provider_id")
+    private User provider;
 }
