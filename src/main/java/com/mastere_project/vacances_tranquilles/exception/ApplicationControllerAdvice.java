@@ -121,4 +121,16 @@ public class ApplicationControllerAdvice {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorEntity> handleIllegalArgumentException(IllegalArgumentException ex) {
+        ErrorEntity error = new ErrorEntity("INVALID_ARGUMENT", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorEntity> handleAllExceptions(Exception ex) {
+        ErrorEntity error = new ErrorEntity("INTERNAL_ERROR", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 }

@@ -116,4 +116,26 @@ class ApplicationControllerAdviceTest {
         assertThat(response.getBody().getCode()).isEqualTo("UNEXPECTED_LOGIN_ERROR");
         assertThat(response.getBody().getMessage()).isEqualTo("Erreur inattendue");
     }
+
+    @Test
+    @DisplayName("handleIllegalArgumentException should return 400 and error entity")
+    void handleIllegalArgumentException_shouldReturn400() {
+        IllegalArgumentException ex = new IllegalArgumentException("Note invalide");
+        ResponseEntity<ErrorEntity> response = advice.handleIllegalArgumentException(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("INVALID_ARGUMENT");
+        assertThat(response.getBody().getMessage()).isEqualTo("Note invalide");
+    }
+
+    @Test
+    @DisplayName("handleAllExceptions should return 500 and error entity")
+    void handleAllExceptions_shouldReturn500() {
+        Exception ex = new Exception("Erreur inconnue");
+        ResponseEntity<ErrorEntity> response = advice.handleAllExceptions(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("INTERNAL_ERROR");
+        assertThat(response.getBody().getMessage()).isEqualTo("Erreur inconnue");
+    }
 }

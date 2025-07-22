@@ -25,6 +25,9 @@ public class Reservation {
     private LocalDateTime endDate;
     private Double totalPrice;
 
+    private Long clientId;
+    private Long providerId;
+
     // @ManyToOne
     // @JoinColumn(name = "customer_id")
     // private User customer;

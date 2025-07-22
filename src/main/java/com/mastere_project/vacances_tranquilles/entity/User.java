@@ -4,6 +4,8 @@ import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 /**
  * Entité JPA représentant un utilisateur (client ou prestataire) de la
  * plateforme.
@@ -52,22 +54,4 @@ public class User {
     // Champs uniquement pertinents pour les prestataires
     private String siretSiren;
     private String companyName;
-
-    // @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
-    // private List<Reservation> reservationAsCustomer;
-    //
-    // @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL)
-    // private List<Reservation> reservationAsProvider;
-    //
-    // @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL)
-    // private List<Schedule> schedules;
-    //
-    // @OneToMany(mappedBy = "user1", cascade = CascadeType.ALL)
-    // private List<Conversation> conversationsInitiated;
-    //
-    // @OneToMany(mappedBy = "user2", cascade = CascadeType.ALL)
-    // private List<Conversation> conversationsReceived;
-    //
-    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    // private List<Message> messages;
 }

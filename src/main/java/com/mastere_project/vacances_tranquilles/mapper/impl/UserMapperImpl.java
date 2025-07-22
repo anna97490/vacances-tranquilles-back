@@ -46,6 +46,24 @@ public class UserMapperImpl implements UserMapper {
     }
 
     @Override
+    public User toUser(UserDTO dto) {
+        if (dto == null) return null;
+        User user = new User();
+        user.setId(dto.getId());
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setEmail(dto.getEmail());
+        user.setPhoneNumber(dto.getPhoneNumber());
+        user.setAddress(dto.getAddress());
+        user.setPostalCode(dto.getPostalCode());
+        user.setCity(dto.getCity());
+        user.setUserRole(dto.getUserRole());
+        user.setCompanyName(dto.getCompanyName());
+        user.setSiretSiren(dto.getSiret());
+        return user;
+    }
+
+    @Override
     public UserDTO toUserDTO(User user) {
         UserDTO dto = new UserDTO();
         dto.setId(user.getId());

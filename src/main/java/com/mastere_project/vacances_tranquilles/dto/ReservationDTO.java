@@ -17,7 +17,7 @@ public class ReservationDTO {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private Double totalPrice;
-    private Long customerId;
+    private Long clientId;
     private Long providerId;
     private Long serviceId;
 }

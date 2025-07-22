@@ -30,4 +30,11 @@ public interface UserMapper {
      * @return le DTO correspondant
      */
     UserDTO toUserDTO(User user);
+
+    /**
+     * Convertit un UserDTO en entité User.
+     * @param dto le DTO utilisateur
+     * @return l'entité User correspondante
+     */
+    User toUser(UserDTO dto);
 }
