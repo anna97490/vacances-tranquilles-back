@@ -14,18 +14,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ConversationDTO {
 
-    /** L'identifiant unique de la conversation. */
     private Long id;
-
-    /** L'identifiant du premier utilisateur participant à la conversation. */
     private Long user1Id;
-
-    /** L'identifiant du second utilisateur participant à la conversation. */
     private Long user2Id;
-
-    /** La date et l'heure de création de la conversation. */
     private LocalDateTime createdAt;
-
-    /** La liste des identifiants des messages associés à la conversation. */
-    private List<Long> messageIds;
 }

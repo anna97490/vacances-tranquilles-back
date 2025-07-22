@@ -15,9 +15,6 @@ import java.util.List;
 @AllArgsConstructor
 public class ConversationWithMessagesDTO {
 
-    /** La conversation concernée. */
     private ConversationDTO conversation;
-    
-    /** La liste des messages associés à la conversation. */
     private List<MessageDTO> messages;
 } 

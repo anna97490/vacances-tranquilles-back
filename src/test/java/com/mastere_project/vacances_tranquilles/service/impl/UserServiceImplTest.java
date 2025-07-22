@@ -228,7 +228,7 @@ class UserServiceImplTest {
         user.setId(2L);
         user.setEmail("test2@test.com");
         user.setPassword("hashed2");
-        user.setUserRole(UserRole.PRESTATAIRE);
+        user.setUserRole(UserRole.PROVIDER);
 
         when(userRepository.findByEmail("test2@test.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("password2", "hashed2")).thenReturn(true);
@@ -236,7 +236,7 @@ class UserServiceImplTest {
 
         LoginResponseDTO response = userService.login(userDTO);
         assertEquals("token456", response.getToken());
-        assertEquals(UserRole.PRESTATAIRE, response.getUserRole());
+        assertEquals(UserRole.PROVIDER, response.getUserRole());
     }
 
     @SuppressWarnings("unchecked")

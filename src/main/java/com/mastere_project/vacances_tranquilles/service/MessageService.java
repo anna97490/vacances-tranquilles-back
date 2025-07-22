@@ -17,14 +17,12 @@ public interface MessageService {
      */
     List<MessageDTO> getMessagesByConversationId(Long conversationId, Long userId);
 
-
     /**
      * Récupère tous les messages du système.
      *
      * @return la liste de tous les messages du système
      */
     List<MessageDTO> getAllMessages();
-
 
     /**
      * Envoie un nouveau message dans une conversation.
@@ -34,7 +32,6 @@ public interface MessageService {
      */
     MessageDTO sendMessage(MessageDTO messageDTO);
 
-    
     /**
      * Modifie un message existant (seul l'auteur peut modifier).
      *
@@ -44,4 +41,4 @@ public interface MessageService {
      * @return le message modifié sous forme de DTO
      */
     MessageDTO updateMessage(Long id, MessageDTO messageDTO, Long userId);
-} 
+}

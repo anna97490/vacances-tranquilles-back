@@ -19,23 +19,17 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Service {
 
-    /** L'identifiant unique du service. */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Le titre du service proposé. */
     private String title;
     
-    /** La description détaillée du service. */
     private String description;
     
-    /** La catégorie à laquelle appartient le service. */
     private String category;
     
-    /** Le prix du service. */
     private Double price;
     
-    /** L'URL de l'image illustrant le service. */
     private String imageUrl;
 }

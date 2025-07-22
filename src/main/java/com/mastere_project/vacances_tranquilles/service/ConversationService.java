@@ -16,7 +16,6 @@ public interface ConversationService {
      */
     List<ConversationDTO> getConversationsForUser(Long userId);
 
-
     /**
      * Crée une nouvelle conversation entre deux utilisateurs.
      *
@@ -26,7 +25,6 @@ public interface ConversationService {
      */
     ConversationDTO createConversation(Long creatorId, Long otherUserId);
 
-    
     /**
      * Récupère une conversation par son ID si l'utilisateur y participe.
      *
@@ -35,4 +33,4 @@ public interface ConversationService {
      * @return la conversation correspondante sous forme de DTO
      */
     ConversationDTO getConversationById(Long conversationId, Long userId);
-} 
+}

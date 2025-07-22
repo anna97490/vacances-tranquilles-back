@@ -15,8 +15,7 @@ public interface ConversationMapper {
      * @return le DTO ConversationDTO correspondant
      */
     ConversationDTO toDto(Conversation conversation);
-    
-    
+
     /**
      * Convertit un DTO ConversationDTO en entité Conversation.
      *
@@ -24,4 +23,4 @@ public interface ConversationMapper {
      * @return l'entité Conversation correspondante
      */
     Conversation toEntity(ConversationDTO dto);
-} 
+}

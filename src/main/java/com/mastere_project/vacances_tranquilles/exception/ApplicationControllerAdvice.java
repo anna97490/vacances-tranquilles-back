@@ -23,10 +23,8 @@ public class ApplicationControllerAdvice {
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<ErrorEntity> handleEmailAlreadyExists(EmailAlreadyExistsException ex) {
         ErrorEntity error = new ErrorEntity("EMAIL_ALREADY_USED", ex.getMessage());
-        
         return new ResponseEntity<>(error, HttpStatus.CONFLICT); // 409
     }
-
 
     /**
      * Gère l'exception MissingFieldException (champ requis manquant).
@@ -37,15 +35,13 @@ public class ApplicationControllerAdvice {
     @ExceptionHandler(MissingFieldException.class)
     public ResponseEntity<ErrorEntity> handleMissingField(MissingFieldException ex) {
         ErrorEntity error = new ErrorEntity("MISSING_REQUIRED_FIELD", ex.getMessage());
-        
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
-
 
     /**
      * Gère les erreurs de validation des arguments de méthode (ex : @Valid).
      *
-     * @param ex l'exception de validation levée
+     * @param ex l'exception levée
      * @return une réponse contenant le code d'erreur et le message de validation
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -53,12 +49,9 @@ public class ApplicationControllerAdvice {
         String message = ex.getBindingResult().getFieldErrors().stream()
                 .map(fieldError -> String.format("%s", fieldError.getDefaultMessage()))
                 .collect(Collectors.joining("; "));
-
         ErrorEntity error = new ErrorEntity("VALIDATION_ERROR", message);
-        
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
-
 
     /**
      * Gère l'exception ConversationNotFoundException (conversation non trouvée).
@@ -69,10 +62,8 @@ public class ApplicationControllerAdvice {
     @ExceptionHandler(ConversationNotFoundException.class)
     public ResponseEntity<ErrorEntity> handleConversationNotFound(ConversationNotFoundException ex) {
         ErrorEntity error = new ErrorEntity("CONVERSATION_NOT_FOUND", ex.getMessage());
-        
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
-
 
     /**
      * Gère l'exception ConversationForbiddenException (accès interdit à la conversation).
@@ -83,10 +74,8 @@ public class ApplicationControllerAdvice {
     @ExceptionHandler(ConversationForbiddenException.class)
     public ResponseEntity<ErrorEntity> handleConversationForbidden(ConversationForbiddenException ex) {
         ErrorEntity error = new ErrorEntity("FORBIDDEN", ex.getMessage());
-        
         return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
-
 
     /**
      * Gère l'exception ConversationAlreadyExistsException (conversation déjà existante).
@@ -97,10 +86,8 @@ public class ApplicationControllerAdvice {
     @ExceptionHandler(ConversationAlreadyExistsException.class)
     public ResponseEntity<ErrorEntity> handleConversationAlreadyExists(ConversationAlreadyExistsException ex) {
         ErrorEntity error = new ErrorEntity("CONVERSATION_ALREADY_EXISTS", ex.getMessage());
-        
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
-
 
     /**
      * Gère l'exception UserNotFoundException (utilisateur non trouvé).
@@ -111,10 +98,8 @@ public class ApplicationControllerAdvice {
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorEntity> handleUserNotFound(UserNotFoundException ex) {
         ErrorEntity error = new ErrorEntity("USER_NOT_FOUND", ex.getMessage());
-        
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
-
 
     /**
      * Gère l'exception WrongPasswordException (mot de passe incorrect).
@@ -125,10 +110,8 @@ public class ApplicationControllerAdvice {
     @ExceptionHandler(WrongPasswordException.class)
     public ResponseEntity<ErrorEntity> handleWrongPassword(WrongPasswordException ex) {
         ErrorEntity error = new ErrorEntity("WRONG_PASSWORD", ex.getMessage());
-        
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
-
 
     /**
      * Gère l'exception EmailNotFoundException (email non trouvé).
@@ -139,11 +122,9 @@ public class ApplicationControllerAdvice {
     @ExceptionHandler(EmailNotFoundException.class)
     public ResponseEntity<ErrorEntity> handleEmailNotFound(EmailNotFoundException ex) {
         ErrorEntity error = new ErrorEntity("EMAIL_NOT_FOUND", ex.getMessage());
-        
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
-    
     /**
      * Gère l'exception UnexpectedLoginException (erreur inattendue lors du login).
      *
@@ -153,7 +134,54 @@ public class ApplicationControllerAdvice {
     @ExceptionHandler(UnexpectedLoginException.class)
     public ResponseEntity<ErrorEntity> handleUnexpectedLogin(UnexpectedLoginException ex) {
         ErrorEntity error = new ErrorEntity("UNEXPECTED_LOGIN", ex.getMessage());
-        
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * Gère l'exception AccountLockedException (compte temporairement verrouillé).
+     *
+     * @param ex l'exception levée
+     * @return une réponse contenant le code d'erreur et le message associé
+     */
+    @ExceptionHandler(AccountLockedException.class)
+    public ResponseEntity<ErrorEntity> handleAccountLockedException(AccountLockedException ex) {
+        ErrorEntity error = new ErrorEntity("ACCOUNT_LOCKED", ex.getMessage());
+        return ResponseEntity.status(423).body(error);
+    }
+
+    /**
+     * Gère l'exception LoginInternalException (erreur technique lors du login).
+     *
+     * @param ex l'exception levée
+     * @return une réponse contenant le code d'erreur et le message associé
+     */
+    @ExceptionHandler(LoginInternalException.class)
+    public ResponseEntity<ErrorEntity> handleLoginInternalException(LoginInternalException ex) {
+        ErrorEntity error = new ErrorEntity("LOGIN_INTERNAL_ERROR", ex.getMessage());
+        return ResponseEntity.status(500).body(error);
+    }
+
+    /**
+     * Gère l'exception IllegalArgumentException (paramètre invalide).
+     *
+     * @param ex l'exception levée
+     * @return une réponse HTTP 400 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorEntity> handleIllegalArgumentException(IllegalArgumentException ex) {
+        ErrorEntity error = new ErrorEntity("INVALID_ARGUMENT", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Gère toute autre exception non spécifiquement capturée.
+     *
+     * @param ex l'exception levée
+     * @return une réponse HTTP 500 avec un message d'erreur générique
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorEntity> handleAllExceptions(Exception ex) {
+        ErrorEntity error = new ErrorEntity("INTERNAL_ERROR", ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

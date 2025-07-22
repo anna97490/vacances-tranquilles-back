@@ -7,7 +7,7 @@ public enum UserRole {
     /** Rôle pour un utilisateur client. */
     CLIENT,
     /** Rôle pour un utilisateur prestataire. */
-    PRESTATAIRE,
+    PROVIDER,
     /** Rôle pour un administrateur de la plateforme. */
     ADMIN
 }

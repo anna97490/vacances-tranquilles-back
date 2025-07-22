@@ -14,27 +14,20 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Reservation {
 
-    /** L'identifiant unique de la réservation. */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Le statut actuel de la réservation (ex : en attente, confirmée, annulée). */
     private String status;
     
-    /** La date et l'heure à laquelle la réservation a été effectuée. */
     private LocalDateTime reservationDate;
     
-    /** Le commentaire éventuel laissé par le client lors de la réservation. */
     private String comment;
     
-    /** La date et l'heure de début de la réservation. */
     private LocalDateTime startDate;
     
-    /** La date et l'heure de fin de la réservation. */
     private LocalDateTime endDate;
     
-    /** Le prix total de la réservation. */
     private Double totalPrice;
 
     // @ManyToOne

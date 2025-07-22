@@ -15,8 +15,7 @@ public interface MessageMapper {
      * @return le DTO MessageDTO correspondant
      */
     MessageDTO toDto(Message message);
-    
-    
+
     /**
      * Convertit un DTO MessageDTO en entité Message.
      *
@@ -24,4 +23,4 @@ public interface MessageMapper {
      * @return l'entité Message correspondante
      */
     Message toEntity(MessageDTO dto);
-} 
+}
