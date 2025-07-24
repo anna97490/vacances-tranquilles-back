@@ -23,17 +23,14 @@ class ErrorEntityTest {
         ErrorEntity e2 = new ErrorEntity("A", "B");
         ErrorEntity e3 = new ErrorEntity("X", "Y");
 
-        assertThat(e1).isEqualTo(e2);
-        assertThat(e1.hashCode()).isEqualTo(e2.hashCode());
-        assertThat(e1).isNotEqualTo(e3);
+        assertThat(e1).isEqualTo(e2).hasSameHashCodeAs(e2).isNotEqualTo(e3);
     }
 
     @Test
     void toString_shouldContainFields() {
         ErrorEntity error = new ErrorEntity("C", "M");
         String str = error.toString();
-        assertThat(str).contains("C");
-        assertThat(str).contains("M");
+        assertThat(str).contains("C").contains("M");
     }
 
     @Test

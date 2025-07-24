@@ -26,9 +26,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     /**
      * Intercepte chaque requête HTTP pour vérifier la présence et la validité d'un token JWT.
      * Si le token est valide, l'utilisateur est authentifié dans le contexte de sécurité.
+     *
      * @param request la requête HTTP entrante
      * @param response la réponse HTTP sortante
-     * @param filterChain la chaîne de filtres
+     * @param filterChain la chaîne de filtres à poursuivre
      * @throws ServletException en cas d'erreur de filtre
      * @throws IOException en cas d'erreur d'E/S
      */
@@ -39,26 +40,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
         String token = null;
-        String email = null;
+        Long userId = null;
 
         // Extraction du token JWT depuis l'en-tête Authorization
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
-            email = jwt.extractEmail(token);
+            userId = jwt.extractUserId(token);
         }
 
-        // Si l'email est extrait et aucune authentification encore définie, alors
+        // Si l'id est extrait et aucune authentification encore définie, alors
         // valider le token
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            if (jwt.validateToken(token, email)) {
-                // Création de l'authentification Spring Security
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email,
-                        null, null);
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        if (userId != null
+                && SecurityContextHolder.getContext().getAuthentication() == null
+                && jwt.validateToken(token, userId)) {
+            // Création de l'authentification Spring Security
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId,
+                    null, null);
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // Stockage de l'authentification dans le contexte de sécurité
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
+            // Stockage de l'authentification dans le contexte de sécurité
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
         // Continuer la chaîne de filtres

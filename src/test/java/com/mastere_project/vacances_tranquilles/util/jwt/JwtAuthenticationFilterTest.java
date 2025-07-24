@@ -45,13 +45,14 @@ class JwtAuthenticationFilterTest {
         String email = "user@example.com";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
         when(jwtConfig.extractEmail(token)).thenReturn(email);
-        when(jwtConfig.validateToken(token, email)).thenReturn(true);
+        when(jwtConfig.extractUserId(token)).thenReturn(1L);
+        when(jwtConfig.validateToken(token, 1L)).thenReturn(true);
 
         filter.doFilterInternal(request, response, filterChain);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         assert authentication != null;
-        assert authentication.getPrincipal().equals(email);
+        assert authentication.getPrincipal().equals(1L);
         verify(filterChain).doFilter(request, response);
     }
 
@@ -62,7 +63,7 @@ class JwtAuthenticationFilterTest {
         String email = "user@example.com";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
         when(jwtConfig.extractEmail(token)).thenReturn(email);
-        when(jwtConfig.validateToken(token, email)).thenReturn(false);
+        when(jwtConfig.validateToken(token, 1L)).thenReturn(false);
 
         filter.doFilterInternal(request, response, filterChain);
 
@@ -101,7 +102,7 @@ class JwtAuthenticationFilterTest {
         String email = "user@example.com";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
         when(jwtConfig.extractEmail(token)).thenReturn(email);
-        when(jwtConfig.validateToken(token, email)).thenReturn(true);
+        when(jwtConfig.validateToken(token, 1L)).thenReturn(true);
 
         filter.doFilterInternal(request, response, filterChain);
 
@@ -110,4 +111,3 @@ class JwtAuthenticationFilterTest {
         verify(filterChain).doFilter(request, response);
     }
 }
-

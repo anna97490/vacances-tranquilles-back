@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
+import com.mastere_project.vacances_tranquilles.model.enums.ReservationStatus;
+
 @Entity
 @Table(name = "reservations")
 @Data
@@ -11,30 +13,32 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Reservation {
 
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String status;
     private LocalDateTime reservationDate;
     private String comment;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private Double totalPrice;
 
-//    @ManyToOne
-//    @JoinColumn(name = "customer_id")
-//    private User customer;
-//
-//    @ManyToOne
-//    @JoinColumn(name = "provider_id")
-//    private User provider;
+    @Enumerated(EnumType.STRING)
+    private ReservationStatus status;
 
-//    @ManyToOne
-//    @JoinColumn(name = "service_id")
-//    private Service service;
-//
-//    @OneToOne(mappedBy = "reservation", cascade = CascadeType.ALL)
-//    private Payment payment;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "client_id", nullable = false)
+    private User client;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "provider_id", nullable = false)
+    private User provider;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "service_id", nullable = false)
+    private Service service;
+
+    @OneToOne
+    @JoinColumn(name = "payment_id", unique = true)
+    private Payment payment;
 }

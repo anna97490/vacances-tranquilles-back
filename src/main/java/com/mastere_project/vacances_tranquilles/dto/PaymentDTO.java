@@ -13,6 +13,7 @@ public class PaymentDTO {
     private Double amount;
     private Date paymentDate;
     private String method;
+    private String status;
 
     private Long userId;
     private String userFullName;
