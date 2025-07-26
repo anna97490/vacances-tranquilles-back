@@ -7,8 +7,10 @@ import com.mastere_project.vacances_tranquilles.exception.EmailAlreadyExistsExce
 import com.mastere_project.vacances_tranquilles.exception.EmailNotFoundException;
 import com.mastere_project.vacances_tranquilles.exception.LoginInternalException;
 import com.mastere_project.vacances_tranquilles.exception.MissingFieldException;
+import com.mastere_project.vacances_tranquilles.exception.UserNotFoundException;
 import com.mastere_project.vacances_tranquilles.exception.WrongPasswordException;
 import com.mastere_project.vacances_tranquilles.mapper.UserMapper;
+import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import com.mastere_project.vacances_tranquilles.repository.UserRepository;
 import com.mastere_project.vacances_tranquilles.service.UserService;
 import com.mastere_project.vacances_tranquilles.util.jwt.JwtConfig;
@@ -16,6 +18,8 @@ import com.mastere_project.vacances_tranquilles.util.jwt.JwtConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -110,9 +114,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public LoginResponseDTO login(UserDTO userDTO) {
         String email = userDTO.getEmail();
+        
         if (blockedUntil.containsKey(email) && blockedUntil.get(email) > System.currentTimeMillis()) {
             throw new AccountLockedException("Trop de tentatives échouées. Réessayez plus tard.");
         }
+
         try {
             Optional<User> optionalUser = userRepository.findByEmail(email);
 
@@ -146,6 +152,174 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
+     * Récupère tous les clients.
+     * 
+     * @return la liste des clients
+     */
+    @Override
+    public List<UserProfileDTO> getAllClients() {
+        List<User> clients = userRepository.findAllActiveClients();
+        
+        return clients.stream()
+                .map(userMapper::toUserProfileDTO)
+                .toList();
+    }
+
+    /**
+     * Récupère tous les prestataires.
+     * 
+     * @return la liste des prestataires
+     */
+    @Override
+    public List<UserProfileDTO> getAllProviders() {
+        List<User> providers = userRepository.findAllActiveProviders();
+        
+        return providers.stream()
+                .map(userMapper::toUserProfileDTO)
+                .toList();
+    }
+
+    /**
+     * Récupère un client par son ID.
+     * 
+     * @param id l'identifiant du client
+     * @return le profil du client
+     */
+    @Override
+    public UserProfileDTO getClientById(Long id) {
+        
+        return userRepository.findById(id)
+                .filter(user -> user.getUserRole() == UserRole.CLIENT && !user.getIsAnonymized())
+                .map(userMapper::toUserProfileDTO)
+                .orElseThrow(() -> new UserNotFoundException("Client non trouvé avec l'ID : " + id));
+    }
+
+    /**
+     * Récupère un prestataire par son ID.
+     * 
+     * @param id l'identifiant du prestataire
+     * @return le profil du prestataire
+     */
+    @Override
+    public UserProfileDTO getProviderById(Long id) {
+        
+        return userRepository.findById(id)
+                .filter(user -> user.getUserRole() == UserRole.PROVIDER && !user.getIsAnonymized())
+                .map(userMapper::toUserProfileDTO)
+                .orElseThrow(() -> new UserNotFoundException("Prestataire non trouvé avec l'ID : " + id));
+    }
+
+    /**
+     * Récupère le profil de l'utilisateur authentifié.
+     * 
+     * @param userId l'identifiant de l'utilisateur authentifié
+     * @return le profil de l'utilisateur
+     */
+    @Override
+    public UserProfileDTO getUserProfile(Long userId) {
+        
+        return userRepository.findById(userId)
+                .filter(user -> !user.getIsAnonymized())
+                .map(userMapper::toUserProfileDTO)
+                .orElseThrow(() -> new UserNotFoundException("Utilisateur non trouvé avec l'ID : " + userId));
+    }
+
+    /**
+     * Met à jour le profil de l'utilisateur authentifié.
+     * 
+     * @param userId l'identifiant de l'utilisateur authentifié
+     * @param updateDTO les données de mise à jour
+     * @return le profil mis à jour
+     */
+    @Override
+    public UserProfileDTO updateUserProfile(Long userId, UpdateUserDTO updateDTO) {
+        
+        return userRepository.findById(userId)
+                .filter(user -> !user.getIsAnonymized())
+                .map(user -> {
+                    user = userMapper.updateUserFromDTO(user, updateDTO);
+                    User savedUser = userRepository.save(user);
+                    return userMapper.toUserProfileDTO(savedUser);
+                })
+                .orElseThrow(() -> new UserNotFoundException("Utilisateur non trouvé avec l'ID : " + userId));
+    }
+
+    /**
+     * Supprime le compte de l'utilisateur authentifié (conformité RGPD).
+     * 
+     * @param userId l'identifiant de l'utilisateur authentifié
+     * @param deleteAccountDTO les informations de suppression
+     */
+    @Override
+    public void deleteUserAccount(Long userId, DeleteAccountDTO deleteAccountDTO) {
+        userRepository.findById(userId)
+                .ifPresentOrElse(user -> {
+                    // Log de début de suppression pour conformité RGPD
+                    logger.info("=== DÉBUT SUPPRESSION COMPTE RGPD ===");
+                    logger.info("Utilisateur ID: {}", userId);
+                    logger.info("Email: {}", user.getEmail());
+                    logger.info("Rôle: {}", user.getUserRole());
+                    logger.info("Raison de suppression: {}", deleteAccountDTO.getReason());
+                    logger.info("Anonymisation obligatoire: true (conformité RGPD)");
+                    logger.info("Timestamp: {}", LocalDateTime.now());
+                    
+                    // Anonymisation RGPD-compliant obligatoire
+                    anonymizeUserData(user, deleteAccountDTO.getReason());
+                    logger.info("Compte utilisateur anonymisé avec succès pour l'ID : {} - Raison : {}", 
+                        userId, deleteAccountDTO.getReason());
+                    
+                    // Log de fin de suppression pour conformité RGPD
+                    logger.info("=== FIN SUPPRESSION COMPTE RGPD ===");
+                    logger.info("Action terminée avec succès");
+                    logger.info("Timestamp: {}", LocalDateTime.now());
+                }, () -> {
+                    throw new UserNotFoundException("Utilisateur non trouvé avec l'ID : " + userId);
+                });
+    }
+
+    /**
+     * Anonymise les données utilisateur conformément au RGPD.
+     * 
+     * @param user l'utilisateur à anonymiser
+     * @param reason la raison de l'anonymisation
+     */
+    private void anonymizeUserData(User user, String reason) {
+        // Log de début d'anonymisation
+        logger.info("=== DÉBUT ANONYMISATION RGPD ===");
+        logger.info("Anonymisation des données pour l'utilisateur ID: {}", user.getId());
+        
+        // Anonymisation des données personnelles
+        user.setFirstName("ANONYME");
+        user.setLastName("ANONYME");
+        user.setEmail("anonyme_" + user.getId() + "@deleted.local");
+        user.setPhoneNumber("0000000000");
+        user.setAddress("ADRESSE SUPPRIMÉE");
+        user.setCity("VILLE SUPPRIMÉE");
+        user.setPostalCode("00000");
+        user.setProfilePicture(null);
+        
+        // Anonymisation des données spécifiques aux prestataires
+        if (user.getUserRole() == UserRole.PROVIDER) {
+            user.setCompanyName("SOCIÉTÉ SUPPRIMÉE");
+            user.setSiretSiren("00000000000000");
+            logger.info("Données prestataire anonymisées");
+        }
+        
+        // Marquer comme anonymisé et enregistrer les métadonnées RGPD
+        user.setIsAnonymized(true);
+        user.setDeletedAt(LocalDateTime.now());
+        user.setDeletionReason(reason != null ? reason : "Demande utilisateur");
+        
+        userRepository.save(user);
+        
+        // Log de fin d'anonymisation
+        logger.info("Anonymisation terminée avec succès");
+        logger.info("Données personnelles supprimées conformément au RGPD");
+        logger.info("Métadonnées de suppression enregistrées");
+        logger.info("=== FIN ANONYMISATION RGPD ===");
+    }
+
+    /**
      * Incrémente le nombre de tentatives de connexion pour un email et bloque le
      * compte si nécessaire.
      * 
@@ -153,6 +327,7 @@ public class UserServiceImpl implements UserService {
      */
     private void incrementLoginAttempts(String email) {
         int attempts = loginAttempts.getOrDefault(email, 0) + 1;
+        
         if (attempts >= MAX_ATTEMPTS) {
             blockedUntil.put(email, System.currentTimeMillis() + BLOCK_TIME_MS);
             loginAttempts.remove(email);

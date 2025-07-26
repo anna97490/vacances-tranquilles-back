@@ -121,4 +121,28 @@ public class ApplicationControllerAdvice {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
+    /**
+     * Gère l'exception levée lorsqu'un accès non autorisé est détecté.
+     *
+     * @param ex l'exception UnauthorizedAccessException
+     * @return une réponse HTTP 401 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(UnauthorizedAccessException.class)
+    public ResponseEntity<ErrorEntity> handleUnauthorizedAccessException(UnauthorizedAccessException ex) {
+        ErrorEntity error = new ErrorEntity("UNAUTHORIZED_ACCESS", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    /**
+     * Gère l'exception levée lorsqu'un utilisateur n'est pas trouvé.
+     *
+     * @param ex l'exception UserNotFoundException
+     * @return une réponse HTTP 404 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorEntity> handleUserNotFoundException(UserNotFoundException ex) {
+        ErrorEntity error = new ErrorEntity("USER_NOT_FOUND", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
 }

@@ -4,6 +4,8 @@ import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 /**
  * Entité JPA représentant un utilisateur (client ou prestataire) de la
  * plateforme.
@@ -52,6 +54,32 @@ public class User {
     // Champs uniquement pertinents pour les prestataires
     private String siretSiren;
     private String companyName;
+
+    // Champs pour la conformité RGPD
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    @Column(name = "deletion_reason")
+    private String deletionReason;
+
+    @Column(name = "is_anonymized")
+    private Boolean isAnonymized = false;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 
     // @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
     // private List<Reservation> reservationAsCustomer;

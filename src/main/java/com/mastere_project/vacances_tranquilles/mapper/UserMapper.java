@@ -30,4 +30,22 @@ public interface UserMapper {
      * @return le DTO correspondant
      */
     UserDTO toUserDTO(User user);
+
+    /**
+     * Convertit une entité User en DTO UserProfileDTO.
+     * 
+     * @param user l'entité User
+     * @return le DTO profil correspondant
+     */
+    UserProfileDTO toUserProfileDTO(User user);
+
+    /**
+     * Met à jour une entité User avec les données du DTO de mise à jour.
+     * Seuls les champs non-null du DTO sont mis à jour.
+     * 
+     * @param user l'entité User à mettre à jour
+     * @param updateDTO le DTO contenant les nouvelles données
+     * @return l'entité User mise à jour
+     */
+    User updateUserFromDTO(User user, UpdateUserDTO updateDTO);
 }
