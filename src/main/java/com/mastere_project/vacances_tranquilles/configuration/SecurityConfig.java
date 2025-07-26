@@ -57,6 +57,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll() // Autorise login et register
+                        .requestMatchers("/api/users/**").authenticated() // Routes utilisateur protégées
+                        .requestMatchers("/api/reviews/**").authenticated() // Routes reviews protégées
                         .anyRequest().authenticated() // Tout le reste protégé
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

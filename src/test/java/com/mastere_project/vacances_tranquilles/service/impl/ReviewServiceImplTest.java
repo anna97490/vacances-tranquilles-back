@@ -57,8 +57,8 @@ class ReviewServiceImplTest {
     }
 
     @Test
-    @DisplayName("createReview should throw if reservation is not completed")
-    void createReview_shouldThrow_whenReservationNotCompleted() {
+    @DisplayName("createReview should throw if reservation is not closed")
+    void createReview_shouldThrow_whenReservationNotClosed() {
         ReviewDTO dto = new ReviewDTO();
         dto.setNote(4);
         dto.setReservationId(123L);
@@ -82,7 +82,7 @@ class ReviewServiceImplTest {
         dto.setReviewedId(2L);
 
         Reservation reservation = new Reservation();
-        reservation.setStatus("completed");
+        reservation.setStatus("closed");
         reservation.setClientId(999L);
         reservation.setProviderId(888L);
 
@@ -102,7 +102,7 @@ class ReviewServiceImplTest {
         dto.setReviewedId(20L);
 
         Reservation reservation = new Reservation();
-        reservation.setStatus("completed");
+        reservation.setStatus("closed");
         reservation.setClientId(10L);
         reservation.setProviderId(20L);
 

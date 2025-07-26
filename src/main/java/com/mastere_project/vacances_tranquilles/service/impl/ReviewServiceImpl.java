@@ -49,7 +49,7 @@ public class ReviewServiceImpl implements ReviewService {
      * @return le DTO de l'avis enregistré
      * @throws IllegalArgumentException           si la note est en dehors des bornes autorisées
      * @throws ReservationNotFoundException       si la réservation n'existe pas
-     * @throws ReservationNotCompletedException   si la réservation n'est pas terminée
+     * @throws ReservationNotCompletedException   si la réservation n'est pas fermée (status != "closed")
      * @throws InvalidReviewUserException         si les utilisateurs ne correspondent pas à la réservation
      */
     @Override
@@ -64,7 +64,7 @@ public class ReviewServiceImpl implements ReviewService {
             throw new ReservationNotFoundException("Réservation introuvable");
         }
 
-        if (reservation.getStatus() == null || !reservation.getStatus().equalsIgnoreCase("completed")) {
+        if (reservation.getStatus() == null || !reservation.getStatus().equalsIgnoreCase("closed")) {
             throw new ReservationNotCompletedException("La réservation n'est pas terminée");
         }
 

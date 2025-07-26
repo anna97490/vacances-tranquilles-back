@@ -121,12 +121,72 @@ public class ApplicationControllerAdvice {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
+    /**
+     * Gère l'exception levée lorsqu'un argument invalide est fourni.
+     *
+     * @param ex l'exception IllegalArgumentException
+     * @return une réponse HTTP 400 avec un code d'erreur spécifique
+     */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorEntity> handleIllegalArgumentException(IllegalArgumentException ex) {
         ErrorEntity error = new ErrorEntity("INVALID_ARGUMENT", ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * Gère l'exception levée lorsqu'un avis n'est pas trouvé.
+     *
+     * @param ex l'exception ReviewNotFoundException
+     * @return une réponse HTTP 404 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(ReviewNotFoundException.class)
+    public ResponseEntity<ErrorEntity> handleReviewNotFoundException(ReviewNotFoundException ex) {
+        ErrorEntity error = new ErrorEntity("REVIEW_NOT_FOUND", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    /**
+     * Gère l'exception levée lorsqu'une réservation n'est pas trouvée.
+     *
+     * @param ex l'exception ReservationNotFoundException
+     * @return une réponse HTTP 404 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(ReservationNotFoundException.class)
+    public ResponseEntity<ErrorEntity> handleReservationNotFoundException(ReservationNotFoundException ex) {
+        ErrorEntity error = new ErrorEntity("RESERVATION_NOT_FOUND", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    /**
+     * Gère l'exception levée lorsqu'une réservation n'est pas terminée.
+     *
+     * @param ex l'exception ReservationNotCompletedException
+     * @return une réponse HTTP 400 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(ReservationNotCompletedException.class)
+    public ResponseEntity<ErrorEntity> handleReservationNotCompletedException(ReservationNotCompletedException ex) {
+        ErrorEntity error = new ErrorEntity("RESERVATION_NOT_COMPLETED", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    /**
+     * Gère l'exception levée lorsque les utilisateurs ne correspondent pas à la réservation.
+     *
+     * @param ex l'exception InvalidReviewUserException
+     * @return une réponse HTTP 400 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(InvalidReviewUserException.class)
+    public ResponseEntity<ErrorEntity> handleInvalidReviewUserException(InvalidReviewUserException ex) {
+        ErrorEntity error = new ErrorEntity("INVALID_REVIEW_USERS", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    /**
+     * Gère toutes les exceptions non gérées par les autres handlers.
+     *
+     * @param ex l'exception générique
+     * @return une réponse HTTP 500 avec un code d'erreur générique
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorEntity> handleAllExceptions(Exception ex) {
         ErrorEntity error = new ErrorEntity("INTERNAL_ERROR", ex.getMessage());
