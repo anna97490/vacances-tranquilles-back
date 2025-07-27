@@ -1,5 +1,7 @@
 package com.mastere_project.vacances_tranquilles.configuration;
 
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +14,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.mastere_project.vacances_tranquilles.util.jwt.JwtAuthenticationFilter;
 import com.mastere_project.vacances_tranquilles.util.jwt.JwtConfig;
@@ -65,18 +68,32 @@ public class SecurityConfig {
     }
 
     /**
-     * Configure la chaîne de filtres de sécurité HTTP pour l'application.
+     * Fournit la configuration CORS.
      * 
-     * <p>
-     * Inclut : configuration CORS, désactivation CSRF, règles d'autorisation,
-     * sessions stateless et filtre JWT.
-     * </p>
-     *
-     * <p>
      * Configuration CORS : origines depuis {@code allowedOrigin}, méthodes
      * GET/POST/PUT/DELETE/OPTIONS,
      * tous headers autorisés, credentials activés.
-     * </p>
+     *
+     * @return la configuration CORS configurée
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration corsConfig = new CorsConfiguration();
+        corsConfig.setAllowedOriginPatterns(List.of(allowedOrigin.trim()));
+        corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        corsConfig.setAllowedHeaders(List.of("*"));
+        corsConfig.setAllowCredentials(true);
+        return request -> corsConfig;
+    }
+
+    public Customizer<AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry> authorizeRequests() {
+        return auth -> auth
+                .requestMatchers("/api/auth/**").permitAll()
+                .anyRequest().authenticated();
+    }
+
+    /**
+     * Configure la chaîne de filtres de sécurité HTTP pour l'application.
      *
      * @param http l'objet de configuration de la sécurité HTTP
      * @return la chaîne de filtres de sécurité configurée
@@ -85,19 +102,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(request -> {
-                    CorsConfiguration corsConfig = new CorsConfiguration();
-                    corsConfig.setAllowedOriginPatterns(List.of(allowedOrigin.trim()));
-                    corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                    corsConfig.setAllowedHeaders(List.of("*"));
-                    corsConfig.setAllowCredentials(true);
-                    return corsConfig;
-                }))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll() // Autorise login et register
-                        .anyRequest().authenticated() // Tout le reste protégé
-                )
+                .authorizeHttpRequests(authorizeRequests())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
