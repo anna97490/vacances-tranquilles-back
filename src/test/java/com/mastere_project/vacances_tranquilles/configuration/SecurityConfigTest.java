@@ -9,6 +9,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.test.util.ReflectionTestUtils;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -21,6 +24,8 @@ class SecurityConfigTest {
     void setUp() {
         jwtConfig = mock(JwtConfig.class);
         securityConfig = new SecurityConfig(jwtConfig);
+        // Set the allowedOrigin value for testing
+        ReflectionTestUtils.setField(securityConfig, "allowedOrigin", "http://localhost:3000");
     }
 
     @Test
@@ -60,5 +65,32 @@ class SecurityConfigTest {
         verify(http).addFilterBefore(any(JwtAuthenticationFilter.class),
                 eq(UsernamePasswordAuthenticationFilter.class));
         verify(http).build();
+    }
+
+    @Test
+    void securityFilterChain_shouldConfigureCorsCorrectly() throws Exception {
+        HttpSecurity http = mock(HttpSecurity.class, RETURNS_DEEP_STUBS);
+
+        // Capture the CORS configuration
+        final CorsConfigurationSource[] capturedCorsConfig = new CorsConfigurationSource[1];
+        when(http.cors(any())).thenAnswer(invocation -> {
+            capturedCorsConfig[0] = invocation.getArgument(0);
+            return http;
+        });
+        when(http.csrf(any())).thenReturn(http);
+        when(http.authorizeHttpRequests(any())).thenReturn(http);
+        when(http.sessionManagement(any())).thenReturn(http);
+        when(http.addFilterBefore(any(), any())).thenReturn(http);
+        when(http.build()).thenReturn(mock(DefaultSecurityFilterChain.class));
+
+        securityConfig.securityFilterChain(http);
+
+        // Verify CORS configuration
+        assertThat(capturedCorsConfig[0]).isNotNull();
+        CorsConfiguration corsConfig = capturedCorsConfig[0].getCorsConfiguration(null);
+        assertThat(corsConfig.getAllowedOriginPatterns()).contains("http://localhost:3000");
+        assertThat(corsConfig.getAllowedMethods()).containsExactlyInAnyOrder("GET", "POST", "PUT", "DELETE", "OPTIONS");
+        assertThat(corsConfig.getAllowedHeaders()).contains("*");
+        assertThat(corsConfig.getAllowCredentials()).isTrue();
     }
 }
