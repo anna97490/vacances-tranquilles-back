@@ -200,6 +200,37 @@ class ServiceServiceImplTest {
     }
 
     @Test
+    void getServicesByProviderId_shouldReturnMappedServiceDTOs() {
+        // Arrange
+        Long providerId = 1L;
+        Service service1 = new Service();
+        service1.setId(100L);
+        Service service2 = new Service();
+        service2.setId(101L);
+        List<Service> services = List.of(service1, service2);
+
+        ServiceDTO dto1 = new ServiceDTO();
+        dto1.setId(100L);
+        ServiceDTO dto2 = new ServiceDTO();
+        dto2.setId(101L);
+
+        when(serviceRepository.findByProviderId(providerId)).thenReturn(services);
+        when(serviceMapper.toDto(service1)).thenReturn(dto1);
+        when(serviceMapper.toDto(service2)).thenReturn(dto2);
+
+        // Act
+        List<ServiceDTO> result = serviceService.getServicesByProviderId(providerId);
+
+        // Assert
+        assertEquals(2, result.size());
+        assertEquals(dto1.getId(), result.get(0).getId());
+        assertEquals(dto2.getId(), result.get(1).getId());
+        verify(serviceRepository).findByProviderId(providerId);
+        verify(serviceMapper).toDto(service1);
+        verify(serviceMapper).toDto(service2);
+    }
+
+    @Test
     void partialUpdateService_notOwner_throwsAccesDenied() {
         Service service = new Service();
         User provider = new User();
