@@ -1,5 +1,7 @@
 package com.mastere_project.vacances_tranquilles.entity;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -33,7 +35,7 @@ public class Service {
     @Column(nullable = false)
     private String category;
     @Column(nullable = false)
-    private Double price;
+    private BigDecimal price;
 
     @ManyToOne
     @JoinColumn(name = "provider_id", nullable = false)

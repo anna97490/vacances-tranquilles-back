@@ -1,5 +1,7 @@
 package com.mastere_project.vacances_tranquilles.dto;
 
+import java.math.BigDecimal;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,6 +16,6 @@ public class ServiceDTO {
     private String title;
     private String description;
     private String category;
-    private Double price;
+    private BigDecimal price;
     private Long providerId;
 }

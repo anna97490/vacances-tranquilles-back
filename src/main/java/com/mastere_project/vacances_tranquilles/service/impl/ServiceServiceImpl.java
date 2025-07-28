@@ -4,13 +4,12 @@ import com.mastere_project.vacances_tranquilles.dto.ServiceDTO;
 import com.mastere_project.vacances_tranquilles.entity.Service;
 import com.mastere_project.vacances_tranquilles.entity.User;
 import com.mastere_project.vacances_tranquilles.mapper.ServiceMapper;
+import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import com.mastere_project.vacances_tranquilles.repository.ServiceRepository;
 import com.mastere_project.vacances_tranquilles.repository.UserRepository;
 import com.mastere_project.vacances_tranquilles.service.ServiceService;
 import com.mastere_project.vacances_tranquilles.util.jwt.SecurityUtils;
 import com.mastere_project.vacances_tranquilles.exception.ServiceNotFoundException;
-
-
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -36,19 +35,23 @@ public class ServiceServiceImpl implements ServiceService {
 
     /**
      * Crée un nouveau service pour le prestataire actuellement connecté.
-     * Le providerId du DTO est ignoré pour la sécurité.
      *
      * @param serviceDTO les informations du service à créer
      * @return le service créé
      * @throws ServiceNotFoundException si l'utilisateur connecté n'est pas trouvé
+     * @throws AccessDeniedException    si l'utilisateur n'est pas un prestataire
      */
     @Override
     public ServiceDTO createService(ServiceDTO serviceDTO) {
-        // On ignore le providerId du DTO pour la sécurité et on prend l'utilisateur
-        // connecté
         Long currentUserId = SecurityUtils.getCurrentUserId();
         User provider = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new ServiceNotFoundException("Utilisateur (provider) non trouvé"));
+                .orElseThrow(() -> new ServiceNotFoundException("Utilisateur non trouvé"));
+
+        // Vérification du rôle : seuls les PROVIDER peuvent créer des services
+        if (provider.getUserRole() != UserRole.PROVIDER) {
+            throw new AccessDeniedException("Seuls les prestataires peuvent créer des services");
+        }
+
         Service service = serviceMapper.toEntity(serviceDTO);
         service.setProvider(provider);
         Service saved = serviceRepository.save(service);
@@ -60,9 +63,9 @@ public class ServiceServiceImpl implements ServiceService {
      *
      * @param id identifiant du service à supprimer
      * @throws org.springframework.security.access.AccessDeniedException
-     *         si l'utilisateur n'est pas le propriétaire du service
+     * si l'utilisateur n'est pas le propriétaire du service
      * @throws ServiceNotFoundException
-     *         si le service n'existe pas
+     * si le service n'existe pas
      */
     @Override
     public void deleteService(Long id) {
@@ -91,14 +94,21 @@ public class ServiceServiceImpl implements ServiceService {
     }
 
     /**
-     * Récupère tous les services d'un prestataire donné.
+     * Récupère tous les services du prestataire connecté.
      *
-     * @param providerId identifiant du prestataire
-     * @return liste des services du prestataire
+     * @return liste des services du prestataire connecté
      */
     @Override
-    public List<ServiceDTO> getServicesByProviderId(Long providerId) {
-        List<Service> services = serviceRepository.findByProviderId(providerId);
+    public List<ServiceDTO> getMyServices() {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        User provider = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new ServiceNotFoundException("Utilisateur non trouvé"));
+        UserRole currentRole = provider.getUserRole();
+        if (currentRole != UserRole.PROVIDER) {
+            throw new AccessDeniedException("Seuls les prestataires peuvent accéder à leurs services");
+        }
+
+        List<Service> services = serviceRepository.findByProviderId(currentUserId);
         List<ServiceDTO> dtoList = new ArrayList<>();
         for (Service service : services) {
             dtoList.add(serviceMapper.toDto(service));

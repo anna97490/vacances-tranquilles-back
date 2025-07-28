@@ -33,12 +33,11 @@ public interface ServiceService {
     ServiceDTO getServiceById(Long id);
 
     /**
-     * Récupère tous les services d'un prestataire donné.
+     * Récupère tous les services du prestataire connecté.
      * 
-     * @param providerId identifiant du prestataire
-     * @return liste des services du prestataire
+     * @return liste des services du prestataire connecté
      */
-    List<ServiceDTO> getServicesByProviderId(Long providerId);
+    List<ServiceDTO> getMyServices();
 
     /**
      * Met à jour partiellement un service existant. Seuls les champs non nuls du

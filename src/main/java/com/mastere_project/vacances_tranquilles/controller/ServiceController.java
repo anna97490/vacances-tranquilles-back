@@ -59,14 +59,13 @@ public class ServiceController {
     }
 
     /**
-     * Récupère tous les services d'un prestataire donné.
+     * Récupère tous les services du prestataire connecté.
      *
-     * @param providerId identifiant du prestataire
-     * @return liste des services du prestataire
+     * @return liste des services du prestataire connecté
      */
-    @GetMapping("/provider/{providerId}")
-    public ResponseEntity<List<ServiceDTO>> getServicesByProvider(@PathVariable Long providerId) {
-        return ResponseEntity.ok(serviceService.getServicesByProviderId(providerId));
+    @GetMapping("/my-services")
+    public ResponseEntity<List<ServiceDTO>> getMyServices() {
+        return ResponseEntity.ok(serviceService.getMyServices());
     }
 
     /**

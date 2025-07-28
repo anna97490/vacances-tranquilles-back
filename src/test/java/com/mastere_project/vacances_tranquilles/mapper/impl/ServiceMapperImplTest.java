@@ -7,6 +7,8 @@ import com.mastere_project.vacances_tranquilles.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,7 +41,7 @@ class ServiceMapperImplTest {
         service.setTitle("T");
         service.setDescription("Desc");
         service.setCategory("Cat");
-        service.setPrice(20.0);
+        service.setPrice(BigDecimal.valueOf(20.00));
 
         User provider = new User();
         provider.setId(99L);
@@ -51,7 +53,7 @@ class ServiceMapperImplTest {
         assertEquals("T", dto.getTitle());
         assertEquals("Desc", dto.getDescription());
         assertEquals("Cat", dto.getCategory());
-        assertEquals(20.0, dto.getPrice());
+        assertEquals(BigDecimal.valueOf(20.00), dto.getPrice());
         assertEquals(99L, dto.getProviderId());
     }
 
@@ -79,7 +81,7 @@ class ServiceMapperImplTest {
         dto.setTitle("Serv");
         dto.setDescription("Desc");
         dto.setCategory("Cat");
-        dto.setPrice(80.0);
+        dto.setPrice(BigDecimal.valueOf(80.00));
         dto.setProviderId(123L);
 
         User provider = new User();
@@ -92,7 +94,7 @@ class ServiceMapperImplTest {
         assertEquals("Serv", service.getTitle());
         assertEquals("Desc", service.getDescription());
         assertEquals("Cat", service.getCategory());
-        assertEquals(80.0, service.getPrice());
+        assertEquals(BigDecimal.valueOf(80.00), service.getPrice());
         assertEquals(provider, service.getProvider());
     }
 

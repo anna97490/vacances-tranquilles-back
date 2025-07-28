@@ -8,6 +8,7 @@ import com.mastere_project.vacances_tranquilles.mapper.ServiceMapper;
 import com.mastere_project.vacances_tranquilles.repository.ServiceRepository;
 import com.mastere_project.vacances_tranquilles.repository.UserRepository;
 import com.mastere_project.vacances_tranquilles.util.jwt.SecurityUtils;
+import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -55,6 +57,7 @@ class ServiceServiceImplTest {
         ServiceDTO dto = new ServiceDTO();
         User provider = new User();
         provider.setId(1L);
+        provider.setUserRole(UserRole.PROVIDER);
         Service entity = new Service();
         entity.setProvider(provider);
         Service saved = new Service();
@@ -81,6 +84,19 @@ class ServiceServiceImplTest {
     }
 
     @Test
+    void createService_userNotProvider_throwsAccessDenied() {
+        User client = new User();
+        client.setId(1L);
+        client.setUserRole(UserRole.CLIENT);
+
+        when(SecurityUtils.getCurrentUserId()).thenReturn(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(client));
+        ServiceDTO dto = new ServiceDTO();
+
+        assertThrows(AccessDeniedException.class, () -> serviceService.createService(dto));
+    }
+
+    @Test
     void partialUpdateService_updatesAllFields_whenFieldsAreNotNull() {
         // Préparation
         Service service = new Service();
@@ -95,7 +111,7 @@ class ServiceServiceImplTest {
         dto.setTitle("Nouveau titre");
         dto.setDescription("Nouvelle description");
         dto.setCategory("Nouvelle catégorie");
-        dto.setPrice(99.99);
+        dto.setPrice(BigDecimal.valueOf(99.99));
 
         Service savedService = new Service();
         savedService.setProvider(provider);
@@ -113,7 +129,7 @@ class ServiceServiceImplTest {
         assertEquals("Nouveau titre", service.getTitle());
         assertEquals("Nouvelle description", service.getDescription());
         assertEquals("Nouvelle catégorie", service.getCategory());
-        assertEquals(99.99, service.getPrice());
+        assertEquals(BigDecimal.valueOf(99.99), service.getPrice());
     }
 
     @Test
@@ -200,32 +216,38 @@ class ServiceServiceImplTest {
     }
 
     @Test
-    void getServicesByProviderId_shouldReturnMappedServiceDTOs() {
+    void getMyServices_shouldReturnMappedServiceDTOs() {
         // Arrange
-        Long providerId = 1L;
+        Long currentUserId = 1L;
         Service service1 = new Service();
         service1.setId(100L);
         Service service2 = new Service();
         service2.setId(101L);
         List<Service> services = List.of(service1, service2);
 
+        User provider = new User();
+        provider.setId(currentUserId);
+        provider.setUserRole(UserRole.PROVIDER);
+
         ServiceDTO dto1 = new ServiceDTO();
         dto1.setId(100L);
         ServiceDTO dto2 = new ServiceDTO();
         dto2.setId(101L);
 
-        when(serviceRepository.findByProviderId(providerId)).thenReturn(services);
+        when(SecurityUtils.getCurrentUserId()).thenReturn(currentUserId);
+        when(userRepository.findById(currentUserId)).thenReturn(Optional.of(provider));
+        when(serviceRepository.findByProviderId(currentUserId)).thenReturn(services);
         when(serviceMapper.toDto(service1)).thenReturn(dto1);
         when(serviceMapper.toDto(service2)).thenReturn(dto2);
 
         // Act
-        List<ServiceDTO> result = serviceService.getServicesByProviderId(providerId);
+        List<ServiceDTO> result = serviceService.getMyServices();
 
         // Assert
         assertEquals(2, result.size());
         assertEquals(dto1.getId(), result.get(0).getId());
         assertEquals(dto2.getId(), result.get(1).getId());
-        verify(serviceRepository).findByProviderId(providerId);
+        verify(serviceRepository).findByProviderId(currentUserId);
         verify(serviceMapper).toDto(service1);
         verify(serviceMapper).toDto(service2);
     }
