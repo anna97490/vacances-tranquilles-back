@@ -158,10 +158,16 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserProfileDTO getUserProfile(final Long userId) throws AccessDeniedException {
-        return userRepository.findById(userId)
-                .filter(user -> !user.getIsAnonymized())
-                .map(userMapper::toUserProfileDTO)
-                .orElseThrow(() -> new AccessDeniedException("Utilisateur non trouvé"));
+        // Vérification en base de données que l'utilisateur existe
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AccessDeniedException("Utilisateur non trouvé."));
+        
+        // Vérification que l'utilisateur n'est pas anonymisé
+        if (Boolean.TRUE.equals(user.getIsAnonymized())) {
+            throw new AccessDeniedException("Utilisateur anonymisé - accès refusé");
+        }
+        
+        return userMapper.toUserProfileDTO(user);
     }
 
     /**
@@ -175,15 +181,20 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserProfileDTO updateUserProfile(final Long userId, final UpdateUserDTO updateDTO) {
         
-        return userRepository.findById(userId)
-                .filter(user -> !user.getIsAnonymized())
-                .map(user -> {
-                    user = userMapper.updateUserFromDTO(user, updateDTO);
-                    User savedUser = userRepository.save(user);
-                    
-                    return userMapper.toUserProfileDTO(savedUser);
-                })
+        // Vérification en base de données que l'utilisateur existe
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AccessDeniedException("Utilisateur non trouvé"));
+        
+        // Vérification que l'utilisateur n'est pas anonymisé
+        if (Boolean.TRUE.equals(user.getIsAnonymized())) {
+            throw new AccessDeniedException("Utilisateur anonymisé - accès refusé");
+        }
+        
+        // Mise à jour du profil
+        user = userMapper.updateUserFromDTO(user, updateDTO);
+        User savedUser = userRepository.save(user);
+        
+        return userMapper.toUserProfileDTO(savedUser);
     }
 
     /**
@@ -194,30 +205,32 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public void deleteUserAccount(final Long userId) {
-        userRepository.findById(userId)
-                .filter(user -> !user.getIsAnonymized())
-                .ifPresentOrElse(user -> {
-                    // Log de début de suppression pour conformité RGPD
-                    logger.info("=== DÉBUT SUPPRESSION COMPTE RGPD ===");
-                    logger.info("Utilisateur ID: {}", userId);
-                    logger.info("Email: {}", user.getEmail());
-                    logger.info("Rôle: {}", user.getUserRole());
-                    logger.info("Raison de suppression: Demande utilisateur");
-                    logger.info("Anonymisation obligatoire: true (conformité RGPD)");
-                    logger.info("Timestamp: {}", LocalDateTime.now());
-                    
-                    // Anonymisation RGPD-compliant obligatoire
-                    anonymizeUserData(user, "Demande utilisateur");
-                    logger.info("Compte utilisateur anonymisé avec succès pour l'ID : {} - Raison : Demande utilisateur", 
-                        userId);
-                    
-                    // Log de fin de suppression pour conformité RGPD
-                    logger.info("=== FIN SUPPRESSION COMPTE RGPD ===");
-                    logger.info("Action terminée avec succès");
-                    logger.info("Timestamp: {}", LocalDateTime.now());
-                }, () -> {
-                    throw new AccessDeniedException("Utilisateur non trouvé");
-                });
+        // Vérification en base de données que l'utilisateur existe
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AccessDeniedException("Utilisateur non trouvé"));
+        
+        // Vérification que l'utilisateur n'est pas anonymisé
+        if (Boolean.TRUE.equals(user.getIsAnonymized())) {
+            throw new AccessDeniedException("Utilisateur anonymisé - accès refusé");
+        }
+        
+        // Log de début de suppression pour conformité RGPD
+        logger.info("=== DÉBUT SUPPRESSION COMPTE RGPD ===");
+        logger.info("Utilisateur ID: {}", userId);
+        logger.info("Email: {}", user.getEmail());
+        logger.info("Rôle: {}", user.getUserRole());
+        logger.info("Raison de suppression: Demande utilisateur");
+        logger.info("Anonymisation obligatoire: true (conformité RGPD)");
+        logger.info("Timestamp: {}", LocalDateTime.now());
+        
+        // Anonymisation RGPD-compliant obligatoire
+        anonymizeUserData(user, "Demande utilisateur");
+        logger.info("Compte utilisateur anonymisé avec succès");
+        
+        // Log de fin de suppression pour conformité RGPD
+        logger.info("=== FIN SUPPRESSION COMPTE RGPD ===");
+        logger.info("Action terminée avec succès");
+        logger.info("Timestamp: {}", LocalDateTime.now());
     }
 
     /**
