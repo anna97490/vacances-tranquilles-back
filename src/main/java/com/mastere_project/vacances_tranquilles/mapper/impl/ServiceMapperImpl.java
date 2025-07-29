@@ -43,7 +43,6 @@ public class ServiceMapperImpl implements ServiceMapper {
      *
      * @param serviceDTO le DTO à convertir
      * @return l'entité Service correspondante, ou null si serviceDTO est null
-     * @throws RuntimeException si le provider référencé n'existe pas
      */
     public Service toEntity(ServiceDTO serviceDTO) {
         if (serviceDTO == null) {
@@ -55,11 +54,6 @@ public class ServiceMapperImpl implements ServiceMapper {
         service.setDescription(serviceDTO.getDescription());
         service.setCategory(serviceDTO.getCategory());
         service.setPrice(serviceDTO.getPrice());
-        if (serviceDTO.getProviderId() != null) {
-            User provider = userRepository.findById(serviceDTO.getProviderId())
-                    .orElseThrow(() -> new RuntimeException("Provider not found"));
-            service.setProvider(provider);
-        }
 
         return service;
     }
