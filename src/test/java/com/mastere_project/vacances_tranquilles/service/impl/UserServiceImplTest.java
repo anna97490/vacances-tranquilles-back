@@ -240,7 +240,8 @@ class UserServiceImplTest {
         
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
         
-        assertThrows(AccessDeniedException.class, () -> userService.getUserProfile(userId));
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> userService.getUserProfile(userId));
+        assertEquals("Utilisateur non trouvé.", exception.getMessage());
         
         verify(userRepository).findById(userId);
         verify(userMapper, never()).toUserProfileDTO(any());
@@ -253,7 +254,8 @@ class UserServiceImplTest {
         
         when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
         
-        assertThrows(AccessDeniedException.class, () -> userService.getUserProfile(userId));
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> userService.getUserProfile(userId));
+        assertEquals("Utilisateur anonymisé - accès refusé", exception.getMessage());
         
         verify(userRepository).findById(userId);
         verify(userMapper, never()).toUserProfileDTO(any());
@@ -298,7 +300,8 @@ class UserServiceImplTest {
         
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
         
-        assertThrows(AccessDeniedException.class, () -> userService.updateUserProfile(userId, updateDTO));
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> userService.updateUserProfile(userId, updateDTO));
+        assertEquals("Utilisateur non trouvé", exception.getMessage());
         
         verify(userRepository).findById(userId);
         verify(userMapper, never()).updateUserFromDTO(any(), any());
@@ -315,7 +318,8 @@ class UserServiceImplTest {
         
         when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
         
-        assertThrows(AccessDeniedException.class, () -> userService.updateUserProfile(userId, updateDTO));
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> userService.updateUserProfile(userId, updateDTO));
+        assertEquals("Utilisateur anonymisé - accès refusé", exception.getMessage());
         
         verify(userRepository).findById(userId);
         verify(userMapper, never()).updateUserFromDTO(any(), any());
@@ -341,7 +345,8 @@ class UserServiceImplTest {
         
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
         
-        assertThrows(AccessDeniedException.class, () -> userService.deleteUserAccount(userId));
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> userService.deleteUserAccount(userId));
+        assertEquals("Utilisateur non trouvé", exception.getMessage());
         
         verify(userRepository).findById(userId);
         verify(userRepository, never()).save(any());
