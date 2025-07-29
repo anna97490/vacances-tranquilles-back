@@ -1,5 +1,10 @@
 package com.mastere_project.vacances_tranquilles.configuration;
 
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -8,6 +13,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.mastere_project.vacances_tranquilles.util.jwt.JwtAuthenticationFilter;
 import com.mastere_project.vacances_tranquilles.util.jwt.JwtConfig;
@@ -16,18 +23,34 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Configuration de la sécurité Spring Security pour l'application.
- * Définit les filtres, l'encodage des mots de passe et les règles d'accès.
+ * Définit les filtres, l'encodage des mots de passe, les règles d'accès et la
+ * configuration CORS.
+ * 
+ * <p>
+ * La configuration CORS permet les requêtes cross-origin depuis les origines
+ * spécifiées
+ * dans la propriété {@code app.cors.allowed-origins} (configurable via variable
+ * d'environnement).
+ * </p>
  */
 @RequiredArgsConstructor
 @Configuration
 public class SecurityConfig {
+
+    /**
+     * Origines autorisées pour les requêtes CORS.
+     * Configurée via {@code app.cors.allowed-origins} (variable d'environnement
+     * ALLOWED_ORIGINS).
+     */
+    @Value("${app.cors.allowed-origins}")
+    private String allowedOrigin;
 
     private final JwtConfig jwt;
 
     /**
      * Fournit un encodeur de mots de passe utilisant BCrypt.
      * 
-     * @return PasswordEncoder
+     * @return PasswordEncoder configuré avec BCrypt
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -37,11 +60,36 @@ public class SecurityConfig {
     /**
      * Fournit le filtre d'authentification JWT.
      *
-     * @return le filtre d'authentification JWT
+     * @return le filtre d'authentification JWT configuré
      */
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwt);
+    }
+
+    /**
+     * Fournit la configuration CORS.
+     * 
+     * Configuration CORS : origines depuis {@code allowedOrigin}, méthodes
+     * GET/POST/PUT/DELETE/OPTIONS,
+     * tous headers autorisés, credentials activés.
+     *
+     * @return la configuration CORS configurée
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration corsConfig = new CorsConfiguration();
+        corsConfig.setAllowedOriginPatterns(List.of(allowedOrigin.trim()));
+        corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        corsConfig.setAllowedHeaders(List.of("*"));
+        corsConfig.setAllowCredentials(true);
+        return request -> corsConfig;
+    }
+
+    public Customizer<AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry> authorizeRequests() {
+        return auth -> auth
+                .requestMatchers("/api/auth/**").permitAll()
+                .anyRequest().authenticated();
     }
 
     /**
@@ -54,12 +102,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll() // Autorise login et register
-                        .requestMatchers("/api/users/**").authenticated() // Routes utilisateur protégées
-                        .anyRequest().authenticated() // Tout le reste protégé
-                )
+                .authorizeHttpRequests(authorizeRequests())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 

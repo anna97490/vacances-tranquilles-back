@@ -7,8 +7,7 @@ import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import org.springframework.stereotype.Component;
 
 /**
- * Implémentation du mapper UserMapper pour la conversion entre entités et DTOs
- * utilisateur.
+ * Implémentation du mapper UserMapper pour la conversion entre entités et DTOs utilisateur.
  */
 @Component
 public class UserMapperImpl implements UserMapper {
@@ -20,7 +19,7 @@ public class UserMapperImpl implements UserMapper {
      * @return l'entité User correspondante
      */
     @Override
-    public User toUser(RegisterClientDTO dto) {
+    public User toUser(final RegisterClientDTO dto) {
         User user = new User();
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
@@ -42,7 +41,7 @@ public class UserMapperImpl implements UserMapper {
      * @return l'entité User correspondante
      */
     @Override
-    public User toUser(RegisterProviderDTO dto) {
+    public User toUser(final RegisterProviderDTO dto) {
         User user = new User();
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
@@ -66,7 +65,7 @@ public class UserMapperImpl implements UserMapper {
      * @return le UserDTO correspondant
      */
     @Override
-    public UserDTO toUserDTO(User user) {
+    public UserDTO toUserDTO(final User user) {
         UserDTO dto = new UserDTO();
         dto.setId(user.getId());
         dto.setFirstName(user.getFirstName());
@@ -88,7 +87,7 @@ public class UserMapperImpl implements UserMapper {
      * @return le UserProfileDTO correspondant
      */
     @Override
-    public UserProfileDTO toUserProfileDTO(User user) {
+    public UserProfileDTO toUserProfileDTO(final User user) {
         UserProfileDTO dto = new UserProfileDTO();
         dto.setId(user.getId());
         dto.setFirstName(user.getFirstName());
@@ -115,7 +114,7 @@ public class UserMapperImpl implements UserMapper {
      * @return l'entité User mise à jour
      */
     @Override
-    public User updateUserFromDTO(User user, UpdateUserDTO updateDTO) {
+    public User updateUserFromDTO(final User user, final UpdateUserDTO updateDTO) {
         if (updateDTO.getFirstName() != null) {
             user.setFirstName(updateDTO.getFirstName());
         }

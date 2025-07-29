@@ -57,6 +57,20 @@ public class ApplicationControllerAdvice {
     }
 
     /**
+     * Gère les exceptions IllegalArgumentException et retourne une réponse HTTP 400
+     * (BAD_REQUEST).
+     *
+     * @param ex l'exception IllegalArgumentException interceptée
+     * @return une réponse HTTP 400 avec le code et
+     *         le message d'erreur
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorEntity> handleIllegalArgument(IllegalArgumentException ex) {
+        ErrorEntity error = new ErrorEntity("INVALID_ARGUMENT", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
      * Gère l'exception levée lorsqu'un compte utilisateur est temporairement bloqué
      * suite à trop de tentatives échouées.
      *
@@ -122,27 +136,14 @@ public class ApplicationControllerAdvice {
     }
 
     /**
-     * Gère l'exception levée lorsqu'un accès non autorisé est détecté.
+     * Gère l'exception levée lorsqu'un service n'est pas trouvé en base.
      *
-     * @param ex l'exception UnauthorizedAccessException
-     * @return une réponse HTTP 401 avec un code d'erreur spécifique
-     */
-    @ExceptionHandler(UnauthorizedAccessException.class)
-    public ResponseEntity<ErrorEntity> handleUnauthorizedAccessException(UnauthorizedAccessException ex) {
-        ErrorEntity error = new ErrorEntity("UNAUTHORIZED_ACCESS", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
-    }
-
-    /**
-     * Gère l'exception levée lorsqu'un utilisateur n'est pas trouvé.
-     *
-     * @param ex l'exception UserNotFoundException
+     * @param ex l'exception ServiceNotFoundException
      * @return une réponse HTTP 404 avec un code d'erreur spécifique
      */
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorEntity> handleUserNotFoundException(UserNotFoundException ex) {
-        ErrorEntity error = new ErrorEntity("USER_NOT_FOUND", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    @ExceptionHandler(ServiceNotFoundException.class)
+    public ResponseEntity<ErrorEntity> handleServiceNotFound(ServiceNotFoundException ex) {
+        ErrorEntity error = new ErrorEntity("SERVICE_NOT_FOUND", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
-
 }

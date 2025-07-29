@@ -1,11 +1,9 @@
 package com.mastere_project.vacances_tranquilles.repository;
 
 import com.mastere_project.vacances_tranquilles.entity.User;
-import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -14,6 +12,7 @@ import java.util.Optional;
  */
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
+    
     /**
      * Recherche un utilisateur par son email.
      * 
@@ -31,53 +30,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
 
     /**
-     * Récupère tous les utilisateurs ayant le rôle client.
-     * 
-     * @return la liste des clients
+     * Recherche un utilisateur par son identifiant.
+     *
+     * @param id l'identifiant de l'utilisateur
+     * @return un Optional contenant l'utilisateur s'il existe
      */
-    List<User> findByUserRole(UserRole userRole);
-
-    /**
-     * Récupère tous les clients.
-     * 
-     * @return la liste des clients
-     */
-    default List<User> findAllClients() {
-        return findByUserRole(UserRole.CLIENT);
-    }
-
-    /**
-     * Récupère tous les prestataires.
-     * 
-     * @return la liste des prestataires
-     */
-    default List<User> findAllProviders() {
-        return findByUserRole(UserRole.PROVIDER);
-    }
-
-    /**
-     * Récupère tous les clients non anonymisés.
-     * 
-     * @return la liste des clients actifs
-     */
-    default List<User> findAllActiveClients() {
-        return findByUserRoleAndIsAnonymizedFalse(UserRole.CLIENT);
-    }
-
-    /**
-     * Récupère tous les prestataires non anonymisés.
-     * 
-     * @return la liste des prestataires actifs
-     */
-    default List<User> findAllActiveProviders() {
-        return findByUserRoleAndIsAnonymizedFalse(UserRole.PROVIDER);
-    }
-
-    /**
-     * Récupère tous les utilisateurs ayant un rôle spécifique et non anonymisés.
-     * 
-     * @param userRole le rôle utilisateur
-     * @return la liste des utilisateurs actifs
-     */
-    List<User> findByUserRoleAndIsAnonymizedFalse(UserRole userRole);
+    Optional<User> findById(Long id);
 }

@@ -7,7 +7,6 @@ import com.mastere_project.vacances_tranquilles.exception.EmailAlreadyExistsExce
 import com.mastere_project.vacances_tranquilles.exception.EmailNotFoundException;
 import com.mastere_project.vacances_tranquilles.exception.LoginInternalException;
 import com.mastere_project.vacances_tranquilles.exception.MissingFieldException;
-import com.mastere_project.vacances_tranquilles.exception.UserNotFoundException;
 import com.mastere_project.vacances_tranquilles.exception.WrongPasswordException;
 import com.mastere_project.vacances_tranquilles.mapper.UserMapper;
 import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
@@ -19,17 +18,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
- * Implémentation du service utilisateur gérant l'inscription, la connexion et
- * la sécurité des utilisateurs.
+ * Implémentation du service utilisateur gérant l'inscription, la connexion et la sécurité des utilisateurs.
  */
 @Service
 public class UserServiceImpl implements UserService {
@@ -47,13 +45,13 @@ public class UserServiceImpl implements UserService {
     /**
      * Constructeur du service utilisateur.
      * 
-     * @param userRepository  le repository utilisateur
+     * @param userRepository le repository utilisateur
      * @param passwordEncoder l'encodeur de mot de passe
-     * @param userMapper      le mapper DTO entité utilisateur
-     * @param jwtConfig       la configuration JWT
+     * @param userMapper le mapper DTO entité utilisateur
+     * @param jwtConfig la configuration JWT
      */
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, UserMapper userMapper,
-            JwtConfig jwtConfig) {
+    public UserServiceImpl(final UserRepository userRepository, final PasswordEncoder passwordEncoder, 
+            final UserMapper userMapper, final JwtConfig jwtConfig) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.userMapper = userMapper;
@@ -67,7 +65,7 @@ public class UserServiceImpl implements UserService {
      * @throws EmailAlreadyExistsException si l'email existe déjà
      */
     @Override
-    public void registerClient(RegisterClientDTO dto) {
+    public void registerClient(final RegisterClientDTO dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new EmailAlreadyExistsException("Un compte avec cet email existe déjà.");
         }
@@ -81,11 +79,11 @@ public class UserServiceImpl implements UserService {
      * Inscrit un nouveau prestataire.
      * 
      * @param dto les informations du prestataire à enregistrer
-     * @throws MissingFieldException       si des champs obligatoires sont manquants
+     * @throws MissingFieldException si des champs obligatoires sont manquants
      * @throws EmailAlreadyExistsException si l'email existe déjà
      */
     @Override
-    public void registerProvider(RegisterProviderDTO dto) {
+    public void registerProvider(final RegisterProviderDTO dto) {
         if (dto.getCompanyName() == null || dto.getCompanyName().isBlank()) {
             throw new MissingFieldException("Le nom de la société est obligatoire pour les prestataires.");
         }
@@ -109,10 +107,10 @@ public class UserServiceImpl implements UserService {
      * @return un objet LoginResponseDTO contenant le token JWT et le rôle
      * @throws EmailNotFoundException si l'email n'existe pas
      * @throws WrongPasswordException si le mot de passe est incorrect
-     * @throws RuntimeException       en cas d'erreur inattendue ou de compte bloqué
+     * @throws RuntimeException en cas d'erreur inattendue ou de compte bloqué
      */
     @Override
-    public LoginResponseDTO login(UserDTO userDTO) {
+    public LoginResponseDTO login(final UserDTO userDTO) {
         String email = userDTO.getEmail();
         
         if (blockedUntil.containsKey(email) && blockedUntil.get(email) > System.currentTimeMillis()) {
@@ -152,76 +150,18 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * Récupère tous les clients.
-     * 
-     * @return la liste des clients
-     */
-    @Override
-    public List<UserProfileDTO> getAllClients() {
-        List<User> clients = userRepository.findAllActiveClients();
-        
-        return clients.stream()
-                .map(userMapper::toUserProfileDTO)
-                .toList();
-    }
-
-    /**
-     * Récupère tous les prestataires.
-     * 
-     * @return la liste des prestataires
-     */
-    @Override
-    public List<UserProfileDTO> getAllProviders() {
-        List<User> providers = userRepository.findAllActiveProviders();
-        
-        return providers.stream()
-                .map(userMapper::toUserProfileDTO)
-                .toList();
-    }
-
-    /**
-     * Récupère un client par son ID.
-     * 
-     * @param id l'identifiant du client
-     * @return le profil du client
-     */
-    @Override
-    public UserProfileDTO getClientById(Long id) {
-        
-        return userRepository.findById(id)
-                .filter(user -> user.getUserRole() == UserRole.CLIENT && !user.getIsAnonymized())
-                .map(userMapper::toUserProfileDTO)
-                .orElseThrow(() -> new UserNotFoundException("Client non trouvé avec l'ID : " + id));
-    }
-
-    /**
-     * Récupère un prestataire par son ID.
-     * 
-     * @param id l'identifiant du prestataire
-     * @return le profil du prestataire
-     */
-    @Override
-    public UserProfileDTO getProviderById(Long id) {
-        
-        return userRepository.findById(id)
-                .filter(user -> user.getUserRole() == UserRole.PROVIDER && !user.getIsAnonymized())
-                .map(userMapper::toUserProfileDTO)
-                .orElseThrow(() -> new UserNotFoundException("Prestataire non trouvé avec l'ID : " + id));
-    }
-
-    /**
      * Récupère le profil de l'utilisateur authentifié.
      * 
      * @param userId l'identifiant de l'utilisateur authentifié
      * @return le profil de l'utilisateur
+     * @throws AccessDeniedException si l'utilisateur n'est pas trouvé
      */
     @Override
-    public UserProfileDTO getUserProfile(Long userId) {
-        
+    public UserProfileDTO getUserProfile(final Long userId) throws AccessDeniedException {
         return userRepository.findById(userId)
                 .filter(user -> !user.getIsAnonymized())
                 .map(userMapper::toUserProfileDTO)
-                .orElseThrow(() -> new UserNotFoundException("Utilisateur non trouvé avec l'ID : " + userId));
+                .orElseThrow(() -> new AccessDeniedException("Utilisateur non trouvé"));
     }
 
     /**
@@ -230,50 +170,53 @@ public class UserServiceImpl implements UserService {
      * @param userId l'identifiant de l'utilisateur authentifié
      * @param updateDTO les données de mise à jour
      * @return le profil mis à jour
+     * @throws AccessDeniedException si l'utilisateur n'est pas trouvé
      */
     @Override
-    public UserProfileDTO updateUserProfile(Long userId, UpdateUserDTO updateDTO) {
+    public UserProfileDTO updateUserProfile(final Long userId, final UpdateUserDTO updateDTO) {
         
         return userRepository.findById(userId)
                 .filter(user -> !user.getIsAnonymized())
                 .map(user -> {
                     user = userMapper.updateUserFromDTO(user, updateDTO);
                     User savedUser = userRepository.save(user);
+                    
                     return userMapper.toUserProfileDTO(savedUser);
                 })
-                .orElseThrow(() -> new UserNotFoundException("Utilisateur non trouvé avec l'ID : " + userId));
+                .orElseThrow(() -> new AccessDeniedException("Utilisateur non trouvé"));
     }
 
     /**
      * Supprime le compte de l'utilisateur authentifié (conformité RGPD).
      * 
      * @param userId l'identifiant de l'utilisateur authentifié
-     * @param deleteAccountDTO les informations de suppression
+     * @throws AccessDeniedException si l'utilisateur n'est pas trouvé
      */
     @Override
-    public void deleteUserAccount(Long userId, DeleteAccountDTO deleteAccountDTO) {
+    public void deleteUserAccount(final Long userId) {
         userRepository.findById(userId)
+                .filter(user -> !user.getIsAnonymized())
                 .ifPresentOrElse(user -> {
                     // Log de début de suppression pour conformité RGPD
                     logger.info("=== DÉBUT SUPPRESSION COMPTE RGPD ===");
                     logger.info("Utilisateur ID: {}", userId);
                     logger.info("Email: {}", user.getEmail());
                     logger.info("Rôle: {}", user.getUserRole());
-                    logger.info("Raison de suppression: {}", deleteAccountDTO.getReason());
+                    logger.info("Raison de suppression: Demande utilisateur");
                     logger.info("Anonymisation obligatoire: true (conformité RGPD)");
                     logger.info("Timestamp: {}", LocalDateTime.now());
                     
                     // Anonymisation RGPD-compliant obligatoire
-                    anonymizeUserData(user, deleteAccountDTO.getReason());
-                    logger.info("Compte utilisateur anonymisé avec succès pour l'ID : {} - Raison : {}", 
-                        userId, deleteAccountDTO.getReason());
+                    anonymizeUserData(user, "Demande utilisateur");
+                    logger.info("Compte utilisateur anonymisé avec succès pour l'ID : {} - Raison : Demande utilisateur", 
+                        userId);
                     
                     // Log de fin de suppression pour conformité RGPD
                     logger.info("=== FIN SUPPRESSION COMPTE RGPD ===");
                     logger.info("Action terminée avec succès");
                     logger.info("Timestamp: {}", LocalDateTime.now());
                 }, () -> {
-                    throw new UserNotFoundException("Utilisateur non trouvé avec l'ID : " + userId);
+                    throw new AccessDeniedException("Utilisateur non trouvé");
                 });
     }
 
@@ -283,7 +226,7 @@ public class UserServiceImpl implements UserService {
      * @param user l'utilisateur à anonymiser
      * @param reason la raison de l'anonymisation
      */
-    private void anonymizeUserData(User user, String reason) {
+    private void anonymizeUserData(final User user, final String reason) {
         // Log de début d'anonymisation
         logger.info("=== DÉBUT ANONYMISATION RGPD ===");
         logger.info("Anonymisation des données pour l'utilisateur ID: {}", user.getId());
@@ -320,18 +263,17 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * Incrémente le nombre de tentatives de connexion pour un email et bloque le
-     * compte si nécessaire.
+     * Incrémente le nombre de tentatives de connexion pour un email et bloque le compte si nécessaire.
      * 
      * @param email l'email de l'utilisateur
      */
-    private void incrementLoginAttempts(String email) {
+    private void incrementLoginAttempts(final String email) {
         int attempts = loginAttempts.getOrDefault(email, 0) + 1;
         
         if (attempts >= MAX_ATTEMPTS) {
             blockedUntil.put(email, System.currentTimeMillis() + BLOCK_TIME_MS);
             loginAttempts.remove(email);
-            logger.warn("Email {} bloqué temporairement pour cause de brute force.", email);
+            logger.warn("Email bloqué temporairement pour cause de brute force.");
         } else {
             loginAttempts.put(email, attempts);
         }

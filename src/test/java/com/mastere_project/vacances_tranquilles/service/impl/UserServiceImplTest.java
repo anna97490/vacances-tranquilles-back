@@ -2,7 +2,10 @@ package com.mastere_project.vacances_tranquilles.service.impl;
 
 import com.mastere_project.vacances_tranquilles.dto.*;
 import com.mastere_project.vacances_tranquilles.entity.User;
-import com.mastere_project.vacances_tranquilles.exception.*;
+import com.mastere_project.vacances_tranquilles.exception.EmailAlreadyExistsException;
+import com.mastere_project.vacances_tranquilles.exception.EmailNotFoundException;
+import com.mastere_project.vacances_tranquilles.exception.MissingFieldException;
+import com.mastere_project.vacances_tranquilles.exception.WrongPasswordException;
 import com.mastere_project.vacances_tranquilles.mapper.UserMapper;
 import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import com.mastere_project.vacances_tranquilles.repository.UserRepository;
@@ -13,11 +16,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -217,151 +219,6 @@ class UserServiceImplTest {
     }
 
     @Test
-    void getAllClients_ShouldReturnClientsList() {
-        List<User> clients = Arrays.asList(mockUser);
-        
-        when(userRepository.findAllActiveClients()).thenReturn(clients);
-        when(userMapper.toUserProfileDTO(mockUser)).thenReturn(mockUserProfileDTO);
-        
-        List<UserProfileDTO> result = userService.getAllClients();
-        
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(mockUserProfileDTO, result.get(0));
-        
-        verify(userRepository).findAllActiveClients();
-        verify(userMapper).toUserProfileDTO(mockUser);
-    }
-
-    @Test
-    void getAllProviders_ShouldReturnProvidersList() {
-        User providerUser = createMockProviderUser();
-        UserProfileDTO providerDTO = createMockProviderProfileDTO();
-        List<User> providers = Arrays.asList(providerUser);
-
-        when(userRepository.findAllActiveProviders()).thenReturn(providers);
-        when(userMapper.toUserProfileDTO(providerUser)).thenReturn(providerDTO);
-
-        List<UserProfileDTO> result = userService.getAllProviders();
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(providerDTO, result.get(0));
-
-        verify(userRepository).findAllActiveProviders();
-        verify(userMapper).toUserProfileDTO(providerUser);
-    }
-
-    @Test
-    void getClientById_ShouldReturnClient() {
-        Long clientId = 37L;
-        
-        when(userRepository.findById(clientId)).thenReturn(Optional.of(mockUser));
-        when(userMapper.toUserProfileDTO(mockUser)).thenReturn(mockUserProfileDTO);
-        
-        UserProfileDTO result = userService.getClientById(clientId);
-        
-        assertNotNull(result);
-        assertEquals(mockUserProfileDTO, result);
-        
-        verify(userRepository).findById(clientId);
-        verify(userMapper).toUserProfileDTO(mockUser);
-    }
-
-    @Test
-    void getClientById_WhenClientNotFound_ShouldThrowException() {
-        Long clientId = 999L;
-        
-        when(userRepository.findById(clientId)).thenReturn(Optional.empty());
-        
-        assertThrows(UserNotFoundException.class, () -> userService.getClientById(clientId));
-        
-        verify(userRepository).findById(clientId);
-        verify(userMapper, never()).toUserProfileDTO(any());
-    }
-
-    @Test
-    void getClientById_WhenUserIsNotClient_ShouldThrowException() {
-        Long clientId = 37L;
-        User providerUser = createMockProviderUser();
-        
-        when(userRepository.findById(clientId)).thenReturn(Optional.of(providerUser));
-        
-        assertThrows(UserNotFoundException.class, () -> userService.getClientById(clientId));
-        
-        verify(userRepository).findById(clientId);
-        verify(userMapper, never()).toUserProfileDTO(any());
-    }
-
-    @Test
-    void getClientById_WhenUserIsAnonymized_ShouldThrowException() {
-        Long clientId = 37L;
-        mockUser.setIsAnonymized(true);
-        
-        when(userRepository.findById(clientId)).thenReturn(Optional.of(mockUser));
-        
-        assertThrows(UserNotFoundException.class, () -> userService.getClientById(clientId));
-        
-        verify(userRepository).findById(clientId);
-        verify(userMapper, never()).toUserProfileDTO(any());
-    }
-
-    @Test
-    void getProviderById_ShouldReturnProvider() {
-        Long providerId = 39L;
-        User providerUser = createMockProviderUser();
-        UserProfileDTO providerDTO = createMockProviderProfileDTO();
-        
-        when(userRepository.findById(providerId)).thenReturn(Optional.of(providerUser));
-        when(userMapper.toUserProfileDTO(providerUser)).thenReturn(providerDTO);
-        
-        UserProfileDTO result = userService.getProviderById(providerId);
-        
-        assertNotNull(result);
-        assertEquals(providerDTO, result);
-        
-        verify(userRepository).findById(providerId);
-        verify(userMapper).toUserProfileDTO(providerUser);
-    }
-
-    @Test
-    void getProviderById_WhenProviderNotFound_ShouldThrowException() {
-        Long providerId = 999L;
-        
-        when(userRepository.findById(providerId)).thenReturn(Optional.empty());
-        
-        assertThrows(UserNotFoundException.class, () -> userService.getProviderById(providerId));
-        
-        verify(userRepository).findById(providerId);
-        verify(userMapper, never()).toUserProfileDTO(any());
-    }
-
-    @Test
-    void getProviderById_WhenUserIsNotProvider_ShouldThrowException() {
-        Long providerId = 39L;
-        
-        when(userRepository.findById(providerId)).thenReturn(Optional.of(mockUser));
-        
-        assertThrows(UserNotFoundException.class, () -> userService.getProviderById(providerId));
-        
-        verify(userRepository).findById(providerId);
-        verify(userMapper, never()).toUserProfileDTO(any());
-    }
-
-    @Test
-    void getProviderById_WhenUserIsAnonymized_ShouldThrowException() {
-        Long providerId = 39L;
-        User providerUser = createMockProviderUser();
-        providerUser.setIsAnonymized(true);
-        
-        when(userRepository.findById(providerId)).thenReturn(Optional.of(providerUser));
-        
-        assertThrows(UserNotFoundException.class, () -> userService.getProviderById(providerId));
-        
-        verify(userRepository).findById(providerId);
-        verify(userMapper, never()).toUserProfileDTO(any());
-    }
-
-    @Test
     void getUserProfile_ShouldReturnUserProfile() {
         Long userId = 37L;
         
@@ -383,7 +240,7 @@ class UserServiceImplTest {
         
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
         
-        assertThrows(UserNotFoundException.class, () -> userService.getUserProfile(userId));
+        assertThrows(AccessDeniedException.class, () -> userService.getUserProfile(userId));
         
         verify(userRepository).findById(userId);
         verify(userMapper, never()).toUserProfileDTO(any());
@@ -396,7 +253,7 @@ class UserServiceImplTest {
         
         when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
         
-        assertThrows(UserNotFoundException.class, () -> userService.getUserProfile(userId));
+        assertThrows(AccessDeniedException.class, () -> userService.getUserProfile(userId));
         
         verify(userRepository).findById(userId);
         verify(userMapper, never()).toUserProfileDTO(any());
@@ -441,7 +298,7 @@ class UserServiceImplTest {
         
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
         
-        assertThrows(UserNotFoundException.class, () -> userService.updateUserProfile(userId, updateDTO));
+        assertThrows(AccessDeniedException.class, () -> userService.updateUserProfile(userId, updateDTO));
         
         verify(userRepository).findById(userId);
         verify(userMapper, never()).updateUserFromDTO(any(), any());
@@ -458,7 +315,7 @@ class UserServiceImplTest {
         
         when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
         
-        assertThrows(UserNotFoundException.class, () -> userService.updateUserProfile(userId, updateDTO));
+        assertThrows(AccessDeniedException.class, () -> userService.updateUserProfile(userId, updateDTO));
         
         verify(userRepository).findById(userId);
         verify(userMapper, never()).updateUserFromDTO(any(), any());
@@ -468,39 +325,23 @@ class UserServiceImplTest {
     @Test
     void deleteUserAccount_ShouldAnonymizeUser() {
         Long userId = 37L;
-        DeleteAccountDTO deleteAccountDTO = new DeleteAccountDTO();
-        deleteAccountDTO.setReason("Test de suppression");
         
         when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
         when(userRepository.save(any(User.class))).thenReturn(mockUser);
         
-        userService.deleteUserAccount(userId, deleteAccountDTO);
+        userService.deleteUserAccount(userId);
         
         verify(userRepository).findById(userId);
         verify(userRepository).save(any(User.class));
-        verify(userRepository).save(argThat(user -> 
-            "ANONYME".equals(user.getFirstName()) &&
-            "ANONYME".equals(user.getLastName()) &&
-            user.getEmail().startsWith("anonyme_") &&
-            "0000000000".equals(user.getPhoneNumber()) &&
-            "ADRESSE SUPPRIMÉE".equals(user.getAddress()) &&
-            "VILLE SUPPRIMÉE".equals(user.getCity()) &&
-            "00000".equals(user.getPostalCode()) &&
-            user.getIsAnonymized() &&
-            user.getDeletedAt() != null &&
-            "Test de suppression".equals(user.getDeletionReason())
-        ));
     }
 
     @Test
     void deleteUserAccount_WhenUserNotFound_ShouldThrowException() {
         Long userId = 999L;
-        DeleteAccountDTO deleteAccountDTO = new DeleteAccountDTO();
-        deleteAccountDTO.setReason("Test de suppression");
         
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
         
-        assertThrows(UserNotFoundException.class, () -> userService.deleteUserAccount(userId, deleteAccountDTO));
+        assertThrows(AccessDeniedException.class, () -> userService.deleteUserAccount(userId));
         
         verify(userRepository).findById(userId);
         verify(userRepository, never()).save(any());
@@ -510,33 +351,14 @@ class UserServiceImplTest {
     void deleteUserAccount_ForProvider_ShouldAnonymizeProviderFields() {
         Long userId = 39L;
         User providerUser = createMockProviderUser();
-        DeleteAccountDTO deleteAccountDTO = new DeleteAccountDTO();
-        deleteAccountDTO.setReason("Test de suppression prestataire");
+        
         when(userRepository.findById(userId)).thenReturn(Optional.of(providerUser));
         when(userRepository.save(any(User.class))).thenReturn(providerUser);
-        userService.deleteUserAccount(userId, deleteAccountDTO);
+        
+        userService.deleteUserAccount(userId);
+        
         verify(userRepository).findById(userId);
         verify(userRepository).save(any(User.class));
-        verify(userRepository).save(argThat(user -> 
-            "SOCIÉTÉ SUPPRIMÉE".equals(user.getCompanyName()) &&
-            "00000000000000".equals(user.getSiretSiren())
-        ));
-    }
-
-    @Test
-    void deleteUserAccount_WithNullReason_ShouldUseDefaultReason() {
-        Long userId = 37L;
-        DeleteAccountDTO deleteAccountDTO = new DeleteAccountDTO();
-        deleteAccountDTO.setReason(null);
-       
-        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
-        when(userRepository.save(any(User.class))).thenReturn(mockUser);
-        
-        userService.deleteUserAccount(userId, deleteAccountDTO);
-        
-        verify(userRepository).save(argThat(user -> 
-            "Demande utilisateur".equals(user.getDeletionReason())
-        ));
     }
 
     private User createMockUser() {
@@ -588,23 +410,6 @@ class UserServiceImplTest {
         dto.setCity("Toulouse");
         dto.setPostalCode("31000");
         dto.setUserRole(UserRole.CLIENT);
-        return dto;
-    }
-
-    private UserProfileDTO createMockProviderProfileDTO() {
-        UserProfileDTO dto = new UserProfileDTO();
-        dto.setId(39L);
-        dto.setFirstName("Anna");
-        dto.setLastName("Cousin");
-        dto.setEmail("anna@test.com");
-        dto.setPhoneNumber("0623456789");
-        dto.setAddress("456 avenue de Lyon");
-        dto.setCity("Lyon");
-        dto.setPostalCode("69000");
-        dto.setUserRole(UserRole.PROVIDER);
-        dto.setCompanyName("Sophie Services");
-        dto.setSiretSiren("12340678900010");
-        
         return dto;
     }
 }

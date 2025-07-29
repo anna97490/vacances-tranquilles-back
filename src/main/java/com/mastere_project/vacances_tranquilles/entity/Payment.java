@@ -23,11 +23,4 @@ public class Payment {
     private LocalDateTime paymentDate;
     private String paymentMethod;
 
-    // @ManyToOne
-    // @JoinColumn(name = "service_id")
-    // private Service service;
-    //
-    // @OneToOne
-    // @JoinColumn(name = "reservation_id")
-    // private Reservation reservation;
 }

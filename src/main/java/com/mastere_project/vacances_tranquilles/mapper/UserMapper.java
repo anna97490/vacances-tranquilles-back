@@ -7,6 +7,7 @@ import com.mastere_project.vacances_tranquilles.entity.User;
  * Mapper pour la conversion entre entités User et DTOs.
  */
 public interface UserMapper {
+    
     /**
      * Convertit un DTO client en entité User.
      * 
