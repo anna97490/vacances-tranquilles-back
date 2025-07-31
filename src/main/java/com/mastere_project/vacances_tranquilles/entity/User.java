@@ -80,6 +80,7 @@ public class User {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+    
 
     // @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
     // private List<Reservation> reservationAsCustomer;

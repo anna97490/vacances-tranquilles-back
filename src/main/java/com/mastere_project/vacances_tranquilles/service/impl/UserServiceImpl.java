@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
      * @param userMapper le mapper DTO entité utilisateur
      * @param jwtConfig la configuration JWT
      */
-    public UserServiceImpl(final UserRepository userRepository, final PasswordEncoder passwordEncoder, 
+    public UserServiceImpl(final UserRepository userRepository, final PasswordEncoder passwordEncoder,
             final UserMapper userMapper, final JwtConfig jwtConfig) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -112,7 +112,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public LoginResponseDTO login(final UserDTO userDTO) {
         String email = userDTO.getEmail();
-        
+
         if (blockedUntil.containsKey(email) && blockedUntil.get(email) > System.currentTimeMillis()) {
             throw new AccountLockedException("Trop de tentatives échouées. Réessayez plus tard.");
         }
@@ -161,12 +161,12 @@ public class UserServiceImpl implements UserService {
         // Vérification en base de données que l'utilisateur existe
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AccessDeniedException("Utilisateur non trouvé."));
-        
+
         // Vérification que l'utilisateur n'est pas anonymisé
         if (Boolean.TRUE.equals(user.getIsAnonymized())) {
             throw new AccessDeniedException("Utilisateur anonymisé - accès refusé");
         }
-        
+
         return userMapper.toUserProfileDTO(user);
     }
 
@@ -180,20 +180,20 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserProfileDTO updateUserProfile(final Long userId, final UpdateUserDTO updateDTO) {
-        
+
         // Vérification en base de données que l'utilisateur existe
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AccessDeniedException("Utilisateur non trouvé"));
-        
+
         // Vérification que l'utilisateur n'est pas anonymisé
         if (Boolean.TRUE.equals(user.getIsAnonymized())) {
             throw new AccessDeniedException("Utilisateur anonymisé - accès refusé");
         }
-        
+
         // Mise à jour du profil
         user = userMapper.updateUserFromDTO(user, updateDTO);
         User savedUser = userRepository.save(user);
-        
+
         return userMapper.toUserProfileDTO(savedUser);
     }
 
@@ -208,12 +208,12 @@ public class UserServiceImpl implements UserService {
         // Vérification en base de données que l'utilisateur existe
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AccessDeniedException("Utilisateur non trouvé"));
-        
+
         // Vérification que l'utilisateur n'est pas anonymisé
         if (Boolean.TRUE.equals(user.getIsAnonymized())) {
             throw new AccessDeniedException("Utilisateur anonymisé - accès refusé");
         }
-        
+
         // Log de début de suppression pour conformité RGPD
         logger.info("=== DÉBUT SUPPRESSION COMPTE RGPD ===");
         logger.info("Utilisateur ID: {}", userId);
@@ -222,15 +222,39 @@ public class UserServiceImpl implements UserService {
         logger.info("Raison de suppression: Demande utilisateur");
         logger.info("Anonymisation obligatoire: true (conformité RGPD)");
         logger.info("Timestamp: {}", LocalDateTime.now());
-        
+
         // Anonymisation RGPD-compliant obligatoire
         anonymizeUserData(user, "Demande utilisateur");
         logger.info("Compte utilisateur anonymisé avec succès");
-        
+
         // Log de fin de suppression pour conformité RGPD
         logger.info("=== FIN SUPPRESSION COMPTE RGPD ===");
         logger.info("Action terminée avec succès");
         logger.info("Timestamp: {}", LocalDateTime.now());
+    }
+
+    /**
+     * Récupère les informations d'un utilisateur par son ID.
+     * Cette méthode peut être utilisée par les administrateurs ou pour des cas
+     * d'usage spécifiques.
+     * 
+     * @param userId l'identifiant de l'utilisateur à récupérer
+     * @return le profil de l'utilisateur
+     * @throws AccessDeniedException si l'utilisateur n'est pas trouvé ou si l'accès
+     *                               est refusé
+     */
+    @Override
+    public UserProfileDTO getUserById(final Long userId) throws AccessDeniedException {
+        // Vérification en base de données que l'utilisateur existe
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AccessDeniedException("Utilisateur non trouvé avec l'ID: " + userId));
+
+        // Vérification que l'utilisateur n'est pas anonymisé
+        if (Boolean.TRUE.equals(user.getIsAnonymized())) {
+            throw new AccessDeniedException("Utilisateur anonymisé - accès refusé");
+        }
+
+        return userMapper.toUserProfileDTO(user);
     }
 
     /**
@@ -243,7 +267,7 @@ public class UserServiceImpl implements UserService {
         // Log de début d'anonymisation
         logger.info("=== DÉBUT ANONYMISATION RGPD ===");
         logger.info("Anonymisation des données pour l'utilisateur ID: {}", user.getId());
-        
+
         // Anonymisation des données personnelles
         user.setFirstName("ANONYME");
         user.setLastName("ANONYME");
@@ -253,21 +277,21 @@ public class UserServiceImpl implements UserService {
         user.setCity("VILLE SUPPRIMÉE");
         user.setPostalCode("00000");
         user.setProfilePicture(null);
-        
+
         // Anonymisation des données spécifiques aux prestataires
         if (user.getUserRole() == UserRole.PROVIDER) {
             user.setCompanyName("SOCIÉTÉ SUPPRIMÉE");
             user.setSiretSiren("00000000000000");
             logger.info("Données prestataire anonymisées");
         }
-        
+
         // Marquer comme anonymisé et enregistrer les métadonnées RGPD
         user.setIsAnonymized(true);
         user.setDeletedAt(LocalDateTime.now());
         user.setDeletionReason(reason != null ? reason : "Demande utilisateur");
-        
+
         userRepository.save(user);
-        
+
         // Log de fin d'anonymisation
         logger.info("Anonymisation terminée avec succès");
         logger.info("Données personnelles supprimées conformément au RGPD");
@@ -282,7 +306,7 @@ public class UserServiceImpl implements UserService {
      */
     private void incrementLoginAttempts(final String email) {
         int attempts = loginAttempts.getOrDefault(email, 0) + 1;
-        
+
         if (attempts >= MAX_ATTEMPTS) {
             blockedUntil.put(email, System.currentTimeMillis() + BLOCK_TIME_MS);
             loginAttempts.remove(email);

@@ -10,7 +10,8 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * Contrôleur REST pour la gestion des utilisateurs.
- * Fournit des endpoints pour récupérer, modifier et supprimer les profils utilisateurs.
+ * Fournit des endpoints pour récupérer, modifier et supprimer les profils
+ * utilisateurs.
  */
 @RestController
 @RequestMapping("/api/users")
@@ -32,7 +33,7 @@ public class UserController {
     public ResponseEntity<UserProfileDTO> getUserProfile() {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         UserProfileDTO profile = userService.getUserProfile(currentUserId);
-        
+
         return ResponseEntity.ok(profile);
     }
 
@@ -48,7 +49,7 @@ public class UserController {
     public ResponseEntity<UserProfileDTO> updateUserProfile(@RequestBody final UpdateUserDTO updateDTO) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         UserProfileDTO updatedProfile = userService.updateUserProfile(currentUserId, updateDTO);
-        
+
         return ResponseEntity.ok(updatedProfile);
     }
 
@@ -63,7 +64,21 @@ public class UserController {
     public ResponseEntity<Void> deleteUserAccount() {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         userService.deleteUserAccount(currentUserId);
-        
+
         return ResponseEntity.noContent().build();
     }
-} 
+
+    /**
+     * Récupère les informations d'un utilisateur par son ID.
+     * Cette route permet de récupérer les informations publiques d'un utilisateur.
+     * L'accès est contrôlé par la sécurité Spring Security.
+     *
+     * @param userId l'identifiant de l'utilisateur à récupérer
+     * @return ResponseEntity contenant les informations de l'utilisateur
+     */
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserProfileDTO> getUserById(@PathVariable final Long userId) {
+        UserProfileDTO userProfile = userService.getUserById(userId);
+        return ResponseEntity.ok(userProfile);
+    }
+}

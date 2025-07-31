@@ -57,4 +57,16 @@ public interface UserService {
      * @throws AccessDeniedException si l'utilisateur n'est pas trouvé
      */
     void deleteUserAccount(Long userId) throws AccessDeniedException;
-} 
+
+    /**
+     * Récupère les informations d'un utilisateur par son ID.
+     * Cette méthode peut être utilisée par les administrateurs ou pour des cas
+     * d'usage spécifiques.
+     * 
+     * @param userId l'identifiant de l'utilisateur à récupérer
+     * @return le profil de l'utilisateur
+     * @throws AccessDeniedException si l'utilisateur n'est pas trouvé ou si l'accès
+     *                               est refusé
+     */
+    UserProfileDTO getUserById(Long userId) throws AccessDeniedException;
+}
