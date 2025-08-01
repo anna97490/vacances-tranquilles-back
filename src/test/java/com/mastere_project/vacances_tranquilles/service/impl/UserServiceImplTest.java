@@ -195,7 +195,7 @@ class UserServiceImplTest {
 
         assertThatThrownBy(() -> userService.login(userDTO))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Erreur serveur inattendue");
+                .hasMessageContaining("DB down");
     }
 
     @Test
