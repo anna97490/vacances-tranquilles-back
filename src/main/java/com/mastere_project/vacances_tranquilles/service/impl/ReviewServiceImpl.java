@@ -30,8 +30,6 @@ public class ReviewServiceImpl implements ReviewService {
 
     private static final String USER_NOT_FOUND_MESSAGE = "Utilisateur non trouvé";
     private static final String USER_ROLE_NULL_MESSAGE = "Rôle utilisateur non défini en base de données";
-    private static final String TARGET_USER_NOT_FOUND_MESSAGE = "Utilisateur cible non trouvé";
-    private static final String OWN_REVIEWS_ONLY_MESSAGE = "Vous ne pouvez consulter que vos propres avis";
 
     private final ReviewRepository reviewRepository;
     private final ReservationRepository reservationRepository;
