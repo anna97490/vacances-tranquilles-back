@@ -2,7 +2,10 @@ package com.mastere_project.vacances_tranquilles.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 import com.mastere_project.vacances_tranquilles.model.enums.ReservationStatus;
 
@@ -17,11 +20,10 @@ public class Reservation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private LocalDateTime reservationDate;
-    private String comment;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
-    private Double totalPrice;
+    private LocalDate reservationDate;
+    private LocalTime startDate;
+    private LocalTime endDate;
+    private BigDecimal totalPrice;
 
     @Enumerated(EnumType.STRING)
     private ReservationStatus status;
@@ -42,3 +44,4 @@ public class Reservation {
     @JoinColumn(name = "payment_id", unique = true)
     private Payment payment;
 }
+

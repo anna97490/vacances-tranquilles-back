@@ -28,4 +28,12 @@ public interface UserService {
      * @return un objet LoginResponseDTO contenant le token JWT et le rôle
      */
     LoginResponseDTO login(UserDTO userDTO);
+
+    /**
+     * Vérifie l'existence d'un utilisateur par son identifiant.
+     * 
+     * @param userId l'identifiant de l'utilisateur à vérifier
+     * @return true si l'utilisateur existe, false sinon
+     */
+    boolean existsById(Long userId);
 }

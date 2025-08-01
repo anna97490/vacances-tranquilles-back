@@ -1,4 +1,3 @@
-
 package com.mastere_project.vacances_tranquilles.exception;
 
 import org.junit.jupiter.api.Test;

@@ -7,21 +7,15 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * DTO représentant une réservation effectuée par un client auprès d'un
- * prestataire.
+ * DTO pour la réponse des réservations au frontend.
+ * Ne contient que les informations essentielles à exposer.
  */
 @Data
-public class ReservationDTO {
+public class ReservationResponseDTO {
     private Long id;
     private ReservationStatus status; 
     private LocalDateTime reservationDate;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private BigDecimal totalPrice;
-    
-    // Champs pour la création de réservation
-    private Long clientId;
-    private Long providerId;
-    private Long serviceId;
-    private Long paymentId;
-}
+} 

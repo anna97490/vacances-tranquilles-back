@@ -42,13 +42,8 @@ class MissingReservationDataExceptionTest {
     void exception_shouldHaveCorrectInheritanceHierarchy() {
         MissingReservationDataException ex = new MissingReservationDataException("Test");
         
-        // Vérifier que c'est bien une RuntimeException
         assertTrue(ex instanceof RuntimeException);
-        
-        // Vérifier que c'est bien une Exception
         assertTrue(ex instanceof Exception);
-        
-        // Vérifier que c'est bien un Throwable
         assertTrue(ex instanceof Throwable);
     }
 } 

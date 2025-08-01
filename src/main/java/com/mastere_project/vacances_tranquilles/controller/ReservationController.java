@@ -1,21 +1,27 @@
 package com.mastere_project.vacances_tranquilles.controller;
 
 import com.mastere_project.vacances_tranquilles.dto.ReservationDTO;
+import com.mastere_project.vacances_tranquilles.dto.ReservationResponseDTO;
+import com.mastere_project.vacances_tranquilles.exception.MissingReservationDataException;
+import com.mastere_project.vacances_tranquilles.exception.ReservationNotFoundException;
+import com.mastere_project.vacances_tranquilles.exception.ServiceNotFoundException;
+import com.mastere_project.vacances_tranquilles.exception.UnauthorizedReservationAccessException;
+import com.mastere_project.vacances_tranquilles.exception.InvalidReservationStatusTransitionException;
 import com.mastere_project.vacances_tranquilles.service.ReservationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 
 /**
  * Contrôleur REST pour la gestion des réservations.
- * Fournit des endpoints pour récupérer, filtrer et modifier les réservations.
+ * Fournit des endpoints pour récupérer, créer et modifier les réservations.
+ * L'authentification et l'autorisation sont gérées automatiquement côté serveur.
  * 
- * @author Mastere Project Team
+ * @author VacancesTranquilles
  * @version 1.0
+ * @since 1.0
  */
 @RestController
 @RequestMapping("/api/reservations")
@@ -29,128 +35,71 @@ public class ReservationController {
 
     /**
      * Récupère toutes les réservations de l'utilisateur authentifié.
-     * L'utilisateur peut être soit client soit prestataire.
+     * L'utilisateur peut être soit client soit prestataire selon son rôle.
+     * Le système détermine automatiquement le type d'utilisateur et retourne
+     * les réservations appropriées (réservations du client ou réservations du prestataire).
      *
-     * @param principal L'objet principal contenant les informations de l'utilisateur authentifié
      * @return ResponseEntity contenant la liste des réservations de l'utilisateur
+     * @throws UnauthorizedReservationAccessException si l'utilisateur n'est pas autorisé
      */
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<ReservationDTO>> getUserReservations(Principal principal) {
-
-        Long userId = Long.parseLong(principal.getName());
-        List<ReservationDTO> reservations = reservationService.getReservationsForUserId(userId);
+    public ResponseEntity<List<ReservationResponseDTO>> getAllReservations() {
+        List<ReservationResponseDTO> reservations = reservationService.getAllReservations();
         
         return ResponseEntity.ok(reservations);
     }
 
     /**
      * Récupère une réservation spécifique par son identifiant.
-     * L'utilisateur doit être autorisé à accéder à cette réservation.
+     * L'utilisateur doit être autorisé à accéder à cette réservation
+     * (soit le client, soit le prestataire associé).
      *
      * @param id L'identifiant de la réservation à récupérer
-     * @param principal L'objet principal contenant les informations de l'utilisateur authentifié
      * @return ResponseEntity contenant la réservation ou 404 si non trouvée
+     * @throws ReservationNotFoundException si la réservation n'existe pas
+     * @throws UnauthorizedReservationAccessException si l'utilisateur n'est pas autorisé
      */
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ReservationDTO> getReservationById(@PathVariable Long id, Principal principal) {
-        Long userId = Long.parseLong(principal.getName());
-
-        try {
-            ReservationDTO reservation = reservationService.getReservationByIdAndUserId(id, userId);
-            
-            return ResponseEntity.ok(reservation);
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    /**
-     * Récupère les réservations de l'utilisateur filtrées par statut.
-     * Les statuts valides sont : PENDING, IN_PROGRESS, CLOSED.
-     *
-     * @param status Le statut de réservation pour filtrer les résultats
-     * @param principal L'objet principal contenant les informations de l'utilisateur authentifié
-     * @return ResponseEntity contenant la liste des réservations filtrées
-     */
-    @GetMapping("/status/{status}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<ReservationDTO>> getReservationsByStatus(@PathVariable String status,
-            Principal principal) {
-        Long userId = Long.parseLong(principal.getName());
-        List<ReservationDTO> reservations = reservationService.getReservationsByStatus(userId, status.toUpperCase());
+    public ResponseEntity<ReservationResponseDTO> getReservationById(@PathVariable Long id) {
+        ReservationResponseDTO reservation = reservationService.getReservationById(id);
         
-        return ResponseEntity.ok(reservations);
+        return ResponseEntity.ok(reservation);
     }
 
     /**
-     * Récupère une réservation spécifique par son identifiant et son statut.
-     * L'utilisateur doit être autorisé à accéder à cette réservation.
+     * Crée une nouvelle réservation.
+     * L'utilisateur authentifié doit être le client de la réservation.
+     * Le système vérifie automatiquement l'autorisation et valide les données.
      *
-     * @param id L'identifiant de la réservation à récupérer
-     * @param status Le statut attendu de la réservation
-     * @param principal L'objet principal contenant les informations de l'utilisateur authentifié
-     * @return ResponseEntity contenant la réservation ou 404 si non trouvée
+     * @param reservationDTO Les données de création de la réservation
+     * @return ResponseEntity contenant la réservation créée
+     * @throws UnauthorizedReservationAccessException si l'utilisateur n'est pas autorisé
+     * @throws MissingReservationDataException si des données requises sont manquantes
+     * @throws ServiceNotFoundException si le service spécifié n'existe pas
      */
-    @GetMapping("/{id}/status/{status}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ReservationDTO> getReservationByIdAndStatus(@PathVariable Long id,
-            @PathVariable String status, Principal principal) {
-        Long userId = Long.parseLong(principal.getName());
-        try {
-            ReservationDTO reservation = reservationService.getReservationByIdAndUserIdAndStatus(id, userId,
-                    status.toUpperCase());
-            
-            return ResponseEntity.ok(reservation);
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    /**
-     * Accepte une réservation en attente.
-     * Seul le prestataire associé à la réservation peut l'accepter.
-     * Le statut passe de PENDING à IN_PROGRESS.
-     *
-     * @param id L'identifiant de la réservation à accepter
-     * @param principal L'objet principal contenant les informations de l'utilisateur authentifié
-     * @return ResponseEntity contenant la réservation mise à jour ou 404 si non trouvée
-     */
-    @PatchMapping("/{id}/accept")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ReservationDTO> acceptReservation(@PathVariable Long id, Principal principal) {
-        Long providerId = Long.parseLong(principal.getName());
+    @PostMapping
+    public ResponseEntity<ReservationResponseDTO> createReservation(@RequestBody ReservationDTO reservationDTO) {
+        ReservationResponseDTO created = reservationService.createReservation(reservationDTO);
         
-        try {
-            ReservationDTO updated = reservationService.acceptReservationByProvider(id, providerId);
-            
-            return ResponseEntity.ok(updated);
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(created);
     }
 
     /**
-     * Finalise une réservation en cours.
-     * Seul le prestataire associé à la réservation peut la finaliser.
-     * Le statut passe de IN_PROGRESS à CLOSED.
+     * Modifie le statut d'une réservation.
+     * Seul le prestataire associé à la réservation peut modifier le statut.
+     * Les transitions possibles : PENDING → IN_PROGRESS → CLOSED.
+     * Le système vérifie automatiquement l'autorisation et la validité de la transition.
      *
-     * @param id L'identifiant de la réservation à finaliser
-     * @param principal L'objet principal contenant les informations de l'utilisateur authentifié
-     * @return ResponseEntity contenant la réservation mise à jour ou 404 si non trouvée
+     * @param id L'identifiant de la réservation à modifier
+     * @return ResponseEntity contenant la réservation mise à jour
+     * @throws ReservationNotFoundException si la réservation n'existe pas
+     * @throws UnauthorizedReservationAccessException si l'utilisateur n'est pas autorisé
+     * @throws InvalidReservationStatusTransitionException si la transition de statut est invalide
      */
-    @PatchMapping("/{id}/complete")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ReservationDTO> completeReservation(@PathVariable Long id, Principal principal) {
-        Long providerId = Long.parseLong(principal.getName());
+    @PatchMapping("/{id}")
+    public ResponseEntity<ReservationResponseDTO> changeStatusOfReservationByProvider(@PathVariable Long id) {
+        ReservationResponseDTO updated = reservationService.changeStatusOfReservationByProvider(id);
         
-        try {
-            ReservationDTO updated = reservationService.completeReservationByProvider(id, providerId);
-            
-            return ResponseEntity.ok(updated);
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(updated);
     }
 }

@@ -113,6 +113,7 @@ public class UserServiceImpl implements UserService {
         if (blockedUntil.containsKey(email) && blockedUntil.get(email) > System.currentTimeMillis()) {
             throw new AccountLockedException("Trop de tentatives échouées. Réessayez plus tard.");
         }
+        
         try {
             Optional<User> optionalUser = userRepository.findByEmail(email);
 
@@ -161,4 +162,16 @@ public class UserServiceImpl implements UserService {
             loginAttempts.put(email, attempts);
         }
     }
+
+    /**
+     * Vérifie l'existence d'un utilisateur par son identifiant.
+     * 
+     * @param userId l'identifiant de l'utilisateur à vérifier
+     * @return true si l'utilisateur existe, false sinon
+     */
+    @Override
+    public boolean existsById(Long userId) {
+        return userRepository.existsById(userId);
+    }
 }
+

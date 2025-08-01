@@ -4,8 +4,6 @@ package com.mastere_project.vacances_tranquilles.exception;
  * Exception levée lorsqu'un utilisateur tente d'accéder à une réservation
  * pour laquelle il n'a pas les autorisations nécessaires.
  * 
- * @author Mastere Project Team
- * @version 1.0
  */
 public class UnauthorizedReservationAccessException extends RuntimeException {
     

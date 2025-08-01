@@ -249,7 +249,7 @@ class UserServiceImplTest {
         assertThat(attempts).containsEntry("test2@example.com", 3);
     }
 
-     // Suppression du warning "unchecked" :
+    // Suppression du warning "unchecked" :
     // La réflexion retourne toujours un Object, donc un cast explicite est
     // nécessaire.
     // Ici, nous savons que le champ est bien du bon type car nous contrôlons le
@@ -294,7 +294,7 @@ class UserServiceImplTest {
         assertThat(blockedMap.get("reset@example.com")).isNull();
     }
 
-     // Suppression du warning "unchecked" :
+    // Suppression du warning "unchecked" :
     // La réflexion retourne toujours un Object, donc un cast explicite est
     // nécessaire.
     // Ici, nous savons que le champ est bien du bon type car nous contrôlons le
@@ -325,5 +325,27 @@ class UserServiceImplTest {
         // Et que le compteur a été supprimé
         attempts = (Map<String, Integer>) loginAttemptsField.get(userService);
         assertThat(attempts.get("block@example.com")).isNull();
+    }
+
+    @Test
+    @DisplayName("existsById - should return true when user exists")
+    void existsById_shouldReturnTrue_whenUserExists() {
+        when(userRepository.existsById(1L)).thenReturn(true);
+
+        boolean exists = userService.existsById(1L);
+
+        assertThat(exists).isTrue();
+        verify(userRepository).existsById(1L);
+    }
+
+    @Test
+    @DisplayName("existsById - should return false when user does not exist")
+    void existsById_shouldReturnFalse_whenUserDoesNotExist() {
+        when(userRepository.existsById(999L)).thenReturn(false);
+
+        boolean exists = userService.existsById(999L);
+
+        assertThat(exists).isFalse();
+        verify(userRepository).existsById(999L);
     }
 }

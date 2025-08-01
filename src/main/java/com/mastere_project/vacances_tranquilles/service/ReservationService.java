@@ -1,93 +1,82 @@
 package com.mastere_project.vacances_tranquilles.service;
 
 import com.mastere_project.vacances_tranquilles.dto.ReservationDTO;
-import com.mastere_project.vacances_tranquilles.exception.InvalidReservationStatusException;
+import com.mastere_project.vacances_tranquilles.dto.ReservationResponseDTO;
 import com.mastere_project.vacances_tranquilles.exception.InvalidReservationStatusTransitionException;
+import com.mastere_project.vacances_tranquilles.exception.MissingReservationDataException;
 import com.mastere_project.vacances_tranquilles.exception.ReservationNotFoundException;
+import com.mastere_project.vacances_tranquilles.exception.ServiceNotFoundException;
 import com.mastere_project.vacances_tranquilles.exception.UnauthorizedReservationAccessException;
+import com.mastere_project.vacances_tranquilles.exception.UserNotFoundException;
 
 import java.util.List;
 
 /**
  * Interface du service de gestion des réservations.
  * Définit les opérations métier pour la gestion des réservations
- * incluant la récupération, le filtrage et la modification des statuts.
+ * incluant la récupération et la modification des statuts.
+ * Le rôle de l'utilisateur est automatiquement déterminé côté serveur.
+ * Cette interface centralise la logique métier pour assurer la cohérence des opérations.
  * 
- * @author Mastere Project Team
+ * @author VacancesTranquilles
  * @version 1.0
+ * @since 1.0
  */
 public interface ReservationService {
     /**
-     * Récupère toutes les réservations d'un utilisateur donné.
-     * L'utilisateur peut être soit client soit prestataire.
+     * Récupère toutes les réservations de l'utilisateur authentifié.
+     * Le rôle est automatiquement déterminé en vérifiant l'utilisateur en base de données.
+     * Récupère les réservations en fonction du rôle de l'utilisateur :
+     * - CLIENT : récupère toutes les réservations où l'utilisateur est le client
+     * - PROVIDER : récupère toutes les réservations où l'utilisateur est le prestataire
+     * Le système vérifie automatiquement l'authentification et l'autorisation.
      *
-     * @param userId L'identifiant de l'utilisateur
-     * @return Liste des réservations de l'utilisateur
+     * @return Liste des réservations de l'utilisateur selon son rôle
+     * @throws UnauthorizedReservationAccessException si l'utilisateur n'est pas autorisé
+     * @throws UserNotFoundException si l'utilisateur n'existe pas en base
      */
-    List<ReservationDTO> getReservationsForUserId(Long userId);
+    List<ReservationResponseDTO> getAllReservations();
 
     /**
-     * Récupère une réservation spécifique par son identifiant et l'identifiant de l'utilisateur.
-     * Vérifie que l'utilisateur a accès à cette réservation (client ou prestataire).
+     * Récupère une réservation spécifique par son identifiant.
+     * Vérifie que l'utilisateur authentifié a accès à cette réservation (client ou prestataire).
+     * Le rôle est automatiquement déterminé côté serveur.
+     * Le système vérifie l'autorisation en comparant l'utilisateur avec les participants de la réservation.
      *
      * @param id L'identifiant de la réservation
-     * @param userId L'identifiant de l'utilisateur
      * @return La réservation si trouvée et accessible
      * @throws ReservationNotFoundException Si la réservation n'existe pas ou si l'utilisateur n'y a pas accès
+     * @throws UnauthorizedReservationAccessException si l'utilisateur n'est pas autorisé
+     * @throws UserNotFoundException si l'utilisateur n'existe pas en base
      */
-    ReservationDTO getReservationByIdAndUserId(Long id, Long userId);
+    ReservationResponseDTO getReservationById(Long id);
 
     /**
-     * Récupère les réservations d'un utilisateur filtrées par statut.
-     * L'utilisateur peut être soit client soit prestataire.
+     * Permet à un prestataire de changer le statut d'une réservation.
+     * Change le statut selon les transitions autorisées : PENDING → IN_PROGRESS → CLOSED
+     * Le rôle est automatiquement déterminé côté serveur.
+     * Le système vérifie que l'utilisateur est bien le prestataire de la réservation.
      *
-     * @param userId L'identifiant de l'utilisateur
-     * @param status Le statut de réservation à filtrer (PENDING, IN_PROGRESS, CLOSED)
-     * @return Liste des réservations filtrées par statut
-     * @throws InvalidReservationStatusException Si le statut fourni est invalide
-     */
-    List<ReservationDTO> getReservationsByStatus(Long userId, String status);
-
-    /**
-     * Récupère une réservation spécifique par son identifiant, l'identifiant de l'utilisateur et le statut.
-     * Vérifie que l'utilisateur a accès à cette réservation et que le statut correspond.
-     *
-     * @param id L'identifiant de la réservation
-     * @param userId L'identifiant de l'utilisateur
-     * @param status Le statut attendu de la réservation
-     * @return La réservation si trouvée, accessible et avec le bon statut
-     * @throws ReservationNotFoundException Si la réservation n'existe pas
-     * @throws UnauthorizedReservationAccessException Si l'utilisateur n'a pas accès à cette réservation
-     * @throws InvalidReservationStatusTransitionException Si le statut de la réservation ne correspond pas
-     * @throws InvalidReservationStatusException Si le statut fourni est invalide
-     */
-    ReservationDTO getReservationByIdAndUserIdAndStatus(Long id, Long userId, String status);
-
-    /**
-     * Permet à un prestataire d'accepter une réservation en attente.
-     * Change le statut de PENDING à IN_PROGRESS.
-     *
-     * @param reservationId L'identifiant de la réservation à accepter
-     * @param providerId L'identifiant du prestataire qui accepte la réservation
+     * @param reservationId L'identifiant de la réservation à modifier
      * @return La réservation mise à jour avec le nouveau statut
      * @throws ReservationNotFoundException Si la réservation n'existe pas
-     * @throws InvalidReservationStatusTransitionException Si la réservation n'est pas en statut PENDING
-     * @throws UnauthorizedReservationAccessException Si le prestataire n'est pas autorisé à accepter cette réservation
+     * @throws InvalidReservationStatusTransitionException Si la réservation n'est pas dans un statut permettant la transition
+     * @throws UnauthorizedReservationAccessException Si le prestataire n'est pas autorisé à modifier cette réservation
+     * @throws UserNotFoundException si l'utilisateur n'existe pas en base
      */
-    ReservationDTO acceptReservationByProvider(Long reservationId, Long providerId);
+    ReservationResponseDTO changeStatusOfReservationByProvider(Long reservationId);
 
     /**
-     * Permet à un prestataire de clôturer une réservation en cours.
-     * Change le statut de IN_PROGRESS à CLOSED.
+     * Crée une nouvelle réservation.
+     * L'utilisateur authentifié doit être le client de la réservation.
+     * La réservation est créée avec le statut PENDING.
+     * Le système vérifie automatiquement l'autorisation et valide les données.
      *
-     * @param reservationId L'identifiant de la réservation à clôturer
-     * @param providerId L'identifiant du prestataire qui clôture la réservation
-     * @return La réservation mise à jour avec le nouveau statut
-     * @throws ReservationNotFoundException Si la réservation n'existe pas
-     * @throws InvalidReservationStatusTransitionException Si la réservation n'est pas en statut IN_PROGRESS
-     * @throws UnauthorizedReservationAccessException Si le prestataire n'est pas autorisé à clôturer cette réservation
+     * @param dto Les données de création de la réservation
+     * @return La réservation créée
+     * @throws UnauthorizedReservationAccessException Si l'utilisateur n'est pas autorisé à créer cette réservation
+     * @throws MissingReservationDataException si des données requises sont manquantes
+     * @throws ServiceNotFoundException si le service spécifié n'existe pas
      */
-    ReservationDTO completeReservationByProvider(Long reservationId, Long providerId);
-
-    //ReservationDTO createReservation(ReservationCreateDTO dto);
+    ReservationResponseDTO createReservation(ReservationDTO dto);
 }

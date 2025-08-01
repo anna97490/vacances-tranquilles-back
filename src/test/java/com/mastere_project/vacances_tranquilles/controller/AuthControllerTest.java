@@ -94,11 +94,11 @@ class AuthControllerTest {
         when(userService.login(any(UserDTO.class))).thenReturn(loginResponse);
 
         String requestBody = """
-            {
-                "email": "test@example.com",
-                "password": "password"
-            }
-        """;
+                    {
+                        "email": "test@example.com",
+                        "password": "password"
+                    }
+                """;
 
         // Act & Assert
         mockMvc.perform(post("/api/auth/login")

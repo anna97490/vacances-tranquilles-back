@@ -8,15 +8,16 @@ import org.springframework.web.bind.annotation.*;
 import java.util.stream.Collectors;
 
 /**
- * Contrôleur global de gestion des exceptions.
- * Intercepte les exceptions personnalisées et retourne une réponse structurée.
+ * Contrôleur global de gestion des exceptions pour l'application.
+ * Intercepte les exceptions personnalisées et de validation afin de fournir des
+ * réponses HTTP appropriées.
  */
 @ControllerAdvice
 public class ApplicationControllerAdvice {
 
     /**
-     * Gère les cas où un email existe déjà.
-     *
+     * Gère l'exception levée lorsqu'un email existe déjà en base.
+     * 
      * @param ex l'exception EmailAlreadyExistsException
      * @return une réponse HTTP 409 avec un code d'erreur spécifique
      */
@@ -27,8 +28,8 @@ public class ApplicationControllerAdvice {
     }
 
     /**
-     * Gère les cas de champ manquant.
-     *
+     * Gère l'exception levée lorsqu'un champ obligatoire est manquant.
+     * 
      * @param ex l'exception MissingFieldException
      * @return une réponse HTTP 400 avec un code d'erreur spécifique
      */
@@ -39,10 +40,11 @@ public class ApplicationControllerAdvice {
     }
 
     /**
-     * Gère les erreurs de validation des champs.
-     *
+     * Gère les erreurs de validation des arguments de méthode (ex : @Valid).
+     * 
      * @param ex l'exception MethodArgumentNotValidException
-     * @return une réponse HTTP 400 avec un code d'erreur spécifique
+     * @return une réponse HTTP 400 avec un message détaillé des erreurs de
+     *         validation
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorEntity> handleValidationErrors(MethodArgumentNotValidException ex) {
@@ -51,6 +53,20 @@ public class ApplicationControllerAdvice {
                 .collect(Collectors.joining("; "));
 
         ErrorEntity error = new ErrorEntity("VALIDATION_ERROR", message);
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Gère les exceptions IllegalArgumentException et retourne une réponse HTTP 400
+     * (BAD_REQUEST).
+     *
+     * @param ex l'exception IllegalArgumentException interceptée
+     * @return une réponse HTTP 400 avec le code et
+     *         le message d'erreur
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorEntity> handleIllegalArgument(IllegalArgumentException ex) {
+        ErrorEntity error = new ErrorEntity("INVALID_ARGUMENT", ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
@@ -120,16 +136,29 @@ public class ApplicationControllerAdvice {
     }
 
     /**
-     * Gère les cas où un argument illégal est fourni.
+     * Gère l'exception levée lorsqu'un service n'est pas trouvé en base.
      *
-     * @param ex l'exception IllegalArgumentException
-     * @return une réponse HTTP 400 avec un code d'erreur spécifique
+     * @param ex l'exception ServiceNotFoundException
+     * @return une réponse HTTP 404 avec un code d'erreur spécifique
      */
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorEntity> handleIllegalArgumentException(IllegalArgumentException ex) {
-        ErrorEntity error = new ErrorEntity("INVALID_ARGUMENT", ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    @ExceptionHandler(ServiceNotFoundException.class)
+    public ResponseEntity<ErrorEntity> handleServiceNotFound(ServiceNotFoundException ex) {
+        ErrorEntity error = new ErrorEntity("SERVICE_NOT_FOUND", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
+
+    /**
+     * Gère l'exception levée lorsqu'un utilisateur n'est pas trouvé en base.
+     *
+     * @param ex l'exception UserNotFoundException
+     * @return une réponse HTTP 404 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorEntity> handleUserNotFound(UserNotFoundException ex) {
+        ErrorEntity error = new ErrorEntity("USER_NOT_FOUND", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
 
     /**
      * Gère toutes les exceptions non spécifiquement gérées.
@@ -198,7 +227,8 @@ public class ApplicationControllerAdvice {
      * @return une réponse HTTP 400 avec un code d'erreur spécifique
      */
     @ExceptionHandler(InvalidReservationStatusTransitionException.class)
-    public ResponseEntity<ErrorEntity> handleInvalidReservationStatusTransition(InvalidReservationStatusTransitionException ex) {
+    public ResponseEntity<ErrorEntity> handleInvalidReservationStatusTransition(
+            InvalidReservationStatusTransitionException ex) {
         ErrorEntity error = new ErrorEntity("INVALID_RESERVATION_STATUS_TRANSITION", ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }

@@ -6,6 +6,10 @@ import com.mastere_project.vacances_tranquilles.mapper.UserMapper;
 import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import org.springframework.stereotype.Component;
 
+/**
+ * Implémentation du mapper UserMapper pour la conversion entre entités et DTOs
+ * utilisateur.
+ */
 @Component
 public class UserMapperImpl implements UserMapper {
 

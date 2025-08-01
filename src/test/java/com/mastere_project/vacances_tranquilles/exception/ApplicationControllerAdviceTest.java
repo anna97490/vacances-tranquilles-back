@@ -121,7 +121,7 @@ class ApplicationControllerAdviceTest {
     @DisplayName("handleIllegalArgumentException should return 400 and error entity")
     void handleIllegalArgumentException_shouldReturn400() {
         IllegalArgumentException ex = new IllegalArgumentException("Note invalide");
-        ResponseEntity<ErrorEntity> response = advice.handleIllegalArgumentException(ex);
+        ResponseEntity<ErrorEntity> response = advice.handleIllegalArgument(ex);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("INVALID_ARGUMENT");
@@ -192,5 +192,27 @@ class ApplicationControllerAdviceTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("INVALID_RESERVATION_STATUS_TRANSITION");
         assertThat(response.getBody().getMessage()).isEqualTo("Transition invalide");
+    }
+
+    @Test
+    @DisplayName("handleServiceNotFound should return 404 and error entity")
+    void handleServiceNotFound_shouldReturn404() {
+        ServiceNotFoundException ex = new ServiceNotFoundException("Service introuvable");
+        ResponseEntity<ErrorEntity> response = advice.handleServiceNotFound(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("SERVICE_NOT_FOUND");
+        assertThat(response.getBody().getMessage()).isEqualTo("Service introuvable");
+    }
+
+    @Test
+    @DisplayName("handleUserNotFound should return 404 and error entity")
+    void handleUserNotFound_shouldReturn404() {
+        UserNotFoundException ex = new UserNotFoundException("Utilisateur introuvable");
+        ResponseEntity<ErrorEntity> response = advice.handleUserNotFound(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("USER_NOT_FOUND");
+        assertThat(response.getBody().getMessage()).isEqualTo("Utilisateur introuvable");
     }
 }

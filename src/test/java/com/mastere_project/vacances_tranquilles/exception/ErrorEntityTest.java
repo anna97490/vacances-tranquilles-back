@@ -23,7 +23,10 @@ class ErrorEntityTest {
         ErrorEntity e2 = new ErrorEntity("A", "B");
         ErrorEntity e3 = new ErrorEntity("X", "Y");
 
-        assertThat(e1).isEqualTo(e2).hasSameHashCodeAs(e2).isNotEqualTo(e3);
+        assertThat(e1)
+                .isEqualTo(e2)
+                .hasSameHashCodeAs(e2)
+                .isNotEqualTo(e3);
     }
 
     @Test
@@ -39,4 +42,4 @@ class ErrorEntityTest {
         assertThat(error.canEqual(new ErrorEntity("X", "Y"))).isTrue();
         assertThat(error.canEqual("not an ErrorEntity")).isFalse();
     }
-} 
+}

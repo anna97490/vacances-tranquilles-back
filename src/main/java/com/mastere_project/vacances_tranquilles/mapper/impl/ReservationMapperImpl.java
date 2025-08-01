@@ -1,103 +1,69 @@
 package com.mastere_project.vacances_tranquilles.mapper.impl;
 
-import com.mastere_project.vacances_tranquilles.dto.*;
-import com.mastere_project.vacances_tranquilles.entity.Payment;
+import com.mastere_project.vacances_tranquilles.dto.ReservationDTO;
+import com.mastere_project.vacances_tranquilles.dto.ReservationResponseDTO;
 import com.mastere_project.vacances_tranquilles.entity.Reservation;
-import com.mastere_project.vacances_tranquilles.entity.Service;
-import com.mastere_project.vacances_tranquilles.entity.User;
 import com.mastere_project.vacances_tranquilles.mapper.ReservationMapper;
 import org.springframework.stereotype.Component;
 
-import java.time.ZoneId;
-import java.util.Date;
-
 /**
  * Implémentation du mapper pour la conversion entre entités Reservation et DTOs.
- * Gère la transformation des objets Reservation en ReservationDTO avec tous leurs
- * objets associés (client, prestataire, service, paiement).
+ * Fournit la logique de transformation des objets Reservation vers les différents types de DTOs.
+ * Cette implémentation gère la conversion des dates et des champs de base de manière sécurisée.
  */
 @Component
 public class ReservationMapperImpl implements ReservationMapper {
 
     /**
      * Convertit une entité Reservation en ReservationDTO.
-     * Mappe tous les champs de base et les objets associés (client, prestataire, service, paiement).
-     * Gère les cas où les objets associés peuvent être null.
+     * Mappe tous les champs de base nécessaires pour les opérations de création et modification.
+     * Effectue la conversion des dates en LocalDateTime pour la compatibilité avec les DTOs.
+     * Gère les cas où l'entité reservation est null.
      *
      * @param reservation L'entité Reservation à convertir
      * @return Le ReservationDTO correspondant, ou null si reservation est null
+     * @throws IllegalArgumentException si les données de réservation sont invalides
      */
     @Override
     public ReservationDTO toDTO(Reservation reservation) {
+        if (reservation == null) {
+            return null;
+        }
+        
         ReservationDTO dto = new ReservationDTO();
         dto.setId(reservation.getId());
         dto.setStatus(reservation.getStatus());
-        dto.setReservationDate(reservation.getReservationDate());
-        dto.setStartDate(reservation.getStartDate());
-        dto.setEndDate(reservation.getEndDate());
-        dto.setComment(reservation.getComment());
+        dto.setReservationDate(reservation.getReservationDate().atStartOfDay());
+        dto.setStartDate(reservation.getReservationDate().atTime(reservation.getStartDate()));
+        dto.setEndDate(reservation.getReservationDate().atTime(reservation.getEndDate()));
         dto.setTotalPrice(reservation.getTotalPrice());
 
-        // Mapper client
-        User client = reservation.getClient();
-        if (client != null) {
-            SimpleUserDTO clientDto = new SimpleUserDTO();
-            clientDto.setId(client.getId());
-            clientDto.setFirstName(client.getFirstName());
-            clientDto.setLastName(client.getLastName());
-            clientDto.setUserRole(client.getUserRole().name());
-            clientDto.setAddress(client.getAddress());
-            clientDto.setCity(client.getCity());
-            clientDto.setPostalCode(client.getPostalCode());
-            dto.setClient(clientDto);
+        return dto;
+    }
+
+    /**
+     * Convertit une entité Reservation en ReservationResponseDTO.
+     * Mappe uniquement les champs de base pour les réponses sécurisées vers le frontend.
+     * Exclut les informations sensibles des objets associés (client, prestataire, service, paiement).
+     * Effectue la conversion des dates en LocalDateTime pour la compatibilité.
+     *
+     * @param reservation L'entité Reservation à convertir
+     * @return Le ReservationResponseDTO correspondant, ou null si reservation est null
+     * @throws IllegalArgumentException si les données de réservation sont invalides
+     */
+    @Override
+    public ReservationResponseDTO toResponseDTO(Reservation reservation) {
+        if (reservation == null) {
+            return null;
         }
-
-        // Mapper provider
-        User provider = reservation.getProvider();
-        if (provider != null) {
-            SimpleUserDTO providerDto = new SimpleUserDTO();
-            providerDto.setId(provider.getId());
-            providerDto.setFirstName(provider.getFirstName());
-            providerDto.setLastName(provider.getLastName());
-            providerDto.setUserRole(provider.getUserRole().name());
-            providerDto.setAddress(provider.getAddress()); // ✅ ajouté
-            providerDto.setCity(provider.getCity()); // ✅ ajouté
-            providerDto.setPostalCode(provider.getPostalCode()); // ✅ ajouté
-            dto.setProvider(providerDto);
-        }
-
-        // Mapper service
-        Service service = reservation.getService();
-        if (service != null) {
-            SimpleServiceDTO serviceDto = new SimpleServiceDTO();
-            serviceDto.setId(service.getId());
-            serviceDto.setTitle(service.getTitle());
-            serviceDto.setDescription(service.getDescription());
-            serviceDto.setPrice(service.getPrice());
-            if (service.getProvider() != null) {
-                serviceDto.setProviderId(service.getProvider().getId());
-            }
-            dto.setService(serviceDto);
-        }
-
-        // Mapper payment
-        Payment payment = reservation.getPayment();
-        if (payment != null) {
-            PaymentDTO paymentDto = new PaymentDTO();
-            paymentDto.setId(payment.getId());
-            paymentDto.setAmount(payment.getAmount());
-
-            // Convertir LocalDateTime en java.util.Date
-            if (payment.getPaymentDate() != null) {
-                Date date = Date.from(payment.getPaymentDate().atZone(ZoneId.systemDefault()).toInstant());
-                paymentDto.setPaymentDate(date);
-            }
-
-            paymentDto.setMethod(payment.getPaymentMethod());
-            paymentDto.setStatus(payment.getStatus());
-
-            dto.setPayment(paymentDto);
-        }
+        
+        ReservationResponseDTO dto = new ReservationResponseDTO();
+        dto.setId(reservation.getId());
+        dto.setStatus(reservation.getStatus());
+        dto.setReservationDate(reservation.getReservationDate().atStartOfDay());
+        dto.setStartDate(reservation.getReservationDate().atTime(reservation.getStartDate()));
+        dto.setEndDate(reservation.getReservationDate().atTime(reservation.getEndDate()));
+        dto.setTotalPrice(reservation.getTotalPrice());
 
         return dto;
     }

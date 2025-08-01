@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
+/**
+ * Entité JPA représentant une conversation entre deux utilisateurs.
+ */
 @Entity
 @Table(name = "conversations")
 @Data
@@ -17,14 +20,4 @@ public class Conversation {
 
     private LocalDateTime createdAt;
 
-//    @ManyToOne
-//    @JoinColumn(name = "user1_id")
-//    private User user1;
-//
-//    @ManyToOne
-//    @JoinColumn(name = "user2_id")
-//    private User user2;
-//
-//    @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL)
-//    private List<Message> messages;
 }
