@@ -5,7 +5,6 @@ import com.mastere_project.vacances_tranquilles.entity.User;
 import com.mastere_project.vacances_tranquilles.exception.AccountLockedException;
 import com.mastere_project.vacances_tranquilles.exception.EmailAlreadyExistsException;
 import com.mastere_project.vacances_tranquilles.exception.EmailNotFoundException;
-import com.mastere_project.vacances_tranquilles.exception.LoginInternalException;
 import com.mastere_project.vacances_tranquilles.exception.MissingFieldException;
 import com.mastere_project.vacances_tranquilles.exception.WrongPasswordException;
 import com.mastere_project.vacances_tranquilles.mapper.UserMapper;
@@ -39,6 +38,9 @@ public class UserServiceImpl implements UserService {
     private final Map<String, Integer> loginAttempts = new ConcurrentHashMap<>();
     private final Map<String, Long> blockedUntil = new ConcurrentHashMap<>();
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+    private static final String EMAIL_ALREADY_EXISTS_MESSAGE = "Un compte avec cet email existe déjà.";
+    private static final String COMPANY_NAME_REQUIRED_MESSAGE = "Le nom de la société est obligatoire pour les prestataires.";
+    private static final String SIRET_SIREN_REQUIRED_MESSAGE = "Le numéro SIRET/SIREN est obligatoire pour les prestataires.";
 
     /**
      * Constructeur du service utilisateur.
@@ -65,7 +67,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void registerClient(RegisterClientDTO dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new EmailAlreadyExistsException("Un compte avec cet email existe déjà.");
+            throw new EmailAlreadyExistsException(EMAIL_ALREADY_EXISTS_MESSAGE);
         }
 
         User user = userMapper.toUser(dto);
@@ -83,14 +85,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public void registerProvider(RegisterProviderDTO dto) {
         if (dto.getCompanyName() == null || dto.getCompanyName().isBlank()) {
-            throw new MissingFieldException("Le nom de la société est obligatoire pour les prestataires.");
+            throw new MissingFieldException(COMPANY_NAME_REQUIRED_MESSAGE);
         }
 
         if (dto.getSiretSiren() == null || dto.getSiretSiren().isBlank()) {
-            throw new MissingFieldException("Le numéro SIRET/SIREN est obligatoire pour les prestataires.");
+            throw new MissingFieldException(SIRET_SIREN_REQUIRED_MESSAGE);
         }
         if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new EmailAlreadyExistsException("Un compte avec cet email existe déjà.");
+            throw new EmailAlreadyExistsException(EMAIL_ALREADY_EXISTS_MESSAGE);
         }
 
         User user = userMapper.toUser(dto);
@@ -113,36 +115,29 @@ public class UserServiceImpl implements UserService {
         if (blockedUntil.containsKey(email) && blockedUntil.get(email) > System.currentTimeMillis()) {
             throw new AccountLockedException("Trop de tentatives échouées. Réessayez plus tard.");
         }
-        try {
-            Optional<User> optionalUser = userRepository.findByEmail(email);
 
-            if (optionalUser.isEmpty()) {
-                logger.warn("Tentative de connexion avec un email inconnu : {}", email);
-                incrementLoginAttempts(email);
-                throw new EmailNotFoundException("Aucun compte trouvé pour l'email : " + email);
-            }
+        Optional<User> optionalUser = userRepository.findByEmail(email);
 
-            User user = optionalUser.get();
-
-            if (!passwordEncoder.matches(userDTO.getPassword(), user.getPassword())) {
-                logger.warn("Mot de passe incorrect pour l'email : {}", email);
-                incrementLoginAttempts(email);
-                throw new WrongPasswordException("Mot de passe incorrect pour l'email : " + email);
-            }
-
-            // Succès : reset des compteurs
-            loginAttempts.remove(email);
-            blockedUntil.remove(email);
-
-            String token = jwt.generateToken(user.getId(), user.getUserRole());
-            return new LoginResponseDTO(token, user.getUserRole());
-
-        } catch (EmailNotFoundException | WrongPasswordException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new LoginInternalException(
-                    "Erreur serveur inattendue lors de la tentative de connexion", e);
+        if (optionalUser.isEmpty()) {
+            logger.warn("Tentative de connexion avec un email inconnu : {}", email);
+            incrementLoginAttempts(email);
+            throw new EmailNotFoundException("Aucun compte trouvé pour l'email : " + email);
         }
+
+        User user = optionalUser.get();
+
+        if (!passwordEncoder.matches(userDTO.getPassword(), user.getPassword())) {
+            logger.warn("Mot de passe incorrect pour l'email : {}", email);
+            incrementLoginAttempts(email);
+            throw new WrongPasswordException("Mot de passe incorrect pour l'email : " + email);
+        }
+
+        // Succès : reset des compteurs
+        loginAttempts.remove(email);
+        blockedUntil.remove(email);
+
+        String token = jwt.generateToken(user.getId(), user.getUserRole());
+        return new LoginResponseDTO(token, user.getUserRole());
     }
 
     /**

@@ -181,6 +181,41 @@ class ReviewServiceImplTest {
     }
 
     @Test
+    void createReview_WhenReviewAlreadyExists_ShouldReturnExistingReview() {
+        Long currentUserId = 1L;
+        mockReviewDTO.setReviewerId(1L); // Same reviewer as mockReview
+        mockReviewDTO.setReviewedId(2L);
+        mockReviewDTO.setReservationId(1L);
+
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.of(mockUser));
+            when(reservationRepository.findById(mockReviewDTO.getReservationId())).thenReturn(Optional.of(mockReservation));
+            when(reviewRepository.existsByReservationIdAndReviewerId(
+                mockReviewDTO.getReservationId(), currentUserId))
+                .thenReturn(true);
+            when(reviewRepository.findByReservationIdAndReviewerId(
+                mockReviewDTO.getReservationId(), currentUserId))
+                .thenReturn(Optional.of(mockReview));
+            when(reviewMapper.toDTO(mockReview)).thenReturn(mockReviewDTO);
+
+            ReviewDTO result = reviewService.createReview(mockReviewDTO);
+
+            assertNotNull(result);
+            assertEquals(mockReviewDTO, result);
+
+            verify(userRepository).findById(currentUserId);
+            verify(reservationRepository).findById(mockReviewDTO.getReservationId());
+            verify(reviewRepository).existsByReservationIdAndReviewerId(
+                mockReviewDTO.getReservationId(), currentUserId);
+            verify(reviewRepository).findByReservationIdAndReviewerId(
+                mockReviewDTO.getReservationId(), currentUserId);
+            verify(reviewMapper).toDTO(mockReview);
+            verify(reviewRepository, never()).save(any());
+        }
+    }
+
+    @Test
     void getReviewById_ShouldReturnReview() {
         Long reviewId = 1L;
         Long currentUserId = 1L;

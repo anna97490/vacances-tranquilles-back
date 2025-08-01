@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import com.mastere_project.vacances_tranquilles.exception.ReservationNotFoundException;
 import com.mastere_project.vacances_tranquilles.exception.ReservationNotCompletedException;
@@ -96,6 +95,14 @@ public class ReviewServiceImpl implements ReviewService {
             throw new ReservationNotCompletedException("La réservation doit avoir le statut CLOSED pour pouvoir écrire un avis");
         }
 
+        // Vérification qu'un avis n'existe pas déjà pour cette réservation et ce reviewer
+        if (reviewRepository.existsByReservationIdAndReviewerId(dto.getReservationId(), currentUserId)) {
+            // Si un avis existe déjà, on le récupère et on le retourne
+            Review existingReview = reviewRepository.findByReservationIdAndReviewerId(dto.getReservationId(), currentUserId)
+                    .orElseThrow(() -> new ReviewNotFoundException("Avis existant introuvable"));
+            return reviewMapper.toDTO(existingReview);
+        }
+
         boolean valid = (reservation.getClientId() != null && reservation.getClientId().equals(dto.getReviewerId())
                 && reservation.getProviderId() != null && reservation.getProviderId().equals(dto.getReviewedId()))
                 || (reservation.getProviderId() != null && reservation.getProviderId().equals(dto.getReviewerId())
@@ -159,13 +166,9 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         List<Review> reviews = reviewRepository.findByReviewerId(currentUserId);
-        List<ReviewDTO> dtos = new ArrayList<>();
-        
-        for (Review review : reviews) {
-            dtos.add(reviewMapper.toDTO(review));
-        }
-        
-        return dtos;
+        return reviews.stream()
+                .map(reviewMapper::toDTO)
+                .toList();
     }
 
     /**
@@ -187,10 +190,8 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         List<Review> reviews = reviewRepository.findByReviewedId(currentUserId);
-        List<ReviewDTO> dtos = new ArrayList<>();
-        for (Review review : reviews) {
-            dtos.add(reviewMapper.toDTO(review));
-        }
-        return dtos;
+        return reviews.stream()
+                .map(reviewMapper::toDTO)
+                .toList();
     }
 }
