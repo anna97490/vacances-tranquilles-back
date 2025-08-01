@@ -1,10 +1,14 @@
 package com.mastere_project.vacances_tranquilles.util.jwt;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mastere_project.vacances_tranquilles.exception.ErrorEntity;
+import com.mastere_project.vacances_tranquilles.exception.InvalidTokenException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -38,31 +42,81 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
 
+        // Ignorer les routes d'authentification
+        String requestURI = request.getRequestURI();
+        if (requestURI.startsWith("/api/auth/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String authHeader = request.getHeader("Authorization");
         String token = null;
         Long userId = null;
 
-        // Extraction du token JWT depuis l'en-tête Authorization
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
+        // Vérifier si un token est présent
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            handleTokenError(response, "Token JWT manquant");
+            return;
+        }
+
+        // Extraction du token
+        token = authHeader.substring(7);
+        
+        // Vérifier si le token n'est pas vide
+        if (token.trim().isEmpty()) {
+            handleTokenError(response, "Token JWT vide");
+            return;
+        }
+        
+        try {
             userId = jwt.extractUserId(token);
+        } catch (Exception e) {
+            handleTokenError(response, "Token JWT invalide ou expiré");
+            return;
         }
 
         // Si l'id est extrait et aucune authentification encore définie, alors
         // valider le token
         if (userId != null
-                && SecurityContextHolder.getContext().getAuthentication() == null
-                && jwt.validateToken(token, userId)) {
-            // Création de l'authentification Spring Security
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId,
-                    null, null);
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                && SecurityContextHolder.getContext().getAuthentication() == null) {
+            try {
+                if (jwt.validateToken(token, userId)) {
+                    // Création de l'authentification Spring Security
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId,
+                            null, null);
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-            // Stockage de l'authentification dans le contexte de sécurité
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                    // Stockage de l'authentification dans le contexte de sécurité
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else {
+                    handleTokenError(response, "Token JWT expiré");
+                    return;
+                }
+            } catch (Exception e) {
+                handleTokenError(response, "Token JWT invalide ou expiré");
+                return;
+            }
         }
 
         // Continuer la chaîne de filtres
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Gère les erreurs de token en retournant une réponse JSON appropriée.
+     *
+     * @param response la réponse HTTP
+     * @param message le message d'erreur
+     * @throws IOException en cas d'erreur d'E/S
+     */
+    private void handleTokenError(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        
+        ErrorEntity error = new ErrorEntity("INVALID_TOKEN", message);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonResponse = objectMapper.writeValueAsString(error);
+        
+        response.getWriter().write(jsonResponse);
     }
 } 

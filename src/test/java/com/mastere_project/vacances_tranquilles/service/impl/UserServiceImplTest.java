@@ -10,11 +10,13 @@ import com.mastere_project.vacances_tranquilles.mapper.UserMapper;
 import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import com.mastere_project.vacances_tranquilles.repository.UserRepository;
 import com.mastere_project.vacances_tranquilles.util.jwt.JwtConfig;
+import com.mastere_project.vacances_tranquilles.util.jwt.SecurityUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,6 +42,12 @@ class UserServiceImplTest {
 
     @Mock
     private JwtConfig jwtConfig;
+
+    @Mock
+    private com.mastere_project.vacances_tranquilles.repository.ReviewRepository reviewRepository;
+
+    @Mock
+    private com.mastere_project.vacances_tranquilles.mapper.ReviewMapper reviewMapper;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -222,29 +230,35 @@ class UserServiceImplTest {
     void getUserProfile_ShouldReturnUserProfile() {
         Long userId = 37L;
         
-        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
-        when(userMapper.toUserProfileDTO(mockUser)).thenReturn(mockUserProfileDTO);
-        
-        UserProfileDTO result = userService.getUserProfile(userId);
-        
-        assertNotNull(result);
-        assertEquals(mockUserProfileDTO, result);
-        
-        verify(userRepository).findById(userId);
-        verify(userMapper).toUserProfileDTO(mockUser);
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(userId);
+            when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+            when(userMapper.toUserProfileDTO(mockUser)).thenReturn(mockUserProfileDTO);
+            
+            UserProfileDTO result = userService.getUserProfile();
+            
+            assertNotNull(result);
+            assertEquals(mockUserProfileDTO, result);
+            
+            verify(userRepository).findById(userId);
+            verify(userMapper).toUserProfileDTO(mockUser);
+        }
     }
 
     @Test
     void getUserProfile_WhenUserNotFound_ShouldThrowException() {
         Long userId = 999L;
         
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
-        
-        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> userService.getUserProfile(userId));
-        assertEquals("Utilisateur non trouvé.", exception.getMessage());
-        
-        verify(userRepository).findById(userId);
-        verify(userMapper, never()).toUserProfileDTO(any());
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(userId);
+            when(userRepository.findById(userId)).thenReturn(Optional.empty());
+            
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> userService.getUserProfile());
+            assertEquals("Utilisateur non trouvé.", exception.getMessage());
+            
+            verify(userRepository).findById(userId);
+            verify(userMapper, never()).toUserProfileDTO(any());
+        }
     }
 
     @Test
@@ -252,13 +266,16 @@ class UserServiceImplTest {
         Long userId = 37L;
         mockUser.setIsAnonymized(true);
         
-        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
-        
-        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> userService.getUserProfile(userId));
-        assertEquals("Utilisateur anonymisé - accès refusé", exception.getMessage());
-        
-        verify(userRepository).findById(userId);
-        verify(userMapper, never()).toUserProfileDTO(any());
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(userId);
+            when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+            
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> userService.getUserProfile());
+            assertEquals("Utilisateur anonymisé - accès refusé", exception.getMessage());
+            
+            verify(userRepository).findById(userId);
+            verify(userMapper, never()).toUserProfileDTO(any());
+        }
     }
 
     @Test
@@ -276,19 +293,22 @@ class UserServiceImplTest {
         updatedProfileDTO.setFirstName("Nouveau Prénom");
         updatedProfileDTO.setPhoneNumber("0623456789");
         
-        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
-        when(userMapper.updateUserFromDTO(mockUser, updateDTO)).thenReturn(updatedUser);
-        when(userRepository.save(updatedUser)).thenReturn(updatedUser);
-        when(userMapper.toUserProfileDTO(updatedUser)).thenReturn(updatedProfileDTO);
-        
-        UserProfileDTO result = userService.updateUserProfile(userId, updateDTO);
-        assertNotNull(result);
-        assertEquals(updatedProfileDTO, result);
-        
-        verify(userRepository).findById(userId);
-        verify(userMapper).updateUserFromDTO(mockUser, updateDTO);
-        verify(userRepository).save(updatedUser);
-        verify(userMapper).toUserProfileDTO(updatedUser);
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(userId);
+            when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+            when(userMapper.updateUserFromDTO(mockUser, updateDTO)).thenReturn(updatedUser);
+            when(userRepository.save(updatedUser)).thenReturn(updatedUser);
+            when(userMapper.toUserProfileDTO(updatedUser)).thenReturn(updatedProfileDTO);
+            
+            UserProfileDTO result = userService.updateUserProfile(updateDTO);
+            assertNotNull(result);
+            assertEquals(updatedProfileDTO, result);
+            
+            verify(userRepository).findById(userId);
+            verify(userMapper).updateUserFromDTO(mockUser, updateDTO);
+            verify(userRepository).save(updatedUser);
+            verify(userMapper).toUserProfileDTO(updatedUser);
+        }
     }
 
     @Test
@@ -298,14 +318,17 @@ class UserServiceImplTest {
         UpdateUserDTO updateDTO = new UpdateUserDTO();
         updateDTO.setFirstName("Nouveau Prénom");
         
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
-        
-        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> userService.updateUserProfile(userId, updateDTO));
-        assertEquals("Utilisateur non trouvé", exception.getMessage());
-        
-        verify(userRepository).findById(userId);
-        verify(userMapper, never()).updateUserFromDTO(any(), any());
-        verify(userRepository, never()).save(any());
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(userId);
+            when(userRepository.findById(userId)).thenReturn(Optional.empty());
+            
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> userService.updateUserProfile(updateDTO));
+            assertEquals("Utilisateur non trouvé", exception.getMessage());
+            
+            verify(userRepository).findById(userId);
+            verify(userMapper, never()).updateUserFromDTO(any(), any());
+            verify(userRepository, never()).save(any());
+        }
     }
 
     @Test
@@ -316,40 +339,49 @@ class UserServiceImplTest {
         UpdateUserDTO updateDTO = new UpdateUserDTO();
         updateDTO.setFirstName("Nouveau Prénom");
         
-        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
-        
-        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> userService.updateUserProfile(userId, updateDTO));
-        assertEquals("Utilisateur anonymisé - accès refusé", exception.getMessage());
-        
-        verify(userRepository).findById(userId);
-        verify(userMapper, never()).updateUserFromDTO(any(), any());
-        verify(userRepository, never()).save(any());
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(userId);
+            when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+            
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> userService.updateUserProfile(updateDTO));
+            assertEquals("Utilisateur anonymisé - accès refusé", exception.getMessage());
+            
+            verify(userRepository).findById(userId);
+            verify(userMapper, never()).updateUserFromDTO(any(), any());
+            verify(userRepository, never()).save(any());
+        }
     }
 
     @Test
     void deleteUserAccount_ShouldAnonymizeUser() {
         Long userId = 37L;
         
-        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
-        when(userRepository.save(any(User.class))).thenReturn(mockUser);
-        
-        userService.deleteUserAccount(userId);
-        
-        verify(userRepository).findById(userId);
-        verify(userRepository).save(any(User.class));
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(userId);
+            when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+            when(userRepository.save(any(User.class))).thenReturn(mockUser);
+            
+            userService.deleteUserAccount();
+            
+            verify(userRepository).findById(userId);
+            verify(userRepository).save(any(User.class));
+        }
     }
 
     @Test
     void deleteUserAccount_WhenUserNotFound_ShouldThrowException() {
         Long userId = 999L;
         
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
-        
-        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> userService.deleteUserAccount(userId));
-        assertEquals("Utilisateur non trouvé", exception.getMessage());
-        
-        verify(userRepository).findById(userId);
-        verify(userRepository, never()).save(any());
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(userId);
+            when(userRepository.findById(userId)).thenReturn(Optional.empty());
+            
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> userService.deleteUserAccount());
+            assertEquals("Utilisateur non trouvé", exception.getMessage());
+            
+            verify(userRepository).findById(userId);
+            verify(userRepository, never()).save(any());
+        }
     }
 
     @Test
@@ -357,13 +389,62 @@ class UserServiceImplTest {
         Long userId = 39L;
         User providerUser = createMockProviderUser();
         
-        when(userRepository.findById(userId)).thenReturn(Optional.of(providerUser));
-        when(userRepository.save(any(User.class))).thenReturn(providerUser);
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(userId);
+            when(userRepository.findById(userId)).thenReturn(Optional.of(providerUser));
+            when(userRepository.save(any(User.class))).thenReturn(providerUser);
+            
+            userService.deleteUserAccount();
+            
+            verify(userRepository).findById(userId);
+            verify(userRepository).save(any(User.class));
+        }
+    }
+
+    @Test
+    void getUserBasicInfoById_ShouldReturnUserBasicInfo() {
+        Long userId = 37L;
         
-        userService.deleteUserAccount(userId);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+        when(reviewRepository.findByReviewedId(userId)).thenReturn(java.util.List.of());
+        
+        UserBasicInfoDTO result = userService.getUserBasicInfoById(userId);
+        
+        assertNotNull(result);
+        assertEquals("Teste", result.getFirstName());
+        assertEquals("Teste", result.getLastName());
         
         verify(userRepository).findById(userId);
-        verify(userRepository).save(any(User.class));
+        verify(reviewRepository).findByReviewedId(userId);
+    }
+
+    @Test
+    void getUserBasicInfoById_WhenUserNotFound_ShouldThrowException() {
+        Long userId = 999L;
+        
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class, 
+            () -> userService.getUserBasicInfoById(userId));
+        assertEquals("Utilisateur non trouvé", exception.getMessage());
+        
+        verify(userRepository).findById(userId);
+        verify(userMapper, never()).toUserBasicInfoDTO(any());
+    }
+
+    @Test
+    void getUserBasicInfoById_WhenUserIsAnonymized_ShouldThrowException() {
+        Long userId = 37L;
+        mockUser.setIsAnonymized(true);
+        
+        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+        
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class, 
+            () -> userService.getUserBasicInfoById(userId));
+        assertEquals("Utilisateur anonymisé - accès refusé", exception.getMessage());
+        
+        verify(userRepository).findById(userId);
+        verify(userMapper, never()).toUserBasicInfoDTO(any());
     }
 
     private User createMockUser() {
@@ -415,6 +496,7 @@ class UserServiceImplTest {
         dto.setCity("Toulouse");
         dto.setPostalCode("31000");
         dto.setUserRole(UserRole.CLIENT);
+        
         return dto;
     }
 }

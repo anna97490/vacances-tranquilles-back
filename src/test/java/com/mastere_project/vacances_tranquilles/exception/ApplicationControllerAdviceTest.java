@@ -140,4 +140,41 @@ class ApplicationControllerAdviceTest {
         assertThat(response.getBody().getCode()).isEqualTo("SERVICE_NOT_FOUND");
         assertThat(response.getBody().getMessage()).isEqualTo(message);
     }
+
+    @Test
+    @DisplayName("handleInvalidToken should return 401 and error entity")
+    void handleInvalidToken_shouldReturn401() {
+        InvalidTokenException ex = new InvalidTokenException("Token JWT invalide ou expiré");
+        ResponseEntity<ErrorEntity> response = advice.handleInvalidToken(ex);
+        
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("INVALID_TOKEN");
+        assertThat(response.getBody().getMessage()).isEqualTo("Token JWT invalide ou expiré");
+    }
+
+    @Test
+    @DisplayName("handleIllegalArgument should return 400 and error entity")
+    void handleIllegalArgument_shouldReturn400() {
+        IllegalArgumentException ex = new IllegalArgumentException("Argument invalide");
+        ResponseEntity<ErrorEntity> response = advice.handleIllegalArgument(ex);
+        
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("INVALID_ARGUMENT");
+        assertThat(response.getBody().getMessage()).isEqualTo("Argument invalide");
+    }
+
+    @Test
+    @DisplayName("handleAccessDenied should return 403 and error entity")
+    void handleAccessDenied_shouldReturn403() {
+        org.springframework.security.access.AccessDeniedException ex = 
+            new org.springframework.security.access.AccessDeniedException("Accès refusé");
+        ResponseEntity<ErrorEntity> response = advice.handleAccessDenied(ex);
+        
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("ACCESS_DENIED");
+        assertThat(response.getBody().getMessage()).isEqualTo("Accès refusé");
+    }
 }

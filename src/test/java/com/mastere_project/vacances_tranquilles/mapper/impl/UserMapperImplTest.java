@@ -102,7 +102,6 @@ class UserMapperImplTest {
         user.setId(37L);
         user.setFirstName("Teste");
         user.setLastName("Teste");
-        user.setProfilePicture("https://example.com/photo.jpg");
         user.setEmail("teste@test.com");
         user.setUserRole(UserRole.CLIENT);
         user.setPhoneNumber("0612345678");
@@ -116,7 +115,6 @@ class UserMapperImplTest {
         assertEquals(37L, dto.getId());
         assertEquals("Teste", dto.getFirstName());
         assertEquals("Teste", dto.getLastName());
-        assertEquals("https://example.com/photo.jpg", dto.getProfilePicture());
         assertEquals("teste@test.com", dto.getEmail());
         assertEquals(UserRole.CLIENT, dto.getUserRole());
         assertEquals("0612345678", dto.getPhoneNumber());
@@ -198,13 +196,5 @@ class UserMapperImplTest {
         assertEquals("12345678900000", updatedUser.getSiretSiren());
     }
 
-    @Test
-    void updateUserFromDTO_WithProfilePicture_ShouldUpdateProfilePicture() {
-        User user = new User();
-        user.setProfilePicture("https://old-photo.jpg");
-        UpdateUserDTO updateDTO = new UpdateUserDTO();
-        updateDTO.setProfilePicture("https://new-photo.jpg");
-        User updatedUser = userMapper.updateUserFromDTO(user, updateDTO);
-        assertEquals("https://new-photo.jpg", updatedUser.getProfilePicture());
-    }
+
 } 

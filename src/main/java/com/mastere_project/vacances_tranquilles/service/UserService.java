@@ -34,39 +34,34 @@ public interface UserService {
     /**
      * Récupère le profil de l'utilisateur authentifié.
      * 
-     * @param userId l'identifiant de l'utilisateur authentifié
      * @return le profil de l'utilisateur
      * @throws AccessDeniedException si l'utilisateur n'est pas trouvé
      */
-    UserProfileDTO getUserProfile(Long userId) throws AccessDeniedException;
+    UserProfileDTO getUserProfile() throws AccessDeniedException;
 
     /**
      * Met à jour le profil de l'utilisateur authentifié.
      * 
-     * @param userId l'identifiant de l'utilisateur authentifié
      * @param updateDTO les données de mise à jour
      * @return le profil mis à jour
      * @throws AccessDeniedException si l'utilisateur n'est pas trouvé
      */
-    UserProfileDTO updateUserProfile(Long userId, UpdateUserDTO updateDTO) throws AccessDeniedException;
+    UserProfileDTO updateUserProfile(UpdateUserDTO updateDTO) throws AccessDeniedException;
 
     /**
      * Supprime le compte de l'utilisateur authentifié (conformité RGPD).
      * 
-     * @param userId l'identifiant de l'utilisateur authentifié
      * @throws AccessDeniedException si l'utilisateur n'est pas trouvé
      */
-    void deleteUserAccount(Long userId) throws AccessDeniedException;
+    void deleteUserAccount() throws AccessDeniedException;
 
     /**
-     * Récupère les informations d'un utilisateur par son ID.
-     * Cette méthode peut être utilisée par les administrateurs ou pour des cas
-     * d'usage spécifiques.
+     * Récupère les informations de base d'un utilisateur par son ID.
+     * Ne retourne que le nom et prénom pour la confidentialité.
      * 
      * @param userId l'identifiant de l'utilisateur à récupérer
-     * @return le profil de l'utilisateur
-     * @throws AccessDeniedException si l'utilisateur n'est pas trouvé ou si l'accès
-     *                               est refusé
+     * @return les informations de base de l'utilisateur (nom et prénom)
+     * @throws AccessDeniedException si l'utilisateur n'est pas trouvé ou si l'accès est refusé
      */
-    UserProfileDTO getUserById(Long userId) throws AccessDeniedException;
+    UserBasicInfoDTO getUserBasicInfoById(Long userId) throws AccessDeniedException;
 }

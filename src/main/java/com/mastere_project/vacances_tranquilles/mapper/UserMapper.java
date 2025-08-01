@@ -49,4 +49,13 @@ public interface UserMapper {
      * @return l'entité User mise à jour
      */
     User updateUserFromDTO(User user, UpdateUserDTO updateDTO);
+
+    /**
+     * Convertit une entité User en DTO UserBasicInfoDTO.
+     * Ne retourne que le nom et prénom pour la confidentialité.
+     * 
+     * @param user l'entité User
+     * @return le DTO avec les informations de base (nom et prénom)
+     */
+    UserBasicInfoDTO toUserBasicInfoDTO(User user);
 }

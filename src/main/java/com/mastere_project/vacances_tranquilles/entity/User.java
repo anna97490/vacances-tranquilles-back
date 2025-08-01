@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Entité JPA représentant un utilisateur (client ou prestataire) de la
@@ -20,8 +22,6 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private String profilePicture;
 
     @Column(nullable = false)
     private String firstName;
@@ -59,9 +59,6 @@ public class User {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    @Column(name = "deletion_reason")
-    private String deletionReason;
-
     @Column(name = "is_anonymized")
     private Boolean isAnonymized = false;
 
@@ -81,22 +78,9 @@ public class User {
         updatedAt = LocalDateTime.now();
     }
     
+    @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Service> services = new ArrayList<>();
 
-    // @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
-    // private List<Reservation> reservationAsCustomer;
-    //
-    // @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL)
-    // private List<Reservation> reservationAsProvider;
-    //
-    // @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL)
-    // private List<Schedule> schedules;
-    //
-    // @OneToMany(mappedBy = "user1", cascade = CascadeType.ALL)
-    // private List<Conversation> conversationsInitiated;
-    //
-    // @OneToMany(mappedBy = "user2", cascade = CascadeType.ALL)
-    // private List<Conversation> conversationsReceived;
-    //
-    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    // private List<Message> messages;
+    @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL)
+    private List<Schedule> schedules;
 }

@@ -67,6 +67,8 @@ public class SecurityConfig {
         return new JwtAuthenticationFilter(jwt);
     }
 
+
+
     /**
      * Fournit la configuration CORS.
      * 

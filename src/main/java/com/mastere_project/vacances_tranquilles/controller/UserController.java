@@ -1,6 +1,7 @@
 package com.mastere_project.vacances_tranquilles.controller;
 
 import com.mastere_project.vacances_tranquilles.dto.UpdateUserDTO;
+import com.mastere_project.vacances_tranquilles.dto.UserBasicInfoDTO;
 import com.mastere_project.vacances_tranquilles.dto.UserProfileDTO;
 import com.mastere_project.vacances_tranquilles.service.UserService;
 import com.mastere_project.vacances_tranquilles.util.jwt.SecurityUtils;
@@ -31,8 +32,7 @@ public class UserController {
      */
     @GetMapping("/profile")
     public ResponseEntity<UserProfileDTO> getUserProfile() {
-        Long currentUserId = SecurityUtils.getCurrentUserId();
-        UserProfileDTO profile = userService.getUserProfile(currentUserId);
+        UserProfileDTO profile = userService.getUserProfile();
 
         return ResponseEntity.ok(profile);
     }
@@ -47,8 +47,7 @@ public class UserController {
      */
     @PatchMapping("/profile")
     public ResponseEntity<UserProfileDTO> updateUserProfile(@RequestBody final UpdateUserDTO updateDTO) {
-        Long currentUserId = SecurityUtils.getCurrentUserId();
-        UserProfileDTO updatedProfile = userService.updateUserProfile(currentUserId, updateDTO);
+        UserProfileDTO updatedProfile = userService.updateUserProfile(updateDTO);
 
         return ResponseEntity.ok(updatedProfile);
     }
@@ -58,27 +57,30 @@ public class UserController {
      * Conformité RGPD : anonymisation par défaut des données personnelles.
      * L'utilisateur ne peut supprimer que son propre compte.
      *
-     * @return ResponseEntity 204 (No Content) en cas de succès
+     * @return ResponseEntity avec message de confirmation
      */
     @DeleteMapping("/profile")
-    public ResponseEntity<Void> deleteUserAccount() {
-        Long currentUserId = SecurityUtils.getCurrentUserId();
-        userService.deleteUserAccount(currentUserId);
+    public ResponseEntity<Object> deleteUserAccount() {
+        userService.deleteUserAccount();
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok()
+                .body(new Object() {
+                    public final String message = "Account deletion completed. All personal data has been deleted or anonymized.";
+                });
     }
 
     /**
-     * Récupère les informations d'un utilisateur par son ID.
-     * Cette route permet de récupérer les informations publiques d'un utilisateur.
+     * Récupère les informations de base d'un utilisateur par son ID.
+     * Cette route permet de récupérer seulement le nom et prénom d'un utilisateur.
      * L'accès est contrôlé par la sécurité Spring Security.
      *
      * @param userId l'identifiant de l'utilisateur à récupérer
-     * @return ResponseEntity contenant les informations de l'utilisateur
+     * @return ResponseEntity contenant les informations de base de l'utilisateur
      */
     @GetMapping("/{userId}")
-    public ResponseEntity<UserProfileDTO> getUserById(@PathVariable final Long userId) {
-        UserProfileDTO userProfile = userService.getUserById(userId);
-        return ResponseEntity.ok(userProfile);
+    public ResponseEntity<UserBasicInfoDTO> getUserById(@PathVariable final Long userId) {
+        UserBasicInfoDTO userBasicInfo = userService.getUserBasicInfoById(userId);
+        
+        return ResponseEntity.ok(userBasicInfo);
     }
 }

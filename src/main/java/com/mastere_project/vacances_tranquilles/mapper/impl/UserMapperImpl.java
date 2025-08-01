@@ -92,7 +92,6 @@ public class UserMapperImpl implements UserMapper {
         dto.setId(user.getId());
         dto.setFirstName(user.getFirstName());
         dto.setLastName(user.getLastName());
-        dto.setProfilePicture(user.getProfilePicture());
         dto.setEmail(user.getEmail());
         dto.setUserRole(user.getUserRole());
         dto.setPhoneNumber(user.getPhoneNumber());
@@ -123,10 +122,6 @@ public class UserMapperImpl implements UserMapper {
             user.setLastName(updateDTO.getLastName());
         }
 
-        if (updateDTO.getProfilePicture() != null) {
-            user.setProfilePicture(updateDTO.getProfilePicture());
-        }
-
         if (updateDTO.getPhoneNumber() != null) {
             user.setPhoneNumber(updateDTO.getPhoneNumber());
         }
@@ -152,5 +147,21 @@ public class UserMapperImpl implements UserMapper {
         }
         
         return user;
+    }
+
+    /**
+     * Convertit une entité User en UserBasicInfoDTO.
+     * Ne retourne que le nom et prénom pour la confidentialité.
+     * 
+     * @param user l'entité User à convertir
+     * @return le UserBasicInfoDTO correspondant
+     */
+    @Override
+    public UserBasicInfoDTO toUserBasicInfoDTO(final User user) {
+        UserBasicInfoDTO dto = new UserBasicInfoDTO();
+        dto.setFirstName(user.getFirstName());
+        dto.setLastName(user.getLastName());
+        
+        return dto;
     }
 }
