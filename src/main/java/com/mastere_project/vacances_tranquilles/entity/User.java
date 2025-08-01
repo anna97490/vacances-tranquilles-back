@@ -4,8 +4,6 @@ import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
-
 /**
  * Entité JPA représentant un utilisateur (client ou prestataire) de la
  * plateforme.

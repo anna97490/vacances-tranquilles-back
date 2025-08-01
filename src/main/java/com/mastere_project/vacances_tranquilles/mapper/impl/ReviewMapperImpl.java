@@ -43,6 +43,7 @@ public class ReviewMapperImpl implements ReviewMapper {
         dto.setReviewerId(review.getReviewer() != null ? review.getReviewer().getId() : null);
         dto.setReviewedId(review.getReviewed() != null ? review.getReviewed().getId() : null);
         dto.setCreatedAt(review.getCreatedAt());
+        
         return dto;
     }
 
@@ -73,6 +74,7 @@ public class ReviewMapperImpl implements ReviewMapper {
         }
 
         review.setCreatedAt(dto.getCreatedAt());
+        
         return review;
     }
 }

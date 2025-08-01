@@ -2,21 +2,20 @@ package com.mastere_project.vacances_tranquilles.controller;
 
 import com.mastere_project.vacances_tranquilles.dto.ReviewDTO;
 import com.mastere_project.vacances_tranquilles.service.ReviewService;
-import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.test.context.support.WithMockUser;
 
-import java.security.Principal;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -25,79 +24,85 @@ class ReviewControllerTest {
     @Mock
     private ReviewService reviewService;
 
-    @Mock
-    private Principal principal;
-
     @InjectMocks
     private ReviewController reviewController;
 
+    private ReviewDTO mockReviewDTO;
 
-
-    @Test
-    @DisplayName("createReview - should return created review with authenticated user")
-    @WithMockUser
-    void createReview_shouldReturnCreatedReview() {
-        when(principal.getName()).thenReturn("123");
-        
-        ReviewDTO input = new ReviewDTO();
-        input.setNote(5);
-        input.setCommentaire("Test");
-        input.setReservationId(1L);
-        input.setReviewedId(3L);
-        
-        ReviewDTO output = new ReviewDTO();
-        output.setId(10L);
-        output.setReviewerId(123L);
-        
-        when(reviewService.createReview(any(ReviewDTO.class))).thenReturn(output);
-
-        ResponseEntity<ReviewDTO> response = reviewController.createReview(input, principal);
-        
-        assertThat(response.getStatusCode().value()).isEqualTo(200);
-        assertThat(response.getBody()).isEqualTo(output);
-        verify(reviewService).createReview(argThat(dto -> dto.getReviewerId().equals(123L)));
+    @BeforeEach
+    void setUp() {
+        mockReviewDTO = new ReviewDTO();
+        mockReviewDTO.setId(1L);
+        mockReviewDTO.setNote(5);
+        mockReviewDTO.setCommentaire("Excellent service");
+        mockReviewDTO.setReviewerId(1L);
+        mockReviewDTO.setReviewedId(2L);
+        mockReviewDTO.setReservationId(1L);
     }
 
     @Test
-    @DisplayName("getReviewById - should return review")
-    @WithMockUser
-    void getReviewById_shouldReturnReview() {
-        ReviewDTO review = new ReviewDTO();
-        review.setId(1L);
-        when(reviewService.getReviewById(1L)).thenReturn(review);
+    void createReview_ShouldReturnCreatedReview() {
+        when(reviewService.createReview(any(ReviewDTO.class))).thenReturn(mockReviewDTO);
+
+        ResponseEntity<ReviewDTO> response = reviewController.createReview(mockReviewDTO);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getId()).isEqualTo(1L);
+        assertThat(response.getBody().getNote()).isEqualTo(5);
+        assertThat(response.getBody().getCommentaire()).isEqualTo("Excellent service");
+        assertThat(response.getBody().getReviewerId()).isEqualTo(1L);
+        assertThat(response.getBody().getReviewedId()).isEqualTo(2L);
+
+        verify(reviewService, times(1)).createReview(any(ReviewDTO.class));
+    }
+
+    @Test
+    void getReviewById_ShouldReturnReview() {
+        when(reviewService.getReviewById(1L)).thenReturn(mockReviewDTO);
 
         ResponseEntity<ReviewDTO> response = reviewController.getReviewById(1L);
-        assertThat(response.getStatusCode().value()).isEqualTo(200);
-        assertThat(response.getBody()).isEqualTo(review);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getId()).isEqualTo(1L);
+        assertThat(response.getBody().getNote()).isEqualTo(5);
+        assertThat(response.getBody().getCommentaire()).isEqualTo("Excellent service");
+
+        verify(reviewService, times(1)).getReviewById(1L);
     }
 
     @Test
-    @DisplayName("getReviewsFromUserToUser - should return list of reviews from one user to another")
-    @WithMockUser
-    void getReviewsFromUserToUser_shouldReturnList() {
-        ReviewDTO review = new ReviewDTO();
-        review.setId(1L);
-        List<ReviewDTO> reviews = Collections.singletonList(review);
-        when(reviewService.getReviewsFromUserToUser(2L, 3L)).thenReturn(reviews);
+    void getReviewsWrittenByUser_ShouldReturnReviewsList() {
+        List<ReviewDTO> reviews = Arrays.asList(mockReviewDTO);
+        when(reviewService.getReviewsWrittenByUser()).thenReturn(reviews);
 
-        ResponseEntity<List<ReviewDTO>> response = reviewController.getReviewsFromUserToUser(2L, 3L);
-        assertThat(response.getStatusCode().value()).isEqualTo(200);
-        assertThat(response.getBody()).containsExactly(review);
+        ResponseEntity<List<ReviewDTO>> response = reviewController.getReviewsWrittenByUser();
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).getId()).isEqualTo(1L);
+        assertThat(response.getBody().get(0).getNote()).isEqualTo(5);
+        assertThat(response.getBody().get(0).getCommentaire()).isEqualTo("Excellent service");
+
+        verify(reviewService, times(1)).getReviewsWrittenByUser();
     }
 
     @Test
-    @DisplayName("getReviewsWrittenByUser - should return list of reviews written")
-    @WithMockUser
-    void getReviewsWrittenByUser_shouldReturnList() {
-        ReviewDTO review1 = new ReviewDTO();
-        review1.setId(1L);
-        ReviewDTO review2 = new ReviewDTO();
-        review2.setId(2L);
-        List<ReviewDTO> reviews = Arrays.asList(review1, review2);
-        when(reviewService.getReviewsWrittenByUser(2L)).thenReturn(reviews);
+    void getReviewsReceivedByUser_ShouldReturnReviewsList() {
+        List<ReviewDTO> reviews = Arrays.asList(mockReviewDTO);
+        when(reviewService.getReviewsReceivedByUser()).thenReturn(reviews);
 
-        ResponseEntity<List<ReviewDTO>> response = reviewController.getReviewsWrittenByUser(2L);
-        assertThat(response.getStatusCode().value()).isEqualTo(200);
-        assertThat(response.getBody()).containsExactly(review1, review2);
+        ResponseEntity<List<ReviewDTO>> response = reviewController.getReviewsReceivedByUser();
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).getId()).isEqualTo(1L);
+        assertThat(response.getBody().get(0).getNote()).isEqualTo(5);
+        assertThat(response.getBody().get(0).getCommentaire()).isEqualTo("Excellent service");
+
+        verify(reviewService, times(1)).getReviewsReceivedByUser();
     }
 } 

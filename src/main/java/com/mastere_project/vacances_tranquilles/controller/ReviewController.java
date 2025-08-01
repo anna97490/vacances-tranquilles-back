@@ -4,10 +4,8 @@ import com.mastere_project.vacances_tranquilles.dto.ReviewDTO;
 import com.mastere_project.vacances_tranquilles.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 
 /**
@@ -26,17 +24,10 @@ public class ReviewController {
      * 
      * @param reviewDTO les infos de l'avis (note, commentaire, reservationId,
      *                  reviewerId, reviewedId)
-     * @param principal L'objet principal contenant les informations de l'utilisateur authentifié
      * @return l'avis créé
      */
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ReviewDTO> createReview(@RequestBody ReviewDTO reviewDTO, Principal principal) {
-        Long userId = Long.parseLong(principal.getName());
-        
-        // S'assurer que l'utilisateur authentifié est bien le reviewer
-        reviewDTO.setReviewerId(userId);
-
+    public ResponseEntity<ReviewDTO> createReview(@RequestBody ReviewDTO reviewDTO) {
         ReviewDTO created = reviewService.createReview(reviewDTO);
 
         return ResponseEntity.ok(created);
@@ -49,7 +40,6 @@ public class ReviewController {
      * @return l'avis
      */
     @GetMapping("/{reviewId}")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ReviewDTO> getReviewById(@PathVariable Long reviewId) {
 
         ReviewDTO review = reviewService.getReviewById(reviewId);
@@ -58,31 +48,25 @@ public class ReviewController {
     }
 
     /**
-     * Reviews écrites par le user
+     * Reviews écrites par l'utilisateur authentifié
      * 
-     * @param userId l'id du user
      * @return liste des avis
      */
-    @GetMapping("/writer/{userId}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<ReviewDTO>> getReviewsWrittenByUser(@PathVariable Long userId) {
-        List<ReviewDTO> reviews = reviewService.getReviewsWrittenByUser(userId);
+    @GetMapping("/writer")
+    public ResponseEntity<List<ReviewDTO>> getReviewsWrittenByUser() {
+        List<ReviewDTO> reviews = reviewService.getReviewsWrittenByUser();
         
         return ResponseEntity.ok(reviews);
     }
 
     /**
-     * Reviews laissées par otherUserId sur userId
+     * Reviews reçues par l'utilisateur authentifié
      * 
-     * @param otherUserId l'id du user qui a laissé l'avis
-     * @param userId l'id du user noté
      * @return liste des avis
      */
-    @GetMapping("/from/{otherUserId}/to/{userId}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<ReviewDTO>> getReviewsFromUserToUser(@PathVariable Long otherUserId, @PathVariable Long userId) {
-        
-        List<ReviewDTO> reviews = reviewService.getReviewsFromUserToUser(otherUserId, userId);
+    @GetMapping("/received")
+    public ResponseEntity<List<ReviewDTO>> getReviewsReceivedByUser() {
+        List<ReviewDTO> reviews = reviewService.getReviewsReceivedByUser();
         
         return ResponseEntity.ok(reviews);
     }

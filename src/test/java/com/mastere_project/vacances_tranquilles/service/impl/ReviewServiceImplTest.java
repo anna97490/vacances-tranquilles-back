@@ -1,189 +1,313 @@
 package com.mastere_project.vacances_tranquilles.service.impl;
 
 import com.mastere_project.vacances_tranquilles.dto.ReviewDTO;
-import com.mastere_project.vacances_tranquilles.entity.Reservation;
 import com.mastere_project.vacances_tranquilles.entity.Review;
-import com.mastere_project.vacances_tranquilles.exception.*;
+import com.mastere_project.vacances_tranquilles.entity.Reservation;
+import com.mastere_project.vacances_tranquilles.entity.User;
+import com.mastere_project.vacances_tranquilles.exception.InvalidReviewUserException;
+import com.mastere_project.vacances_tranquilles.exception.ReservationNotFoundException;
+import com.mastere_project.vacances_tranquilles.exception.ReservationNotCompletedException;
+import com.mastere_project.vacances_tranquilles.exception.ReviewNotFoundException;
 import com.mastere_project.vacances_tranquilles.mapper.ReviewMapper;
-import com.mastere_project.vacances_tranquilles.repository.ReservationRepository;
+import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import com.mastere_project.vacances_tranquilles.repository.ReviewRepository;
+import com.mastere_project.vacances_tranquilles.repository.ReservationRepository;
+import com.mastere_project.vacances_tranquilles.repository.UserRepository;
+import com.mastere_project.vacances_tranquilles.util.jwt.SecurityUtils;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 
-import java.util.*;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class ReviewServiceImplTest {
 
+    @Mock
     private ReviewRepository reviewRepository;
+
+    @Mock
     private ReservationRepository reservationRepository;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
     private ReviewMapper reviewMapper;
+
+    @InjectMocks
     private ReviewServiceImpl reviewService;
+
+    private Review mockReview;
+    private ReviewDTO mockReviewDTO;
+    private User mockUser;
+    private Reservation mockReservation;
 
     @BeforeEach
     void setUp() {
-        reviewRepository = mock(ReviewRepository.class);
-        reservationRepository = mock(ReservationRepository.class);
-        reviewMapper = mock(ReviewMapper.class);
-        reviewService = new ReviewServiceImpl(reviewRepository, reservationRepository, reviewMapper);
+        mockUser = createMockUser();
+        mockReview = createMockReview();
+        mockReviewDTO = createMockReviewDTO();
+        mockReservation = createMockReservation();
     }
 
     @Test
-    @DisplayName("createReview should throw if note is invalid")
-    void createReview_shouldThrow_whenNoteInvalid() {
-        ReviewDTO dto = new ReviewDTO();
-        dto.setNote(6);
-
-        assertThatThrownBy(() -> reviewService.createReview(dto))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("La note doit être comprise entre 1 et 5");
+    void createReview_ShouldCreateReviewSuccessfully() {
+        Long currentUserId = 1L;
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.of(mockUser));
+            when(reservationRepository.findById(mockReviewDTO.getReservationId())).thenReturn(Optional.of(mockReservation));
+            when(reviewMapper.toEntity(any(ReviewDTO.class))).thenReturn(mockReview);
+            when(reviewRepository.save(any(Review.class))).thenReturn(mockReview);
+            when(reviewMapper.toDTO(mockReview)).thenReturn(mockReviewDTO);
+            
+            ReviewDTO result = reviewService.createReview(mockReviewDTO);
+            
+            assertNotNull(result);
+            assertEquals(mockReviewDTO, result);
+            
+            verify(userRepository).findById(currentUserId);
+            verify(reservationRepository).findById(mockReviewDTO.getReservationId());
+            verify(reviewMapper).toEntity(any(ReviewDTO.class));
+            verify(reviewRepository).save(any(Review.class));
+            verify(reviewMapper).toDTO(mockReview);
+        }
     }
 
     @Test
-    @DisplayName("createReview should throw if reservation not found")
-    void createReview_shouldThrow_whenReservationNotFound() {
-        ReviewDTO dto = new ReviewDTO();
-        dto.setNote(4);
-        dto.setReservationId(123L);
-
-        when(reservationRepository.findById(123L)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> reviewService.createReview(dto))
-                .isInstanceOf(ReservationNotFoundException.class)
-                .hasMessageContaining("Réservation introuvable");
+    void createReview_WhenUserNotFound_ShouldThrowException() {
+        Long currentUserId = 999L;
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.empty());
+            
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class, 
+                () -> reviewService.createReview(mockReviewDTO));
+            assertEquals("Utilisateur non trouvé", exception.getMessage());
+            
+            verify(userRepository).findById(currentUserId);
+            verify(reviewRepository, never()).save(any());
+        }
     }
 
     @Test
-    @DisplayName("createReview should throw if reservation is not closed")
-    void createReview_shouldThrow_whenReservationNotClosed() {
-        ReviewDTO dto = new ReviewDTO();
-        dto.setNote(4);
-        dto.setReservationId(123L);
-
-        Reservation reservation = new Reservation();
-        reservation.setStatus("pending");
-
-        when(reservationRepository.findById(123L)).thenReturn(Optional.of(reservation));
-
-        assertThatThrownBy(() -> reviewService.createReview(dto))
-                .isInstanceOf(ReservationNotCompletedException.class);
+    void createReview_WhenUserRoleIsNull_ShouldThrowException() {
+        Long currentUserId = 1L;
+        mockUser.setUserRole(null);
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.of(mockUser));
+            
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class, 
+                () -> reviewService.createReview(mockReviewDTO));
+            assertEquals("Rôle utilisateur non défini en base de données", exception.getMessage());
+            
+            verify(userRepository).findById(currentUserId);
+            verify(reviewRepository, never()).save(any());
+        }
     }
 
     @Test
-    @DisplayName("createReview should throw if users do not match reservation")
-    void createReview_shouldThrow_whenUsersInvalid() {
+    void createReview_WhenReviewerIdDoesNotMatchCurrentUser_ShouldThrowException() {
+        Long currentUserId = 1L;
+        mockReviewDTO.setReviewerId(2L); // Different from current user
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.of(mockUser));
+            
+            InvalidReviewUserException exception = assertThrows(InvalidReviewUserException.class, 
+                () -> reviewService.createReview(mockReviewDTO));
+            assertEquals("Vous ne pouvez créer un avis qu'en votre nom", exception.getMessage());
+            
+            verify(userRepository).findById(currentUserId);
+            verify(reviewRepository, never()).save(any());
+        }
+    }
+
+    @Test
+    void createReview_WhenReservationNotFound_ShouldThrowException() {
+        Long currentUserId = 1L;
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.of(mockUser));
+            when(reservationRepository.findById(mockReviewDTO.getReservationId())).thenReturn(Optional.empty());
+            
+            ReservationNotFoundException exception = assertThrows(ReservationNotFoundException.class, 
+                () -> reviewService.createReview(mockReviewDTO));
+            assertEquals("Réservation introuvable", exception.getMessage());
+            
+            verify(userRepository).findById(currentUserId);
+            verify(reservationRepository).findById(mockReviewDTO.getReservationId());
+            verify(reviewRepository, never()).save(any());
+        }
+    }
+
+    @Test
+    void createReview_WhenReservationStatusNotClosed_ShouldThrowException() {
+        Long currentUserId = 1L;
+        mockReservation.setStatus("IN_PROGRESS");
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.of(mockUser));
+            when(reservationRepository.findById(mockReviewDTO.getReservationId())).thenReturn(Optional.of(mockReservation));
+            
+            ReservationNotCompletedException exception = assertThrows(ReservationNotCompletedException.class, 
+                () -> reviewService.createReview(mockReviewDTO));
+            assertEquals("La réservation doit avoir le statut CLOSED pour pouvoir écrire un avis", exception.getMessage());
+            
+            verify(userRepository).findById(currentUserId);
+            verify(reservationRepository).findById(mockReviewDTO.getReservationId());
+            verify(reviewRepository, never()).save(any());
+        }
+    }
+
+    @Test
+    void getReviewById_ShouldReturnReview() {
+        Long reviewId = 1L;
+        Long currentUserId = 1L;
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.of(mockUser));
+            when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(mockReview));
+            when(reviewMapper.toDTO(mockReview)).thenReturn(mockReviewDTO);
+            
+            ReviewDTO result = reviewService.getReviewById(reviewId);
+            
+            assertNotNull(result);
+            assertEquals(mockReviewDTO, result);
+            
+            verify(userRepository).findById(currentUserId);
+            verify(reviewRepository).findById(reviewId);
+            verify(reviewMapper).toDTO(mockReview);
+        }
+    }
+
+    @Test
+    void getReviewById_WhenReviewNotFound_ShouldThrowException() {
+        Long reviewId = 999L;
+        Long currentUserId = 1L;
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.of(mockUser));
+            when(reviewRepository.findById(reviewId)).thenReturn(Optional.empty());
+            
+            ReviewNotFoundException exception = assertThrows(ReviewNotFoundException.class, 
+                () -> reviewService.getReviewById(reviewId));
+            assertEquals("Avis introuvable", exception.getMessage());
+            
+            verify(userRepository).findById(currentUserId);
+            verify(reviewRepository).findById(reviewId);
+            verify(reviewMapper, never()).toDTO(any());
+        }
+    }
+
+    @Test
+    void getReviewsWrittenByUser_ShouldReturnReviewsList() {
+        Long currentUserId = 1L;
+        List<Review> reviews = Arrays.asList(mockReview);
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.of(mockUser));
+            when(reviewRepository.findByReviewerId(currentUserId)).thenReturn(reviews);
+            when(reviewMapper.toDTO(mockReview)).thenReturn(mockReviewDTO);
+            
+            List<ReviewDTO> result = reviewService.getReviewsWrittenByUser();
+            
+            assertNotNull(result);
+            assertEquals(1, result.size());
+            assertEquals(mockReviewDTO, result.get(0));
+            
+            verify(userRepository).findById(currentUserId);
+            verify(reviewRepository).findByReviewerId(currentUserId);
+            verify(reviewMapper).toDTO(mockReview);
+        }
+    }
+
+    @Test
+    void getReviewsReceivedByUser_ShouldReturnReviewsList() {
+        Long currentUserId = 1L;
+        List<Review> reviews = Arrays.asList(mockReview);
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.of(mockUser));
+            when(reviewRepository.findByReviewedId(currentUserId)).thenReturn(reviews);
+            when(reviewMapper.toDTO(mockReview)).thenReturn(mockReviewDTO);
+            
+            List<ReviewDTO> result = reviewService.getReviewsReceivedByUser();
+            
+            assertNotNull(result);
+            assertEquals(1, result.size());
+            assertEquals(mockReviewDTO, result.get(0));
+            
+            verify(userRepository).findById(currentUserId);
+            verify(reviewRepository).findByReviewedId(currentUserId);
+            verify(reviewMapper).toDTO(mockReview);
+        }
+    }
+
+    private Review createMockReview() {
+        Review review = new Review();
+        review.setId(1L);
+        review.setNote(5);
+        review.setCommentaire("Excellent service");
+        review.setReviewer(mockUser);
+        review.setReviewed(mockUser);
+        review.setReservationId(1L);
+        review.setCreatedAt(LocalDateTime.now());
+        return review;
+    }
+
+    private ReviewDTO createMockReviewDTO() {
         ReviewDTO dto = new ReviewDTO();
-        dto.setNote(4);
-        dto.setReservationId(123L);
+        dto.setId(1L);
+        dto.setNote(5);
+        dto.setCommentaire("Excellent service");
         dto.setReviewerId(1L);
         dto.setReviewedId(2L);
-
-        Reservation reservation = new Reservation();
-        reservation.setStatus("closed");
-        reservation.setClientId(999L);
-        reservation.setProviderId(888L);
-
-        when(reservationRepository.findById(123L)).thenReturn(Optional.of(reservation));
-
-        assertThatThrownBy(() -> reviewService.createReview(dto))
-                .isInstanceOf(InvalidReviewUserException.class);
-    }
-
-    @Test
-    @DisplayName("createReview should save and return DTO when valid")
-    void createReview_shouldSave_whenValid() {
-        ReviewDTO dto = new ReviewDTO();
-        dto.setNote(5);
         dto.setReservationId(1L);
-        dto.setReviewerId(10L);
-        dto.setReviewedId(20L);
+        dto.setCreatedAt(LocalDateTime.now());
+        return dto;
+    }
 
+    private User createMockUser() {
+        User user = new User();
+        user.setId(1L);
+        user.setFirstName("Test");
+        user.setLastName("User");
+        user.setEmail("test@test.com");
+        user.setUserRole(UserRole.CLIENT);
+        return user;
+    }
+
+    private Reservation createMockReservation() {
         Reservation reservation = new Reservation();
-        reservation.setStatus("closed");
-        reservation.setClientId(10L);
-        reservation.setProviderId(20L);
-
-        Review reviewEntity = new Review();
-        Review savedEntity = new Review();
-        ReviewDTO returnedDto = new ReviewDTO();
-
-        when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
-        when(reviewMapper.toEntity(dto)).thenReturn(reviewEntity);
-        when(reviewRepository.save(any(Review.class))).thenReturn(savedEntity);
-        when(reviewMapper.toDTO(savedEntity)).thenReturn(returnedDto);
-
-        ReviewDTO result = reviewService.createReview(dto);
-
-        assertThat(result).isEqualTo(returnedDto);
-    }
-
-    @Test
-    @DisplayName("getReviewById should throw if not found")
-    void getReviewById_shouldThrow_whenNotFound() {
-        when(reviewRepository.findById(99L)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> reviewService.getReviewById(99L))
-                .isInstanceOf(ReviewNotFoundException.class);
-    }
-
-    @Test
-    @DisplayName("getReviewById should return DTO when found")
-    void getReviewById_shouldReturnDTO_whenFound() {
-        Review review = new Review();
-        ReviewDTO dto = new ReviewDTO();
-
-        when(reviewRepository.findById(1L)).thenReturn(Optional.of(review));
-        when(reviewMapper.toDTO(review)).thenReturn(dto);
-
-        ReviewDTO result = reviewService.getReviewById(1L);
-        assertThat(result).isEqualTo(dto);
-    }
-
-    @Test
-    @DisplayName("getReviewsForUser should return mapped DTOs")
-    void getReviewsForUser_shouldReturnDTOs() {
-        Review r1 = new Review();
-        Review r2 = new Review();
-        ReviewDTO dto1 = new ReviewDTO();
-        ReviewDTO dto2 = new ReviewDTO();
-
-        when(reviewRepository.findByReviewedId(5L)).thenReturn(List.of(r1, r2));
-        when(reviewMapper.toDTO(r1)).thenReturn(dto1);
-        when(reviewMapper.toDTO(r2)).thenReturn(dto2);
-
-        List<ReviewDTO> result = reviewService.getReviewsForUser(5L);
-
-        assertThat(result).containsExactly(dto1, dto2);
-    }
-
-    @Test
-    @DisplayName("getReviewsWrittenByUser should return mapped DTOs")
-    void getReviewsWrittenByUser_shouldReturnDTOs() {
-        Review r1 = new Review();
-        ReviewDTO dto1 = new ReviewDTO();
-
-        when(reviewRepository.findByReviewerId(3L)).thenReturn(List.of(r1));
-        when(reviewMapper.toDTO(r1)).thenReturn(dto1);
-
-        List<ReviewDTO> result = reviewService.getReviewsWrittenByUser(3L);
-
-        assertThat(result).containsExactly(dto1);
-    }
-
-    @Test
-    @DisplayName("getReviewsFromUserToUser should return mapped DTOs")
-    void getReviewsFromUserToUser_shouldReturnDTOs() {
-        Review r = new Review();
-        ReviewDTO dto = new ReviewDTO();
-
-        when(reviewRepository.findByReviewerIdAndReviewedId(1L, 2L)).thenReturn(List.of(r));
-        when(reviewMapper.toDTO(r)).thenReturn(dto);
-
-        List<ReviewDTO> result = reviewService.getReviewsFromUserToUser(1L, 2L);
-
-        assertThat(result).containsExactly(dto);
+        reservation.setId(1L);
+        reservation.setClientId(1L);
+        reservation.setProviderId(2L);
+        reservation.setStatus("CLOSED");
+        return reservation;
     }
 }

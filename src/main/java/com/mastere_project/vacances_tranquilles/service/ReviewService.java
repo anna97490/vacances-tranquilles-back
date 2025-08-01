@@ -17,14 +17,6 @@ public interface ReviewService {
     ReviewDTO createReview(ReviewDTO dto);
 
     /**
-     * Récupère tous les avis reçus par un utilisateur donné.
-     *
-     * @param userId l'identifiant de l'utilisateur évalué
-     * @return la liste des avis reçus
-     */
-    List<ReviewDTO> getReviewsForUser(Long userId);
-
-    /**
      * Récupère un avis à partir de son identifiant.
      *
      * @param reviewId l'identifiant de l'avis recherché
@@ -33,19 +25,16 @@ public interface ReviewService {
     ReviewDTO getReviewById(Long reviewId);
 
     /**
-     * Récupère tous les avis rédigés par un utilisateur donné.
+     * Récupère tous les avis rédigés par l'utilisateur authentifié.
      *
-     * @param userId l'identifiant de l'utilisateur rédacteur
      * @return la liste des avis rédigés
      */
-    List<ReviewDTO> getReviewsWrittenByUser(Long userId);
+    List<ReviewDTO> getReviewsWrittenByUser();
 
     /**
-     * Récupère les avis rédigés par un utilisateur spécifique à destination d’un autre utilisateur.
+     * Récupère tous les avis reçus par l'utilisateur authentifié.
      *
-     * @param reviewerId l'identifiant de l'évaluateur
-     * @param reviewedId l'identifiant de l'évalué
-     * @return la liste des avis correspondants
+     * @return la liste des avis reçus
      */
-    List<ReviewDTO> getReviewsFromUserToUser(Long reviewerId, Long reviewedId);
+    List<ReviewDTO> getReviewsReceivedByUser();
 }
