@@ -54,4 +54,38 @@ class ConversationMapperImplTest {
         assertNull(mapper.toDto(null));
         assertNull(mapper.toEntity(null));
     }
+
+    @Test
+    void testToDtoWithNullFields() {
+        Conversation conversation = new Conversation();
+        conversation.setId(1L);
+        conversation.setUser1(null);
+        conversation.setUser2(null);
+        conversation.setCreatedAt(null);
+
+        ConversationDTO dto = mapper.toDto(conversation);
+        
+        assertNotNull(dto);
+        assertEquals(1L, dto.getId());
+        assertNull(dto.getUser1Id());
+        assertNull(dto.getUser2Id());
+        assertNull(dto.getCreatedAt());
+    }
+
+    @Test
+    void testToEntityWithNullFields() {
+        ConversationDTO dto = new ConversationDTO();
+        dto.setId(2L);
+        dto.setUser1Id(null);
+        dto.setUser2Id(null);
+        dto.setCreatedAt(null);
+
+        Conversation entity = mapper.toEntity(dto);
+        
+        assertNotNull(entity);
+        assertEquals(2L, entity.getId());
+        assertNull(entity.getUser1());
+        assertNull(entity.getUser2());
+        assertNull(entity.getCreatedAt());
+    }
 } 

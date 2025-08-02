@@ -63,4 +63,46 @@ class MessageMapperImplTest {
         assertNull(mapper.toDto(null));
         assertNull(mapper.toEntity(null));
     }
+
+    @Test
+    void testToDtoWithNullFields() {
+        Message message = new Message();
+        message.setId(1L);
+        message.setConversation(null);
+        message.setSender(null);
+        message.setContent(null);
+        message.setSentAt(null);
+        message.setRead(false);
+
+        MessageDTO dto = mapper.toDto(message);
+        
+        assertNotNull(dto);
+        assertEquals(1L, dto.getId());
+        assertNull(dto.getConversationId());
+        assertNull(dto.getSenderId());
+        assertNull(dto.getContent());
+        assertNull(dto.getSentAt());
+        assertFalse(dto.isRead());
+    }
+
+    @Test
+    void testToEntityWithNullFields() {
+        MessageDTO dto = new MessageDTO();
+        dto.setId(2L);
+        dto.setConversationId(null);
+        dto.setSenderId(null);
+        dto.setContent(null);
+        dto.setSentAt(null);
+        dto.setRead(false);
+
+        Message entity = mapper.toEntity(dto);
+        
+        assertNotNull(entity);
+        assertEquals(2L, entity.getId());
+        assertNull(entity.getConversation());
+        assertNull(entity.getSender());
+        assertNull(entity.getContent());
+        assertNull(entity.getSentAt());
+        assertFalse(entity.isRead());
+    }
 } 

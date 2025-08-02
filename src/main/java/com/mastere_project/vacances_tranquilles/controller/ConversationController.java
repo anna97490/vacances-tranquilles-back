@@ -27,6 +27,8 @@ class ConversationCreateRequest {
 @RequiredArgsConstructor
 public class ConversationController {
 
+    private static final String ERROR_TYPE = "ERROR";
+
     private final ConversationService conversationService;
     private final MessageService messageService;
 
@@ -51,11 +53,15 @@ public class ConversationController {
     @PostMapping
     public ResponseEntity<Object> createConversation(@RequestBody ConversationCreateRequest request) {
         try {
+            if (request == null || request.getOtherUserId() == null || request.getReservationId() == null) {
+                return ResponseEntity.badRequest().body(new ErrorEntity(ERROR_TYPE, "Invalid request parameters"));
+            }
+            
             ConversationDTO conversation = conversationService.createConversation(request.getOtherUserId(), request.getReservationId());
             
             return ResponseEntity.ok(conversation);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new ErrorEntity("ERROR", e.getMessage()));
+            return ResponseEntity.badRequest().body(new ErrorEntity(ERROR_TYPE, e.getMessage()));
         }
     }
 
@@ -68,10 +74,14 @@ public class ConversationController {
     @GetMapping("/{id}")
     public ResponseEntity<Object> getConversationById(@PathVariable Long id) {
         try {
+            if (id == null) {
+                return ResponseEntity.badRequest().body(new ErrorEntity(ERROR_TYPE, "Invalid conversation ID"));
+            }
+            
             ConversationDTO conversation = conversationService.getConversationById(id);
             return ResponseEntity.ok(conversation);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new ErrorEntity("ERROR", e.getMessage()));
+            return ResponseEntity.badRequest().body(new ErrorEntity(ERROR_TYPE, e.getMessage()));
         }
     }
 
@@ -85,6 +95,10 @@ public class ConversationController {
     @GetMapping("/{id}/messages")
     public ResponseEntity<ConversationWithMessagesDTO> getConversationWithMessages(@PathVariable Long id) {
         try {
+            if (id == null) {
+                return ResponseEntity.badRequest().build();
+            }
+            
             ConversationDTO conversation = conversationService.getConversationById(id);
             List<MessageDTO> messages = messageService.getMessagesByConversationId(id);
             

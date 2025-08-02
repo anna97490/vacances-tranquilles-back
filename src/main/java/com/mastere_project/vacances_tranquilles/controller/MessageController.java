@@ -26,9 +26,16 @@ public class MessageController {
      */
     @PostMapping
     public ResponseEntity<MessageDTO> sendMessage(@RequestBody MessageDTO messageDTO) {
-        MessageDTO saved = messageService.sendMessage(messageDTO);
-        
-        return ResponseEntity.ok(saved);
+        try {
+            if (messageDTO == null || messageDTO.getConversationId() == null) {
+                return ResponseEntity.badRequest().build();
+            }
+            
+            MessageDTO saved = messageService.sendMessage(messageDTO);
+            return ResponseEntity.ok(saved);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     /**
@@ -39,9 +46,16 @@ public class MessageController {
      */
     @GetMapping("/conversation/{conversationId}")
     public ResponseEntity<List<MessageDTO>> getMessagesByConversation(@PathVariable Long conversationId) {
-        List<MessageDTO> messages = messageService.getMessagesByConversationId(conversationId);
-        
-        return ResponseEntity.ok(messages);
+        try {
+            if (conversationId == null) {
+                return ResponseEntity.badRequest().build();
+            }
+            
+            List<MessageDTO> messages = messageService.getMessagesByConversationId(conversationId);
+            return ResponseEntity.ok(messages);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     /**
@@ -54,12 +68,18 @@ public class MessageController {
     @PutMapping("/{id}")
     public ResponseEntity<MessageDTO> updateMessage(@PathVariable Long id, @RequestBody MessageDTO messageDTO) {
         try {
+            if (id == null || messageDTO == null) {
+                return ResponseEntity.badRequest().build();
+            }
+            
             MessageDTO updated = messageService.updateMessage(id, messageDTO);
             return ResponseEntity.ok(updated);
         } catch (com.mastere_project.vacances_tranquilles.exception.ConversationNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (com.mastere_project.vacances_tranquilles.exception.ConversationForbiddenException e) {
             return ResponseEntity.status(403).build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 }

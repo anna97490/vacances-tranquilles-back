@@ -61,6 +61,23 @@ class ConversationServiceImplTest {
     }
 
     @Test
+    void testGetConversationsForUserEmptyList() {
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(1L);
+            
+            User currentUser = new User(); 
+            currentUser.setId(1L);
+            currentUser.setUserRole(UserRole.CLIENT);
+            when(userRepository.findById(1L)).thenReturn(Optional.of(currentUser));
+            
+            when(conversationRepository.findByUser1IdOrUser2Id(1L, 1L)).thenReturn(List.of());
+            
+            List<ConversationDTO> result = service.getConversationsForUser();
+            assertEquals(0, result.size());
+        }
+    }
+
+    @Test
     void testCreateConversationSuccess() {
         try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
             mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(1L);
@@ -110,11 +127,50 @@ class ConversationServiceImplTest {
     }
 
     @Test
+    void testCreateConversationWithSameRole() {
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(1L);
+            
+            User u1 = new User(); 
+            u1.setId(1L);
+            u1.setUserRole(UserRole.CLIENT);
+            User u2 = new User(); 
+            u2.setId(2L);
+            u2.setUserRole(UserRole.CLIENT); // Same role
+            Reservation reservation = new Reservation();
+            reservation.setId(1L);
+            reservation.setStatus("in_progress");
+            
+            when(userRepository.findById(1L)).thenReturn(Optional.of(u1));
+            when(userRepository.findById(2L)).thenReturn(Optional.of(u2));
+            when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
+            
+            assertThrows(ConversationForbiddenException.class, () -> service.createConversation(2L, 1L));
+        }
+    }
+
+    @Test
     void testCreateConversationUserNotFound() {
         try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
             mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(1L);
             
             when(userRepository.findById(1L)).thenReturn(Optional.empty());
+            assertThrows(UserNotFoundException.class, () -> service.createConversation(2L, 1L));
+        }
+    }
+
+    @Test
+    void testCreateConversationOtherUserNotFound() {
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(1L);
+            
+            User u1 = new User(); 
+            u1.setId(1L);
+            u1.setUserRole(UserRole.CLIENT);
+            
+            when(userRepository.findById(1L)).thenReturn(Optional.of(u1));
+            when(userRepository.findById(2L)).thenReturn(Optional.empty());
+            
             assertThrows(UserNotFoundException.class, () -> service.createConversation(2L, 1L));
         }
     }
@@ -231,6 +287,30 @@ class ConversationServiceImplTest {
 
     @Test
     void testGetConversationByIdForbidden() {
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(3L);
+            
+            User currentUser = new User(); 
+            currentUser.setId(3L);
+            currentUser.setUserRole(UserRole.CLIENT);
+            when(userRepository.findById(3L)).thenReturn(Optional.of(currentUser));
+            
+            Conversation conv = new Conversation(); 
+            conv.setId(1L);
+            User u1 = new User(); 
+            u1.setId(1L);
+            User u2 = new User(); 
+            u2.setId(2L);
+            conv.setUser1(u1); 
+            conv.setUser2(u2);
+            when(conversationRepository.findById(1L)).thenReturn(Optional.of(conv));
+            
+            assertThrows(ConversationForbiddenException.class, () -> service.getConversationById(1L));
+        }
+    }
+
+    @Test
+    void testGetConversationByIdUserNotParticipant() {
         try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
             mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(3L);
             

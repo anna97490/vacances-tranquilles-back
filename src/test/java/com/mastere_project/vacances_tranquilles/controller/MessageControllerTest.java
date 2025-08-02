@@ -93,4 +93,50 @@ class MessageControllerTest {
         ResponseEntity<MessageDTO> response = messageController.updateMessage(1L, input);
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
+
+    @Test
+    void sendMessage_shouldReturnBadRequest_whenMessageNull() {
+        ResponseEntity<MessageDTO> response = messageController.sendMessage(null);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void sendMessage_shouldReturnBadRequest_whenConversationIdNull() {
+        MessageDTO message = new MessageDTO();
+        message.setConversationId(null);
+        message.setContent("test");
+        
+        ResponseEntity<MessageDTO> response = messageController.sendMessage(message);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void updateMessage_shouldReturnBadRequest_whenIdNull() {
+        MessageDTO message = new MessageDTO();
+        message.setContent("updated");
+        
+        ResponseEntity<MessageDTO> response = messageController.updateMessage(null, message);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void updateMessage_shouldReturnBadRequest_whenMessageNull() {
+        ResponseEntity<MessageDTO> response = messageController.updateMessage(1L, null);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void getMessagesByConversation_shouldReturnBadRequest_whenIdNull() {
+        ResponseEntity<List<MessageDTO>> response = messageController.getMessagesByConversation(null);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void getMessagesByConversation_shouldReturnEmptyList() {
+        when(messageService.getMessagesByConversationId(1L)).thenReturn(List.of());
+
+        ResponseEntity<List<MessageDTO>> response = messageController.getMessagesByConversation(1L);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(0, response.getBody().size());
+    }
 } 

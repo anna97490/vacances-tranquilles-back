@@ -263,4 +263,142 @@ class MessageServiceImplTest {
             assertThrows(ConversationForbiddenException.class, () -> service.updateMessage(1L, dto));
         }
     }
+
+    @Test
+    void testGetMessagesByConversationIdNoMessages() {
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(1L);
+            
+            User currentUser = new User(); 
+            currentUser.setId(1L);
+            currentUser.setUserRole(UserRole.CLIENT);
+            when(userRepository.findById(1L)).thenReturn(Optional.of(currentUser));
+            
+            Conversation conv = new Conversation(); 
+            conv.setId(10L);
+            User u1 = new User(); 
+            u1.setId(1L);
+            User u2 = new User(); 
+            u2.setId(2L);
+            conv.setUser1(u1);
+            conv.setUser2(u2);
+            
+            when(conversationRepository.findById(10L)).thenReturn(Optional.of(conv));
+            when(messageRepository.findByConversationIdOrderBySentAtAsc(10L)).thenReturn(List.of());
+            
+            List<MessageDTO> result = service.getMessagesByConversationId(10L);
+            
+            assertEquals(0, result.size());
+        }
+    }
+
+    @Test
+    void testGetMessagesByConversationIdNoUnreadMessages() {
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(1L);
+            
+            User currentUser = new User(); 
+            currentUser.setId(1L);
+            currentUser.setUserRole(UserRole.CLIENT);
+            when(userRepository.findById(1L)).thenReturn(Optional.of(currentUser));
+            
+            Message m1 = new Message(); 
+            m1.setId(1L); 
+            User sender = new User(); 
+            sender.setId(2L); 
+            m1.setSender(sender); 
+            m1.setRead(true); // Already read
+            Message m2 = new Message(); 
+            m2.setId(2L); 
+            User sender2 = new User(); 
+            sender2.setId(1L); 
+            m2.setSender(sender2); 
+            m2.setRead(false); // Own message, shouldn't be marked as read
+            
+            Conversation conv = new Conversation(); 
+            conv.setId(10L);
+            User u1 = new User(); 
+            u1.setId(1L);
+            User u2 = new User(); 
+            u2.setId(2L);
+            conv.setUser1(u1);
+            conv.setUser2(u2);
+            
+            when(conversationRepository.findById(10L)).thenReturn(Optional.of(conv));
+            when(messageRepository.findByConversationIdOrderBySentAtAsc(10L)).thenReturn(List.of(m1, m2));
+            when(messageMapper.toDto(any())).thenReturn(new MessageDTO());
+            
+            List<MessageDTO> result = service.getMessagesByConversationId(10L);
+            
+            assertEquals(2, result.size());
+            assertTrue(m1.isRead()); // Should remain read
+            assertFalse(m2.isRead()); // Own message should not be marked as read
+        }
+    }
+
+    @Test
+    void testSendMessageWithNullSentAt() {
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(2L);
+            
+            User currentUser = new User(); 
+            currentUser.setId(2L);
+            currentUser.setUserRole(UserRole.PROVIDER);
+            when(userRepository.findById(2L)).thenReturn(Optional.of(currentUser));
+            
+            MessageDTO dto = new MessageDTO(); 
+            dto.setConversationId(10L); 
+            dto.setContent("msg");
+            dto.setSentAt(null); // Test null sentAt
+            Message entity = new Message(); 
+            entity.setId(1L); 
+            entity.setContent("msg");
+            entity.setSentAt(null);
+            Conversation conv = new Conversation(); 
+            conv.setId(10L);
+            User u1 = new User(); 
+            u1.setId(1L);
+            User u2 = new User(); 
+            u2.setId(2L);
+            conv.setUser1(u1);
+            conv.setUser2(u2);
+            
+            when(conversationRepository.findById(10L)).thenReturn(Optional.of(conv));
+            when(messageMapper.toEntity(dto)).thenReturn(entity);
+            when(messageRepository.save(any())).thenReturn(entity);
+            when(messageMapper.toDto(entity)).thenReturn(dto);
+            
+            MessageDTO result = service.sendMessage(dto);
+            assertEquals("msg", result.getContent());
+        }
+    }
+
+    @Test
+    void testUpdateMessageWithNullContent() {
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(2L);
+            
+            User currentUser = new User(); 
+            currentUser.setId(2L);
+            currentUser.setUserRole(UserRole.PROVIDER);
+            when(userRepository.findById(2L)).thenReturn(Optional.of(currentUser));
+            
+            Message m = new Message(); 
+            m.setId(1L); 
+            User sender = new User(); 
+            sender.setId(2L); 
+            m.setSender(sender); 
+            m.setContent("old");
+            MessageDTO dto = new MessageDTO(); 
+            dto.setContent(null); // Test null content
+            
+            when(messageRepository.findById(1L)).thenReturn(Optional.of(m));
+            when(messageRepository.save(any())).thenReturn(m);
+            when(messageMapper.toDto(m)).thenReturn(dto);
+            
+            MessageDTO result = service.updateMessage(1L, dto);
+            
+            assertEquals(null, result.getContent());
+        }
+    }
 } 
