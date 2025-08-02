@@ -1,5 +1,6 @@
 package com.mastere_project.vacances_tranquilles.controller;
 
+import com.mastere_project.vacances_tranquilles.dto.DeleteAccountResponse;
 import com.mastere_project.vacances_tranquilles.dto.UpdateUserDTO;
 import com.mastere_project.vacances_tranquilles.dto.UserBasicInfoDTO;
 import com.mastere_project.vacances_tranquilles.dto.UserProfileDTO;
@@ -63,9 +64,7 @@ public class UserController {
         userService.deleteUserAccount();
 
         return ResponseEntity.ok()
-                .body(new Object() {
-                    public final String message = "Account deletion completed. All personal data has been deleted or anonymized.";
-                });
+                .body(new DeleteAccountResponse("Account deletion completed. All personal data has been deleted or anonymized."));
     }
 
     /**

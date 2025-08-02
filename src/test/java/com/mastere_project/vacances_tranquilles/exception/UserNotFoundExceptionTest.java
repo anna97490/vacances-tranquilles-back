@@ -2,6 +2,8 @@ package com.mastere_project.vacances_tranquilles.exception;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -123,43 +125,19 @@ class UserNotFoundExceptionTest {
 
     // Tests pour les cas d'utilisation spécifiques
 
-    @Test
-    @DisplayName("Exception should work with business logic - user not found by ID")
-    void exception_ShouldWorkWithBusinessLogic_UserNotFoundById() {
-        Long userId = 999L;
-        String expectedMessage = "Utilisateur avec ID " + userId + " non trouvé";
-
+    @ParameterizedTest
+    @CsvSource({
+        "999, Utilisateur avec ID 999 non trouvé, 999",
+        "nonexistent@example.com, Aucun utilisateur trouvé avec l'email : nonexistent@example.com, nonexistent@example.com",
+        "utilisateur_inexistant, Utilisateur avec nom d'utilisateur 'utilisateur_inexistant' non trouvé, utilisateur_inexistant"
+    })
+    @DisplayName("Exception should work with business logic - user not found by various criteria")
+    void exception_ShouldWorkWithBusinessLogic_UserNotFoundByVariousCriteria(String identifier, String expectedMessage, String expectedContained) {
         UserNotFoundException exception = new UserNotFoundException(expectedMessage);
 
         assertNotNull(exception);
         assertEquals(expectedMessage, exception.getMessage());
-        assertTrue(exception.getMessage().contains("999"));
-    }
-
-    @Test
-    @DisplayName("Exception should work with business logic - user not found by email")
-    void exception_ShouldWorkWithBusinessLogic_UserNotFoundByEmail() {
-        String email = "nonexistent@example.com";
-        String expectedMessage = "Aucun utilisateur trouvé avec l'email : " + email;
-
-        UserNotFoundException exception = new UserNotFoundException(expectedMessage);
-
-        assertNotNull(exception);
-        assertEquals(expectedMessage, exception.getMessage());
-        assertTrue(exception.getMessage().contains(email));
-    }
-
-    @Test
-    @DisplayName("Exception should work with business logic - user not found by username")
-    void exception_ShouldWorkWithBusinessLogic_UserNotFoundByUsername() {
-        String username = "utilisateur_inexistant";
-        String expectedMessage = "Utilisateur avec nom d'utilisateur '" + username + "' non trouvé";
-
-        UserNotFoundException exception = new UserNotFoundException(expectedMessage);
-
-        assertNotNull(exception);
-        assertEquals(expectedMessage, exception.getMessage());
-        assertTrue(exception.getMessage().contains(username));
+        assertTrue(exception.getMessage().contains(expectedContained));
     }
 
     @Test

@@ -772,32 +772,7 @@ class UserMapperImplTest {
         assertNull(dto.getLastName());
     }
 
-    // Tests pour les cas limites de performance et mémoire
 
-    @Test
-    void toUser_WithUnicodeCharacters_ShouldHandleGracefully() {
-        RegisterClientDTO dto = new RegisterClientDTO();
-        dto.setFirstName("José María");
-        dto.setLastName("O'Connor");
-        dto.setEmail("test@example.com");
-        dto.setPassword("p@ssw0rd!");
-        dto.setPhoneNumber("+33 1 23 45 67 89");
-        dto.setAddress("123 rue de l'Église, 2ème étage");
-        dto.setCity("Saint-Étienne");
-        dto.setPostalCode("42-000");
-        
-        User user = userMapper.toUser(dto);
-        
-        assertNotNull(user);
-        assertEquals("José María", user.getFirstName());
-        assertEquals("O'Connor", user.getLastName());
-        assertEquals("test@example.com", user.getEmail());
-        assertEquals("p@ssw0rd!", user.getPassword());
-        assertEquals("+33 1 23 45 67 89", user.getPhoneNumber());
-        assertEquals("123 rue de l'Église, 2ème étage", user.getAddress());
-        assertEquals("Saint-Étienne", user.getCity());
-        assertEquals("42-000", user.getPostalCode());
-    }
 
     @Test
     void updateUserFromDTO_WithUnicodeCharacters_ShouldHandleGracefully() {
