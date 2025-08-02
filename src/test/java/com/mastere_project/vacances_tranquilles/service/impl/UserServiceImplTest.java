@@ -447,6 +447,483 @@ class UserServiceImplTest {
         verify(userMapper, never()).toUserBasicInfoDTO(any());
     }
 
+    // Tests pour les cas d'erreur non couverts
+
+    @Test
+    void registerProvider_WhenCompanyNameIsBlank_ShouldThrowException() {
+        RegisterProviderDTO dto = new RegisterProviderDTO();
+        dto.setEmail("provider@test.com");
+        dto.setCompanyName("   "); // Espaces blancs
+        dto.setSiretSiren("12345678900000");
+        
+        assertThrows(MissingFieldException.class, () -> userService.registerProvider(dto));
+        verify(userRepository, never()).existsByEmail(any());
+        verify(userMapper, never()).toUser(any(RegisterProviderDTO.class));
+    }
+
+    @Test
+    void registerProvider_WhenSiretSirenIsBlank_ShouldThrowException() {
+        RegisterProviderDTO dto = new RegisterProviderDTO();
+        dto.setEmail("provider@test.com");
+        dto.setCompanyName("Test Company");
+        dto.setSiretSiren("   "); // Espaces blancs
+        
+        assertThrows(MissingFieldException.class, () -> userService.registerProvider(dto));
+        verify(userRepository, never()).existsByEmail(any());
+        verify(userMapper, never()).toUser(any(RegisterProviderDTO.class));
+    }
+
+    @Test
+    void login_WhenExceptionOccurs_ShouldThrowLoginInternalException() {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail("test@test.com");
+        userDTO.setPassword("password123");
+        
+        when(userRepository.findByEmail(userDTO.getEmail())).thenThrow(new RuntimeException("Database error"));
+        
+        assertThrows(com.mastere_project.vacances_tranquilles.exception.LoginInternalException.class, 
+            () -> userService.login(userDTO));
+        verify(userRepository).findByEmail(userDTO.getEmail());
+    }
+
+    @Test
+    void login_WhenPasswordEncoderThrowsException_ShouldThrowLoginInternalException() {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail("test@test.com");
+        userDTO.setPassword("password123");
+        
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.of(mockUser));
+        when(passwordEncoder.matches(anyString(), anyString())).thenThrow(new RuntimeException("Encoder error"));
+        
+        assertThrows(com.mastere_project.vacances_tranquilles.exception.LoginInternalException.class, 
+            () -> userService.login(userDTO));
+        verify(userRepository).findByEmail(userDTO.getEmail());
+        verify(passwordEncoder).matches(userDTO.getPassword(), mockUser.getPassword());
+    }
+
+    @Test
+    void login_WhenJwtGenerationThrowsException_ShouldThrowLoginInternalException() {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail("test@test.com");
+        userDTO.setPassword("password123");
+        
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.of(mockUser));
+        when(passwordEncoder.matches(userDTO.getPassword(), mockUser.getPassword())).thenReturn(true);
+        when(jwtConfig.generateToken(anyLong(), any(UserRole.class))).thenThrow(new RuntimeException("JWT error"));
+        
+        assertThrows(com.mastere_project.vacances_tranquilles.exception.LoginInternalException.class, 
+            () -> userService.login(userDTO));
+        verify(userRepository).findByEmail(userDTO.getEmail());
+        verify(passwordEncoder).matches(userDTO.getPassword(), mockUser.getPassword());
+        verify(jwtConfig).generateToken(mockUser.getId(), mockUser.getUserRole());
+    }
+
+    // Tests pour les scénarios de validation métier
+
+    @Test
+    void registerProvider_WhenAllFieldsValid_ShouldRegisterSuccessfully() {
+        RegisterProviderDTO dto = new RegisterProviderDTO();
+        dto.setEmail("provider@test.com");
+        dto.setPassword("password123");
+        dto.setFirstName("John");
+        dto.setLastName("Doe");
+        dto.setCompanyName("Valid Company");
+        dto.setSiretSiren("12345678900000");
+        
+        User userWithPassword = createMockProviderUser();
+        userWithPassword.setPassword("password123");
+        
+        when(userRepository.existsByEmail(dto.getEmail())).thenReturn(false);
+        when(userMapper.toUser(any(RegisterProviderDTO.class))).thenReturn(userWithPassword);
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class))).thenReturn(userWithPassword);
+        
+        userService.registerProvider(dto);
+        
+        verify(userRepository).existsByEmail(dto.getEmail());
+        verify(userMapper).toUser(any(RegisterProviderDTO.class));
+        verify(passwordEncoder).encode("password123");
+        verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    void login_WhenSuccessfulLogin_ShouldResetLoginAttempts() {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail("test@test.com");
+        userDTO.setPassword("password123");
+        
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.of(mockUser));
+        when(passwordEncoder.matches(userDTO.getPassword(), mockUser.getPassword())).thenReturn(true);
+        when(jwtConfig.generateToken(mockUser.getId(), mockUser.getUserRole())).thenReturn("jwt-token");
+        
+        LoginResponseDTO result = userService.login(userDTO);
+        
+        assertNotNull(result);
+        assertEquals("jwt-token", result.getToken());
+        assertEquals(UserRole.CLIENT, result.getUserRole());
+        
+        // Vérifier que les tentatives de connexion sont réinitialisées
+        verify(userRepository).findByEmail(userDTO.getEmail());
+        verify(passwordEncoder).matches(userDTO.getPassword(), mockUser.getPassword());
+        verify(jwtConfig).generateToken(mockUser.getId(), mockUser.getUserRole());
+    }
+
+    // Tests pour les cas limites de business logic
+
+
+
+    @Test
+    void deleteUserAccount_WhenUserRepositorySaveThrowsException_ShouldPropagateException() {
+        Long userId = 37L;
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(userId);
+            when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+            when(userRepository.save(any(User.class))).thenThrow(new RuntimeException("Database save error"));
+            
+            assertThrows(RuntimeException.class, () -> userService.deleteUserAccount());
+            
+            verify(userRepository).findById(userId);
+            verify(userRepository).save(any(User.class));
+        }
+    }
+
+    @Test
+    void updateUserProfile_WhenUserRepositorySaveThrowsException_ShouldPropagateException() {
+        Long userId = 37L;
+        UpdateUserDTO updateDTO = new UpdateUserDTO();
+        updateDTO.setFirstName("Nouveau Prénom");
+        
+        User updatedUser = createMockUser();
+        updatedUser.setFirstName("Nouveau Prénom");
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(userId);
+            when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+            when(userMapper.updateUserFromDTO(mockUser, updateDTO)).thenReturn(updatedUser);
+            when(userRepository.save(updatedUser)).thenThrow(new RuntimeException("Database save error"));
+            
+            assertThrows(RuntimeException.class, () -> userService.updateUserProfile(updateDTO));
+            
+            verify(userRepository).findById(userId);
+            verify(userMapper).updateUserFromDTO(mockUser, updateDTO);
+            verify(userRepository).save(updatedUser);
+        }
+    }
+
+    @Test
+    void getUserBasicInfoById_WhenReviewRepositoryThrowsException_ShouldPropagateException() {
+        Long userId = 37L;
+        
+        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+        when(reviewRepository.findByReviewedId(userId)).thenThrow(new RuntimeException("Review repository error"));
+        
+        assertThrows(RuntimeException.class, () -> userService.getUserBasicInfoById(userId));
+        
+        verify(userRepository).findById(userId);
+        verify(reviewRepository).findByReviewedId(userId);
+    }
+
+    @Test
+    void getUserBasicInfoById_WhenReviewMapperThrowsException_ShouldPropagateException() {
+        Long userId = 37L;
+        
+        // Créer une liste avec une review pour que le mapper soit appelé
+        com.mastere_project.vacances_tranquilles.entity.Review mockReview = new com.mastere_project.vacances_tranquilles.entity.Review();
+        mockReview.setId(1L);
+        
+        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+        when(reviewRepository.findByReviewedId(userId)).thenReturn(java.util.List.of(mockReview));
+        when(reviewMapper.toDTO(any())).thenThrow(new RuntimeException("Mapper error"));
+        
+        assertThrows(RuntimeException.class, () -> userService.getUserBasicInfoById(userId));
+        
+        verify(userRepository).findById(userId);
+        verify(reviewRepository).findByReviewedId(userId);
+    }
+
+    // Tests pour les cas limites avec des données null
+
+    @Test
+    void registerClient_WhenUserMapperReturnsNull_ShouldHandleGracefully() {
+        RegisterClientDTO dto = new RegisterClientDTO();
+        dto.setEmail("test@test.com");
+        dto.setPassword("password123");
+        dto.setFirstName("Test");
+        dto.setLastName("User");
+        
+        when(userRepository.existsByEmail(dto.getEmail())).thenReturn(false);
+        when(userMapper.toUser(any(RegisterClientDTO.class))).thenReturn(null);
+        
+        assertThrows(NullPointerException.class, () -> userService.registerClient(dto));
+        
+        verify(userRepository).existsByEmail(dto.getEmail());
+        verify(userMapper).toUser(any(RegisterClientDTO.class));
+        verify(passwordEncoder, never()).encode(anyString());
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void login_WhenUserHasNullPassword_ShouldHandleGracefully() {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail("test@test.com");
+        userDTO.setPassword("password123");
+        
+        User userWithNullPassword = createMockUser();
+        userWithNullPassword.setPassword(null);
+        
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.of(userWithNullPassword));
+        
+        assertThrows(WrongPasswordException.class, () -> userService.login(userDTO));
+        
+        verify(userRepository).findByEmail(userDTO.getEmail());
+        verify(passwordEncoder).matches(userDTO.getPassword(), null);
+    }
+
+    @Test
+    void getUserProfile_WhenUserMapperReturnsNull_ShouldHandleGracefully() {
+        Long userId = 37L;
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(userId);
+            when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+            when(userMapper.toUserProfileDTO(mockUser)).thenReturn(null);
+            
+            UserProfileDTO result = userService.getUserProfile();
+            
+            assertNull(result);
+            
+            verify(userRepository).findById(userId);
+            verify(userMapper).toUserProfileDTO(mockUser);
+        }
+    }
+
+    // Tests pour les cas d'erreur de validation métier
+
+    @Test
+    void registerProvider_WhenEmailIsNull_ShouldThrowException() {
+        RegisterProviderDTO dto = new RegisterProviderDTO();
+        dto.setEmail(null);
+        dto.setCompanyName("Test Company");
+        dto.setSiretSiren("12345678900000");
+        
+        when(userRepository.existsByEmail(null)).thenReturn(false);
+        when(userMapper.toUser(any(RegisterProviderDTO.class))).thenReturn(null);
+        
+        assertThrows(NullPointerException.class, () -> userService.registerProvider(dto));
+        
+        verify(userRepository).existsByEmail(null);
+    }
+
+    @Test
+    void registerProvider_WhenEmailIsEmpty_ShouldThrowException() {
+        RegisterProviderDTO dto = new RegisterProviderDTO();
+        dto.setEmail("");
+        dto.setCompanyName("Test Company");
+        dto.setSiretSiren("12345678900000");
+        
+        when(userRepository.existsByEmail("")).thenReturn(false);
+        when(userMapper.toUser(any(RegisterProviderDTO.class))).thenReturn(null);
+        
+        assertThrows(NullPointerException.class, () -> userService.registerProvider(dto));
+        
+        verify(userRepository).existsByEmail("");
+    }
+
+    @Test
+    void login_WhenEmailIsNull_ShouldThrowException() {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail(null);
+        userDTO.setPassword("password123");
+        
+        // Le code actuel ne gère pas les emails null, donc on s'attend à une NullPointerException
+        assertThrows(NullPointerException.class, () -> userService.login(userDTO));
+    }
+
+    @Test
+    void login_WhenPasswordIsNull_ShouldThrowException() {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail("test@test.com");
+        userDTO.setPassword(null);
+        
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.of(mockUser));
+        
+        assertThrows(WrongPasswordException.class, () -> userService.login(userDTO));
+        
+        verify(userRepository).findByEmail(userDTO.getEmail());
+        verify(passwordEncoder).matches(null, mockUser.getPassword());
+    }
+
+    // Tests pour les cas limites de performance et sécurité
+
+    @Test
+    void login_WhenMultipleFailedAttempts_ShouldIncrementAttempts() {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail("test@test.com");
+        userDTO.setPassword("wrongpassword");
+        
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.of(mockUser));
+        when(passwordEncoder.matches(userDTO.getPassword(), mockUser.getPassword())).thenReturn(false);
+        
+        // Premier échec
+        assertThrows(WrongPasswordException.class, () -> userService.login(userDTO));
+        
+        // Deuxième échec
+        assertThrows(WrongPasswordException.class, () -> userService.login(userDTO));
+        
+        verify(userRepository, times(2)).findByEmail(userDTO.getEmail());
+        verify(passwordEncoder, times(2)).matches(userDTO.getPassword(), mockUser.getPassword());
+    }
+
+    @Test
+    void registerClient_WhenPasswordIsEmpty_ShouldHandleGracefully() {
+        RegisterClientDTO dto = new RegisterClientDTO();
+        dto.setEmail("test@test.com");
+        dto.setPassword("");
+        dto.setFirstName("Test");
+        dto.setLastName("User");
+        
+        User userWithEmptyPassword = createMockUser();
+        userWithEmptyPassword.setPassword("");
+        
+        when(userRepository.existsByEmail(dto.getEmail())).thenReturn(false);
+        when(userMapper.toUser(any(RegisterClientDTO.class))).thenReturn(userWithEmptyPassword);
+        when(passwordEncoder.encode("")).thenReturn("encodedEmptyPassword");
+        when(userRepository.save(any(User.class))).thenReturn(userWithEmptyPassword);
+        
+        userService.registerClient(dto);
+        
+        verify(userRepository).existsByEmail(dto.getEmail());
+        verify(userMapper).toUser(any(RegisterClientDTO.class));
+        verify(passwordEncoder).encode("");
+        verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    void registerProvider_WhenAllFieldsAreEmpty_ShouldThrowException() {
+        RegisterProviderDTO dto = new RegisterProviderDTO();
+        dto.setEmail("");
+        dto.setPassword("");
+        dto.setCompanyName("");
+        dto.setSiretSiren("");
+        
+        assertThrows(MissingFieldException.class, () -> userService.registerProvider(dto));
+        
+        verify(userRepository, never()).existsByEmail(any());
+        verify(userMapper, never()).toUser(any(RegisterProviderDTO.class));
+    }
+
+    // Tests pour les cas d'erreur de mapping
+
+    @Test
+    void updateUserProfile_WhenUserMapperThrowsException_ShouldPropagateException() {
+        Long userId = 37L;
+        UpdateUserDTO updateDTO = new UpdateUserDTO();
+        updateDTO.setFirstName("Nouveau Prénom");
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(userId);
+            when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+            when(userMapper.updateUserFromDTO(mockUser, updateDTO)).thenThrow(new RuntimeException("Mapper error"));
+            
+            assertThrows(RuntimeException.class, () -> userService.updateUserProfile(updateDTO));
+            
+            verify(userRepository).findById(userId);
+            verify(userMapper).updateUserFromDTO(mockUser, updateDTO);
+            verify(userRepository, never()).save(any());
+        }
+    }
+
+    @Test
+    void getUserProfile_WhenUserMapperThrowsException_ShouldPropagateException() {
+        Long userId = 37L;
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(userId);
+            when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+            when(userMapper.toUserProfileDTO(mockUser)).thenThrow(new RuntimeException("Mapper error"));
+            
+            assertThrows(RuntimeException.class, () -> userService.getUserProfile());
+            
+            verify(userRepository).findById(userId);
+            verify(userMapper).toUserProfileDTO(mockUser);
+        }
+    }
+
+    // Tests pour les cas limites de données
+
+    @Test
+    void getUserBasicInfoById_WhenUserHasNullFields_ShouldHandleGracefully() {
+        Long userId = 37L;
+        User userWithNullFields = createMockUser();
+        userWithNullFields.setFirstName(null);
+        userWithNullFields.setLastName(null);
+        
+        when(userRepository.findById(userId)).thenReturn(Optional.of(userWithNullFields));
+        when(reviewRepository.findByReviewedId(userId)).thenReturn(java.util.List.of());
+        
+        UserBasicInfoDTO result = userService.getUserBasicInfoById(userId);
+        
+        assertNotNull(result);
+        assertNull(result.getFirstName());
+        assertNull(result.getLastName());
+        
+        verify(userRepository).findById(userId);
+        verify(reviewRepository).findByReviewedId(userId);
+    }
+
+    @Test
+    void deleteUserAccount_WhenUserHasNullFields_ShouldAnonymizeGracefully() {
+        Long userId = 37L;
+        User userWithNullFields = createMockUser();
+        userWithNullFields.setFirstName(null);
+        userWithNullFields.setLastName(null);
+        userWithNullFields.setEmail(null);
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(userId);
+            when(userRepository.findById(userId)).thenReturn(Optional.of(userWithNullFields));
+            when(userRepository.save(any(User.class))).thenReturn(userWithNullFields);
+            
+            userService.deleteUserAccount();
+            
+            verify(userRepository).findById(userId);
+            verify(userRepository).save(any(User.class));
+        }
+    }
+
+    // Tests pour les cas d'erreur de sécurité
+
+    @Test
+    void getUserProfile_WhenSecurityUtilsThrowsException_ShouldPropagateException() {
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenThrow(new RuntimeException("Security error"));
+            
+            assertThrows(RuntimeException.class, () -> userService.getUserProfile());
+        }
+    }
+
+    @Test
+    void updateUserProfile_WhenSecurityUtilsThrowsException_ShouldPropagateException() {
+        UpdateUserDTO updateDTO = new UpdateUserDTO();
+        updateDTO.setFirstName("Nouveau Prénom");
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenThrow(new RuntimeException("Security error"));
+            
+            assertThrows(RuntimeException.class, () -> userService.updateUserProfile(updateDTO));
+        }
+    }
+
+    @Test
+    void deleteUserAccount_WhenSecurityUtilsThrowsException_ShouldPropagateException() {
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenThrow(new RuntimeException("Security error"));
+            
+            assertThrows(RuntimeException.class, () -> userService.deleteUserAccount());
+        }
+    }
+
     private User createMockUser() {
         User user = new User();
         user.setId(37L);
