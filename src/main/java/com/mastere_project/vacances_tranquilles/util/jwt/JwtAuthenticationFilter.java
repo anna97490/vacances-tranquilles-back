@@ -2,7 +2,6 @@ package com.mastere_project.vacances_tranquilles.util.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mastere_project.vacances_tranquilles.exception.ErrorEntity;
-import com.mastere_project.vacances_tranquilles.exception.InvalidTokenException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -4,7 +4,6 @@ import com.mastere_project.vacances_tranquilles.dto.UpdateUserDTO;
 import com.mastere_project.vacances_tranquilles.dto.UserBasicInfoDTO;
 import com.mastere_project.vacances_tranquilles.dto.UserProfileDTO;
 import com.mastere_project.vacances_tranquilles.service.UserService;
-import com.mastere_project.vacances_tranquilles.util.jwt.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
