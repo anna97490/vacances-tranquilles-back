@@ -303,6 +303,226 @@ class ReviewServiceImplTest {
         }
     }
 
+    // Tests pour les cas où l'utilisateur ne peut pas poster de review
+
+    @Test
+    void createReview_WhenNoteIsInvalid_ShouldThrowException() {
+        Long currentUserId = 1L;
+        ReviewDTO invalidReviewDTO = createMockReviewDTO();
+        invalidReviewDTO.setNote(0); // Note invalide
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.of(mockUser));
+            
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
+                () -> reviewService.createReview(invalidReviewDTO));
+            
+            assertEquals("La note doit être comprise entre 1 et 5.", exception.getMessage());
+            verify(userRepository).findById(currentUserId);
+            verify(reservationRepository, never()).findById(any());
+        }
+    }
+
+    @Test
+    void createReview_WhenNoteIsTooHigh_ShouldThrowException() {
+        Long currentUserId = 1L;
+        ReviewDTO invalidReviewDTO = createMockReviewDTO();
+        invalidReviewDTO.setNote(6); // Note trop élevée
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.of(mockUser));
+            
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
+                () -> reviewService.createReview(invalidReviewDTO));
+            
+            assertEquals("La note doit être comprise entre 1 et 5.", exception.getMessage());
+            verify(userRepository).findById(currentUserId);
+            verify(reservationRepository, never()).findById(any());
+        }
+    }
+
+    @Test
+    void createReview_WhenUsersDoNotMatchReservation_ShouldThrowException() {
+        Long currentUserId = 1L;
+        ReviewDTO invalidReviewDTO = createMockReviewDTO();
+        invalidReviewDTO.setReviewerId(1L);
+        invalidReviewDTO.setReviewedId(3L); // Utilisateur qui n'est pas dans la réservation
+        
+        Reservation invalidReservation = createMockReservation();
+        invalidReservation.setClientId(1L);
+        invalidReservation.setProviderId(2L); // Différent de reviewedId (3L)
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.of(mockUser));
+            when(reservationRepository.findById(invalidReviewDTO.getReservationId())).thenReturn(Optional.of(invalidReservation));
+            
+            InvalidReviewUserException exception = assertThrows(InvalidReviewUserException.class, 
+                () -> reviewService.createReview(invalidReviewDTO));
+            
+            assertEquals("Les utilisateurs ne correspondent pas à la réservation", exception.getMessage());
+            verify(userRepository).findById(currentUserId);
+            verify(reservationRepository).findById(invalidReviewDTO.getReservationId());
+        }
+    }
+
+    // Tests pour les cas où la review n'existe pas
+
+    @Test
+    void getReviewById_WhenReviewDoesNotExist_ShouldThrowException() {
+        Long currentUserId = 1L;
+        Long nonExistentReviewId = 999L;
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.of(mockUser));
+            when(reviewRepository.findById(nonExistentReviewId)).thenReturn(Optional.empty());
+            
+            ReviewNotFoundException exception = assertThrows(ReviewNotFoundException.class, 
+                () -> reviewService.getReviewById(nonExistentReviewId));
+            
+            assertEquals("Avis introuvable", exception.getMessage());
+            verify(userRepository).findById(currentUserId);
+            verify(reviewRepository).findById(nonExistentReviewId);
+        }
+    }
+
+    @Test
+    void createReview_WhenExistingReviewNotFound_ShouldThrowException() {
+        Long currentUserId = 1L;
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.of(mockUser));
+            when(reservationRepository.findById(mockReviewDTO.getReservationId())).thenReturn(Optional.of(mockReservation));
+            when(reviewRepository.existsByReservationIdAndReviewerId(mockReviewDTO.getReservationId(), currentUserId)).thenReturn(true);
+            when(reviewRepository.findByReservationIdAndReviewerId(mockReviewDTO.getReservationId(), currentUserId)).thenReturn(Optional.empty());
+            
+            ReviewNotFoundException exception = assertThrows(ReviewNotFoundException.class, 
+                () -> reviewService.createReview(mockReviewDTO));
+            
+            assertEquals("Avis existant introuvable", exception.getMessage());
+            verify(userRepository).findById(currentUserId);
+            verify(reservationRepository).findById(mockReviewDTO.getReservationId());
+            verify(reviewRepository).existsByReservationIdAndReviewerId(mockReviewDTO.getReservationId(), currentUserId);
+            verify(reviewRepository).findByReservationIdAndReviewerId(mockReviewDTO.getReservationId(), currentUserId);
+        }
+    }
+
+    // Tests pour les cas où l'utilisateur n'est pas autorisé
+
+    @Test
+    void getReviewById_WhenUserNotFound_ShouldThrowException() {
+        Long currentUserId = 999L;
+        Long reviewId = 1L;
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.empty());
+            
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class, 
+                () -> reviewService.getReviewById(reviewId));
+            
+            assertEquals("Utilisateur non trouvé", exception.getMessage());
+            verify(userRepository).findById(currentUserId);
+            verify(reviewRepository, never()).findById(any());
+        }
+    }
+
+    @Test
+    void getReviewById_WhenUserRoleIsNull_ShouldThrowException() {
+        Long currentUserId = 1L;
+        Long reviewId = 1L;
+        User userWithNullRole = createMockUser();
+        userWithNullRole.setUserRole(null);
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.of(userWithNullRole));
+            
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class, 
+                () -> reviewService.getReviewById(reviewId));
+            
+            assertEquals("Rôle utilisateur non défini en base de données", exception.getMessage());
+            verify(userRepository).findById(currentUserId);
+            verify(reviewRepository, never()).findById(any());
+        }
+    }
+
+    @Test
+    void getReviewsWrittenByUser_WhenUserNotFound_ShouldThrowException() {
+        Long currentUserId = 999L;
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.empty());
+            
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class, 
+                () -> reviewService.getReviewsWrittenByUser());
+            
+            assertEquals("Utilisateur non trouvé", exception.getMessage());
+            verify(userRepository).findById(currentUserId);
+            verify(reviewRepository, never()).findByReviewerId(any());
+        }
+    }
+
+    @Test
+    void getReviewsWrittenByUser_WhenUserRoleIsNull_ShouldThrowException() {
+        Long currentUserId = 1L;
+        User userWithNullRole = createMockUser();
+        userWithNullRole.setUserRole(null);
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.of(userWithNullRole));
+            
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class, 
+                () -> reviewService.getReviewsWrittenByUser());
+            
+            assertEquals("Rôle utilisateur non défini en base de données", exception.getMessage());
+            verify(userRepository).findById(currentUserId);
+            verify(reviewRepository, never()).findByReviewerId(any());
+        }
+    }
+
+    @Test
+    void getReviewsReceivedByUser_WhenUserNotFound_ShouldThrowException() {
+        Long currentUserId = 999L;
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.empty());
+            
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class, 
+                () -> reviewService.getReviewsReceivedByUser());
+            
+            assertEquals("Utilisateur non trouvé", exception.getMessage());
+            verify(userRepository).findById(currentUserId);
+            verify(reviewRepository, never()).findByReviewedId(any());
+        }
+    }
+
+    @Test
+    void getReviewsReceivedByUser_WhenUserRoleIsNull_ShouldThrowException() {
+        Long currentUserId = 1L;
+        User userWithNullRole = createMockUser();
+        userWithNullRole.setUserRole(null);
+        
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(currentUserId)).thenReturn(Optional.of(userWithNullRole));
+            
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class, 
+                () -> reviewService.getReviewsReceivedByUser());
+            
+            assertEquals("Rôle utilisateur non défini en base de données", exception.getMessage());
+            verify(userRepository).findById(currentUserId);
+            verify(reviewRepository, never()).findByReviewedId(any());
+        }
+    }
+
     private Review createMockReview() {
         Review review = new Review();
         review.setId(1L);
