@@ -21,11 +21,5 @@ public class Message {
     private String content;
     private LocalDateTime sentAt;
 
-    // @ManyToOne
-    // @JoinColumn(name = "conversation_id")
-    // private Conversation conversation;
-    //
-    // @ManyToOne
-    // @JoinColumn(name = "user_id")
-    // private User user;
+   
 }

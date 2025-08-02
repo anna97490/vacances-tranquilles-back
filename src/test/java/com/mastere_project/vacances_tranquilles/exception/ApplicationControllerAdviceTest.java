@@ -116,4 +116,21 @@ class ApplicationControllerAdviceTest {
         assertThat(response.getBody().getCode()).isEqualTo("UNEXPECTED_LOGIN_ERROR");
         assertThat(response.getBody().getMessage()).isEqualTo("Erreur inattendue");
     }
+
+    @Test
+    @DisplayName("Doit renvoyer une erreur 404 avec code SERVICE_NOT_FOUND et message correct")
+    void shouldHandleServiceNotFoundException() {
+        // Arrange
+        String message = "Le service n'a pas été trouvé.";
+        ServiceNotFoundException ex = new ServiceNotFoundException(message);
+
+        // Act
+        ResponseEntity<ErrorEntity> response = advice.handleServiceNotFound(ex);
+
+        // Assert
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("SERVICE_NOT_FOUND");
+        assertThat(response.getBody().getMessage()).isEqualTo(message);
+    }
 }
