@@ -10,7 +10,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 
-import java.security.Principal;
 import java.util.Arrays;
 import java.util.List;
 
@@ -23,32 +22,28 @@ class MessageControllerTest {
     @Mock
     private MessageService messageService;
 
-    @Mock
-    private Principal principal;
-
     @InjectMocks
     private MessageController messageController;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        when(principal.getName()).thenReturn("9"); // Simule un userId = 9
     }
 
     @Test
     void sendMessage_shouldReturnSavedMessage() {
         MessageDTO input = new MessageDTO();
         input.setContent("Hello");
+        input.setConversationId(1L);
         MessageDTO saved = new MessageDTO();
         saved.setId(1L);
         saved.setContent("Hello");
-        saved.setSenderId(9L);
+        saved.setConversationId(1L);
         when(messageService.sendMessage(any(MessageDTO.class))).thenReturn(saved);
 
-        ResponseEntity<MessageDTO> response = messageController.sendMessage(input, principal);
+        ResponseEntity<MessageDTO> response = messageController.sendMessage(input);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(saved, response.getBody());
-        assertEquals(9L, response.getBody().getSenderId());
     }
 
     @Test
@@ -58,9 +53,9 @@ class MessageControllerTest {
         MessageDTO msg2 = new MessageDTO();
         msg2.setId(2L);
         List<MessageDTO> messages = Arrays.asList(msg1, msg2);
-        when(messageService.getMessagesByConversationId(5L, 9L)).thenReturn(messages);
+        when(messageService.getMessagesByConversationId(5L)).thenReturn(messages);
 
-        ResponseEntity<List<MessageDTO>> response = messageController.getMessagesByConversation(5L, principal);
+        ResponseEntity<List<MessageDTO>> response = messageController.getMessagesByConversation(5L);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(2, response.getBody().size());
     }
@@ -72,30 +67,30 @@ class MessageControllerTest {
         MessageDTO updated = new MessageDTO();
         updated.setId(1L);
         updated.setContent("Updated");
-        when(messageService.updateMessage(eq(1L), any(MessageDTO.class), eq(9L))).thenReturn(updated);
+        when(messageService.updateMessage(eq(1L), any(MessageDTO.class))).thenReturn(updated);
 
-        ResponseEntity<MessageDTO> response = messageController.updateMessage(1L, input, principal);
+        ResponseEntity<MessageDTO> response = messageController.updateMessage(1L, input);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(updated, response.getBody());
     }
 
     @Test
     void updateMessage_shouldReturnNotFound_whenNotFound() {
-        when(messageService.updateMessage(eq(1L), any(MessageDTO.class), eq(9L)))
+        when(messageService.updateMessage(eq(1L), any(MessageDTO.class)))
                 .thenThrow(new com.mastere_project.vacances_tranquilles.exception.ConversationNotFoundException("not found"));
         MessageDTO input = new MessageDTO();
         
-        ResponseEntity<MessageDTO> response = messageController.updateMessage(1L, input, principal);
+        ResponseEntity<MessageDTO> response = messageController.updateMessage(1L, input);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
     void updateMessage_shouldReturnForbidden_whenForbidden() {
-        when(messageService.updateMessage(eq(1L), any(MessageDTO.class), eq(9L)))
+        when(messageService.updateMessage(eq(1L), any(MessageDTO.class)))
                 .thenThrow(new com.mastere_project.vacances_tranquilles.exception.ConversationForbiddenException("forbidden"));
         MessageDTO input = new MessageDTO();
         
-        ResponseEntity<MessageDTO> response = messageController.updateMessage(1L, input, principal);
+        ResponseEntity<MessageDTO> response = messageController.updateMessage(1L, input);
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
 } 

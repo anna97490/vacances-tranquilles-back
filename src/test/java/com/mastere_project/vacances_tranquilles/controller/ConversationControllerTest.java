@@ -13,12 +13,12 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.security.Principal;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import com.mastere_project.vacances_tranquilles.exception.ConversationNotFoundException;
 
 class ConversationControllerTest {
 
@@ -28,16 +28,12 @@ class ConversationControllerTest {
     @Mock
     private MessageService messageService;
 
-    @Mock
-    private Principal principal;
-
     @InjectMocks
     private ConversationController conversationController;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        when(principal.getName()).thenReturn("9"); // Simule un userId = 9
     }
 
     @Test
@@ -47,9 +43,9 @@ class ConversationControllerTest {
         ConversationDTO c2 = new ConversationDTO();
         c2.setId(2L);
         List<ConversationDTO> conversations = Arrays.asList(c1, c2);
-        when(conversationService.getConversationsForUser(9L)).thenReturn(conversations);
+        when(conversationService.getConversationsForUser()).thenReturn(conversations);
 
-        ResponseEntity<List<ConversationDTO>> response = conversationController.getConversations(principal);
+        ResponseEntity<List<ConversationDTO>> response = conversationController.getConversations();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(2, response.getBody().size());
     }
@@ -58,34 +54,24 @@ class ConversationControllerTest {
     void createConversation_shouldReturnCreated() {
         ConversationCreateRequest req = new ConversationCreateRequest();
         req.setOtherUserId(10L);
-        req.setStatus("in_progress");
+        req.setReservationId(1L);
         ConversationDTO created = new ConversationDTO();
         created.setId(3L);
-        when(conversationService.createConversation(9L, 10L)).thenReturn(created);
+        when(conversationService.createConversation(10L, 1L)).thenReturn(created);
 
-        ResponseEntity<ConversationDTO> response = conversationController.createConversation(req, principal);
+        ResponseEntity<?> response = conversationController.createConversation(req);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(created, response.getBody());
-    }
-
-    @Test
-    void createConversation_shouldReturnBadRequest_whenStatusInvalid() {
-        ConversationCreateRequest req = new ConversationCreateRequest();
-        req.setOtherUserId(10L);
-        req.setStatus("done");
-        
-        ResponseEntity<ConversationDTO> response = conversationController.createConversation(req, principal);
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
     void createConversation_shouldReturnBadRequest_whenException() {
         ConversationCreateRequest req = new ConversationCreateRequest();
         req.setOtherUserId(10L);
-        req.setStatus("in_progress");
-        when(conversationService.createConversation(9L, 10L)).thenThrow(new RuntimeException("error"));
-        
-        ResponseEntity<ConversationDTO> response = conversationController.createConversation(req, principal);
+        req.setReservationId(1L);
+        when(conversationService.createConversation(10L, 1L)).thenThrow(new RuntimeException("Error"));
+
+        ResponseEntity<?> response = conversationController.createConversation(req);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
@@ -94,30 +80,41 @@ class ConversationControllerTest {
         ConversationDTO conv = new ConversationDTO();
         conv.setId(2L);
         List<MessageDTO> messages = Arrays.asList(new MessageDTO(), new MessageDTO());
-        when(conversationService.getConversationById(2L, 9L)).thenReturn(conv);
-        when(messageService.getMessagesByConversationId(2L, 9L)).thenReturn(messages);
+        when(conversationService.getConversationById(2L)).thenReturn(conv);
+        when(messageService.getMessagesByConversationId(2L)).thenReturn(messages);
 
-        ResponseEntity<ConversationWithMessagesDTO> response = conversationController.getConversationWithMessages(2L, principal);
+        ResponseEntity<ConversationWithMessagesDTO> response = conversationController.getConversationWithMessages(2L);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(conv, response.getBody().getConversation());
         assertEquals(2, response.getBody().getMessages().size());
     }
 
     @Test
-    void getConversationWithMessages_shouldReturnNotFound() {
-        when(conversationService.getConversationById(2L, 9L))
-                .thenThrow(new com.mastere_project.vacances_tranquilles.exception.ConversationNotFoundException("not found"));
+    void getConversationWithMessages_shouldReturnBadRequest_whenException() {
+        when(conversationService.getConversationById(99L))
+                .thenThrow(new ConversationNotFoundException("Conversation not found: 99"));
         
-                ResponseEntity<ConversationWithMessagesDTO> response = conversationController.getConversationWithMessages(2L, principal);
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        ResponseEntity<ConversationWithMessagesDTO> response = conversationController.getConversationWithMessages(99L);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
-    void getConversationWithMessages_shouldReturnForbidden() {
-        when(conversationService.getConversationById(2L, 9L))
-                .thenThrow(new com.mastere_project.vacances_tranquilles.exception.ConversationForbiddenException("forbidden"));
+    void getConversationById_shouldReturnOk() {
+        ConversationDTO conv = new ConversationDTO();
+        conv.setId(2L);
+        when(conversationService.getConversationById(2L)).thenReturn(conv);
+
+        ResponseEntity<?> response = conversationController.getConversationById(2L);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(conv, response.getBody());
+    }
+
+    @Test
+    void getConversationById_shouldReturnBadRequest_whenException() {
+        when(conversationService.getConversationById(9999L))
+                .thenThrow(new RuntimeException("Conversation not found"));
         
-                ResponseEntity<ConversationWithMessagesDTO> response = conversationController.getConversationWithMessages(2L, principal);
-        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        ResponseEntity<?> response = conversationController.getConversationById(9999L);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 } 

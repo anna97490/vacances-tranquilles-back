@@ -14,9 +14,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 class JwtAuthenticationFilterTest {
 
@@ -28,30 +28,36 @@ class JwtAuthenticationFilterTest {
     private HttpServletResponse response;
     @Mock
     private FilterChain filterChain;
+    @Mock
+    private PrintWriter printWriter;
 
     @InjectMocks
     private JwtAuthenticationFilter filter;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws IOException {
         MockitoAnnotations.openMocks(this);
         filter = new JwtAuthenticationFilter(jwtConfig);
         SecurityContextHolder.clearContext();
+        when(response.getWriter()).thenReturn(printWriter);
     }
 
     @Test
     @DisplayName("doFilterInternal - should authenticate with valid token")
     void doFilterInternal_shouldAuthenticateWithValidToken() throws ServletException, IOException {
         String token = "valid.jwt.token";
+        String email = "user@example.com";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(jwtConfig.extractEmail(token)).thenReturn(email);
         when(jwtConfig.extractUserId(token)).thenReturn(1L);
         when(jwtConfig.validateToken(token, 1L)).thenReturn(true);
 
         filter.doFilterInternal(request, response, filterChain);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        assertNotNull(authentication);
-        assertEquals(1L, authentication.getPrincipal());
+        assert authentication != null;
+        assert authentication.getPrincipal().equals(1L);
         verify(filterChain).doFilter(request, response);
     }
 
@@ -59,36 +65,47 @@ class JwtAuthenticationFilterTest {
     @DisplayName("doFilterInternal - should not authenticate with invalid token")
     void doFilterInternal_shouldNotAuthenticateWithInvalidToken() throws ServletException, IOException {
         String token = "invalid.jwt.token";
+        String email = "user@example.com";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
-        when(jwtConfig.extractUserId(token)).thenReturn(2L);
-        when(jwtConfig.validateToken(token, 2L)).thenReturn(false);
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(jwtConfig.extractEmail(token)).thenReturn(email);
+        when(jwtConfig.extractUserId(token)).thenReturn(1L);
+        when(jwtConfig.validateToken(token, 1L)).thenReturn(false);
 
         filter.doFilterInternal(request, response, filterChain);
 
         assert SecurityContextHolder.getContext().getAuthentication() == null;
-        verify(filterChain).doFilter(request, response);
+        verify(filterChain, never()).doFilter(request, response);
+        verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        verify(response).setContentType("application/json");
     }
 
     @Test
-    @DisplayName("doFilterInternal - should skip if no Authorization header")
+    @DisplayName("doFilterInternal - should handle missing Authorization header")
     void doFilterInternal_shouldSkipIfNoAuthorizationHeader() throws ServletException, IOException {
         when(request.getHeader("Authorization")).thenReturn(null);
+        when(request.getRequestURI()).thenReturn("/api/test");
 
         filter.doFilterInternal(request, response, filterChain);
 
         assert SecurityContextHolder.getContext().getAuthentication() == null;
-        verify(filterChain).doFilter(request, response);
+        verify(filterChain, never()).doFilter(request, response);
+        verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        verify(response).setContentType("application/json");
     }
 
     @Test
-    @DisplayName("doFilterInternal - should skip if Authorization header does not start with Bearer")
+    @DisplayName("doFilterInternal - should handle Authorization header that does not start with Bearer")
     void doFilterInternal_shouldSkipIfHeaderNotBearer() throws ServletException, IOException {
         when(request.getHeader("Authorization")).thenReturn("Basic something");
+        when(request.getRequestURI()).thenReturn("/api/test");
 
         filter.doFilterInternal(request, response, filterChain);
 
         assert SecurityContextHolder.getContext().getAuthentication() == null;
-        verify(filterChain).doFilter(request, response);
+        verify(filterChain, never()).doFilter(request, response);
+        verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        verify(response).setContentType("application/json");
     }
 
     @Test
@@ -97,9 +114,11 @@ class JwtAuthenticationFilterTest {
         Authentication mockAuth = mock(Authentication.class);
         SecurityContextHolder.getContext().setAuthentication(mockAuth);
         String token = "valid.jwt.token";
+        String email = "user@example.com";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
-        when(jwtConfig.extractUserId(token)).thenReturn(3L);
-        when(jwtConfig.validateToken(token, 3L)).thenReturn(true);
+        when(request.getRequestURI()).thenReturn("/api/test");
+        when(jwtConfig.extractEmail(token)).thenReturn(email);
+        when(jwtConfig.validateToken(token, 1L)).thenReturn(true);
 
         filter.doFilterInternal(request, response, filterChain);
 
@@ -108,4 +127,3 @@ class JwtAuthenticationFilterTest {
         verify(filterChain).doFilter(request, response);
     }
 }
-

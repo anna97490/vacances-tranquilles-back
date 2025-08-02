@@ -3,11 +3,14 @@ package com.mastere_project.vacances_tranquilles.entity;
 import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Représente un utilisateur de la plateforme.
+ * Entité JPA représentant un utilisateur (client ou prestataire) de la
+ * plateforme.
  */
 @Entity
 @Table(name = "users")
@@ -19,8 +22,6 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private String profilePicture;
 
     @Column(nullable = false)
     private String firstName;
@@ -36,7 +37,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UserRole userRole;
+    private UserRole userRole; // PARTICULIER, PRESTATAIRE, ADMIN
 
     @Column(nullable = false)
     private String phoneNumber;
@@ -50,36 +51,36 @@ public class User {
     @Column(nullable = false)
     private String postalCode;
 
+    // Champs uniquement pertinents pour les prestataires
     private String siretSiren;
     private String companyName;
 
-    @OneToMany(mappedBy = "user1")
-    private List<Conversation> conversationsAsUser1 = new ArrayList<>();
+    // Champs pour la conformité RGPD
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
-    @OneToMany(mappedBy = "user2")
-    private List<Conversation> conversationsAsUser2 = new ArrayList<>();
+    @Column(name = "is_anonymized")
+    private Boolean isAnonymized = false;
 
-    /**
-     * Retourne la liste de toutes les conversations de l'utilisateur (en tant que user1 ou user2).
-     * @return liste de toutes les conversations
-     */
-    @Transient
-    public List<Conversation> getAllConversations() {
-        List<Conversation> all = new ArrayList<>();
-        all.addAll(conversationsAsUser1);
-        all.addAll(conversationsAsUser2);
-        return all;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
     }
 
-    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Message> messagesSent = new ArrayList<>();
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+    
+    @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Service> services = new ArrayList<>();
 
-//    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
-//    private List<Reservation> reservationAsCustomer;
-//
-//    @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL)
-//    private List<Reservation> reservationAsProvider;
-//
-//    @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL)
-//    private List<Schedule> schedules;
+    @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL)
+    private List<Schedule> schedules;
 }

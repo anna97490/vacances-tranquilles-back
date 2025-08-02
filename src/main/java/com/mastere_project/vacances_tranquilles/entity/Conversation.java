@@ -3,9 +3,6 @@ package com.mastere_project.vacances_tranquilles.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Entité représentant une conversation entre deux utilisateurs (client ou prestataire).
  */

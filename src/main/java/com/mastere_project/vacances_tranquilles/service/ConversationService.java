@@ -9,28 +9,26 @@ import java.util.List;
 public interface ConversationService {
 
     /**
-     * Récupère toutes les conversations d'un utilisateur.
+     * Récupère toutes les conversations de l'utilisateur connecté.
      *
-     * @param userId l'identifiant de l'utilisateur
-     * @return la liste des conversations de l'utilisateur
+     * @return la liste des conversations de l'utilisateur connecté
      */
-    List<ConversationDTO> getConversationsForUser(Long userId);
+    List<ConversationDTO> getConversationsForUser();
 
     /**
-     * Crée une nouvelle conversation entre deux utilisateurs.
+     * Crée une nouvelle conversation entre l'utilisateur connecté et un autre utilisateur pour une réservation spécifique.
      *
-     * @param creatorId l'identifiant du créateur de la conversation
      * @param otherUserId l'identifiant de l'autre utilisateur
+     * @param reservationId l'identifiant de la réservation liée à cette conversation
      * @return la conversation créée sous forme de DTO
      */
-    ConversationDTO createConversation(Long creatorId, Long otherUserId);
+    ConversationDTO createConversation(Long otherUserId, Long reservationId);
 
     /**
-     * Récupère une conversation par son ID si l'utilisateur y participe.
+     * Récupère une conversation par son ID si l'utilisateur connecté y participe.
      *
      * @param conversationId l'identifiant de la conversation
-     * @param userId l'identifiant de l'utilisateur
      * @return la conversation correspondante sous forme de DTO
      */
-    ConversationDTO getConversationById(Long conversationId, Long userId);
+    ConversationDTO getConversationById(Long conversationId);
 }

@@ -23,54 +23,55 @@ class JwtConfigTest {
     }
 
     @Test
-    @DisplayName("generateToken - should generate a valid JWT with id and role")
+    @DisplayName("generateToken - should generate a valid JWT with email and role")
     void generateToken_shouldGenerateValidJwt() {
         Long userId = 1L;
         UserRole role = UserRole.CLIENT;
         String token = jwtConfig.generateToken(userId, role);
+        
         assertThat(token).isNotNull();
         assertThat(jwtConfig.extractUserId(token)).isEqualTo(userId);
         assertThat(jwtConfig.extractRole(token)).isEqualTo(role);
     }
 
     @Test
-    @DisplayName("extractUserId - should extract id from token")
-    void extractUserId_shouldReturnId() {
-        String token = jwtConfig.generateToken(2L, UserRole.CLIENT);
-        assertThat(jwtConfig.extractUserId(token)).isEqualTo(2L);
+    @DisplayName("extractEmail - should extract email from token")
+    void extractEmail_shouldReturnEmail() {
+        Long userId = 1L;
+        UserRole role = UserRole.CLIENT;
+        String token = jwtConfig.generateToken(userId, role);
+        
+        assertThat(jwtConfig.extractEmail(token)).isEqualTo("1");
     }
 
     @Test
     @DisplayName("extractRole - should extract role from token")
     void extractRole_shouldReturnRole() {
-        String token = jwtConfig.generateToken(3L, UserRole.CLIENT);
+        Long userId = 1L;
+        UserRole role = UserRole.CLIENT;
+        String token = jwtConfig.generateToken(userId, role);
+        
         assertThat(jwtConfig.extractRole(token)).isEqualTo(UserRole.CLIENT);
     }
 
     @Test
-    @DisplayName("validateToken - should return true for valid token and id")
+    @DisplayName("validateToken - should return true for valid token and email")
     void validateToken_shouldReturnTrueForValidToken() {
-        Long userId = 4L;
-        String token = jwtConfig.generateToken(userId, UserRole.CLIENT);
-        assertThat(jwtConfig.validateToken(token, userId)).isTrue();
-    }
-
-    @Test
-    @DisplayName("validateToken - should return false for invalid id")
-    void validateToken_shouldReturnFalseForInvalidId() {
-        String token = jwtConfig.generateToken(5L, UserRole.CLIENT);
-        assertThat(jwtConfig.validateToken(token, 999L)).isFalse();
-    }
-
-    @Test
-    @DisplayName("isTokenExpired - should return true for expired token")
-    void isTokenExpired_shouldReturnTrueForExpiredToken() {
-        Long userId = 6L;
+        Long userId = 1L;
         UserRole role = UserRole.CLIENT;
         String token = jwtConfig.generateToken(userId, role);
-        // On ne peut pas facilement générer un token expiré sans modifier la classe, donc on vérifie indirectement
-        // qu'un token valide n'est pas expiré
-        assertThat(jwtConfig.validateToken(token, userId)).isTrue();
+        
+        assertThat(jwtConfig.validateToken(token, 1L)).isTrue();
+    }
+
+    @Test
+    @DisplayName("validateToken - should return false for invalid email")
+    void validateToken_shouldReturnFalseForInvalidEmail() {
+        Long userId = 1L;
+        UserRole role = UserRole.CLIENT;
+        String token = jwtConfig.generateToken(userId, role);
+        
+        assertThat(jwtConfig.validateToken(token, 2L)).isFalse();
     }
 
     @Test
@@ -103,9 +104,8 @@ class JwtConfigTest {
         Field secretKeyField = JwtConfig.class.getDeclaredField("secretKey");
         secretKeyField.setAccessible(true);
         secretKeyField.set(config, "shortkey");
-        assertThatThrownBy(() -> config.generateToken(7L, UserRole.CLIENT))
+        assertThatThrownBy(() -> config.generateToken(1L, UserRole.CLIENT))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("au moins 32 caractères");
     }
 }
-
