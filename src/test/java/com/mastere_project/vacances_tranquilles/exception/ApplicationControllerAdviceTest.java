@@ -21,6 +21,7 @@ class ApplicationControllerAdviceTest {
     void handleEmailAlreadyExists_shouldReturn409() {
         EmailAlreadyExistsException ex = new EmailAlreadyExistsException("Email déjà utilisé");
         ResponseEntity<ErrorEntity> response = advice.handleEmailAlreadyExists(ex);
+        
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("EMAIL_ALREADY_USED");
@@ -32,6 +33,7 @@ class ApplicationControllerAdviceTest {
     void handleMissingField_shouldReturn400() {
         MissingFieldException ex = new MissingFieldException("Champ manquant");
         ResponseEntity<ErrorEntity> response = advice.handleMissingField(ex);
+        
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("MISSING_REQUIRED_FIELD");
@@ -67,6 +69,7 @@ class ApplicationControllerAdviceTest {
     void handleAccountLockedException_shouldReturn423() {
         AccountLockedException ex = new AccountLockedException("Compte bloqué");
         ResponseEntity<ErrorEntity> response = advice.handleAccountLockedException(ex);
+        
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.LOCKED);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("ACCOUNT_LOCKED");
@@ -78,6 +81,7 @@ class ApplicationControllerAdviceTest {
     void handleLoginInternalException_shouldReturn500() {
         LoginInternalException ex = new LoginInternalException("Erreur interne", new RuntimeException());
         ResponseEntity<ErrorEntity> response = advice.handleLoginInternalException(ex);
+        
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("LOGIN_INTERNAL_ERROR");
@@ -89,6 +93,7 @@ class ApplicationControllerAdviceTest {
     void handleEmailNotFoundException_shouldReturn401() {
         EmailNotFoundException ex = new EmailNotFoundException("Email inconnu");
         ResponseEntity<ErrorEntity> response = advice.handleEmailNotFoundException(ex);
+        
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("EMAIL_NOT_FOUND");
@@ -100,6 +105,7 @@ class ApplicationControllerAdviceTest {
     void handleWrongPasswordException_shouldReturn401() {
         WrongPasswordException ex = new WrongPasswordException("Mot de passe incorrect");
         ResponseEntity<ErrorEntity> response = advice.handleWrongPasswordException(ex);
+        
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("WRONG_PASSWORD");
@@ -111,6 +117,7 @@ class ApplicationControllerAdviceTest {
     void handleUnexpectedLoginException_shouldReturn500() {
         UnexpectedLoginException ex = new UnexpectedLoginException("Erreur inattendue", new RuntimeException());
         ResponseEntity<ErrorEntity> response = advice.handleUnexpectedLoginException(ex);
+        
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("UNEXPECTED_LOGIN_ERROR");
@@ -132,5 +139,42 @@ class ApplicationControllerAdviceTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("SERVICE_NOT_FOUND");
         assertThat(response.getBody().getMessage()).isEqualTo(message);
+    }
+
+    @Test
+    @DisplayName("handleInvalidToken should return 401 and error entity")
+    void handleInvalidToken_shouldReturn401() {
+        InvalidTokenException ex = new InvalidTokenException("Token JWT invalide ou expiré");
+        ResponseEntity<ErrorEntity> response = advice.handleInvalidToken(ex);
+        
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("INVALID_TOKEN");
+        assertThat(response.getBody().getMessage()).isEqualTo("Token JWT invalide ou expiré");
+    }
+
+    @Test
+    @DisplayName("handleIllegalArgument should return 400 and error entity")
+    void handleIllegalArgument_shouldReturn400() {
+        IllegalArgumentException ex = new IllegalArgumentException("Argument invalide");
+        ResponseEntity<ErrorEntity> response = advice.handleIllegalArgument(ex);
+        
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("INVALID_ARGUMENT");
+        assertThat(response.getBody().getMessage()).isEqualTo("Argument invalide");
+    }
+
+    @Test
+    @DisplayName("handleAccessDenied should return 403 and error entity")
+    void handleAccessDenied_shouldReturn403() {
+        org.springframework.security.access.AccessDeniedException ex = 
+            new org.springframework.security.access.AccessDeniedException("Accès refusé");
+        ResponseEntity<ErrorEntity> response = advice.handleAccessDenied(ex);
+        
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("ACCESS_DENIED");
+        assertThat(response.getBody().getMessage()).isEqualTo("Accès refusé");
     }
 }
