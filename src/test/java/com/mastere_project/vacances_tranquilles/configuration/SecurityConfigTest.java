@@ -95,16 +95,16 @@ class SecurityConfigTest {
 
         assertThat(config).isNotNull();
         assertThat(config.getAllowedOriginPatterns()).containsExactly("http://localhost:3000");
-        assertThat(config.getAllowedMethods()).containsExactlyInAnyOrder("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
+        assertThat(config.getAllowedMethods()).containsExactlyInAnyOrder("GET", "POST", "PUT", "PATCH", "DELETE",
+                "OPTIONS");
         assertThat(config.getAllowedHeaders()).containsExactly("*");
         assertThat(config.getAllowCredentials()).isTrue();
     }
 
     @Test
     void authorizeRequests_shouldNotBeNull() {
-    var customizer = securityConfig.authorizeRequests();
-    assertThat(customizer).isNotNull();
-}
-
+        var customizer = securityConfig.authorizeRequests();
+        assertThat(customizer).isNotNull();
+    }
 
 }

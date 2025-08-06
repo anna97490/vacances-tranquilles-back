@@ -2,6 +2,7 @@ package com.mastere_project.vacances_tranquilles.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
@@ -232,4 +233,29 @@ public class ApplicationControllerAdvice {
         ErrorEntity error = new ErrorEntity("INVALID_RESERVATION_STATUS_TRANSITION", ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
+
+      /**
+     * Gère l'exception levée lorsqu'un accès est refusé (utilisateur non trouvé, anonymisé, etc.).
+     *
+     * @param ex l'exception AccessDeniedException
+     * @return une réponse HTTP 403 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorEntity> handleAccessDenied(AccessDeniedException ex) {
+        ErrorEntity error = new ErrorEntity("ACCESS_DENIED", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+    }
+
+    /**
+     * Gère l'exception levée lorsqu'un token JWT est invalide, expiré ou manquant.
+     *
+     * @param ex l'exception InvalidTokenException
+     * @return une réponse HTTP 401 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ErrorEntity> handleInvalidToken(InvalidTokenException ex) {
+        ErrorEntity error = new ErrorEntity("INVALID_TOKEN", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
 }

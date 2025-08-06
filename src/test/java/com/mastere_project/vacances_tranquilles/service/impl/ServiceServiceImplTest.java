@@ -22,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -110,7 +111,7 @@ class ServiceServiceImplTest {
         dto.setTitle("Nouveau titre");
         dto.setDescription("Nouvelle description");
         dto.setCategory("Nouvelle catégorie");
-        dto.setPrice(99.99);
+        dto.setPrice(BigDecimal.valueOf(99.99));
 
         Service savedService = new Service();
         savedService.setProvider(provider);
@@ -128,7 +129,7 @@ class ServiceServiceImplTest {
         assertEquals("Nouveau titre", service.getTitle());
         assertEquals("Nouvelle description", service.getDescription());
         assertEquals("Nouvelle catégorie", service.getCategory());
-        assertEquals(99.99, service.getPrice());
+        assertEquals(BigDecimal.valueOf(99.99), service.getPrice());
     }
 
     @Test
@@ -268,5 +269,35 @@ class ServiceServiceImplTest {
         when(serviceRepository.findById(1L)).thenReturn(Optional.empty());
         ServiceDTO dto = new ServiceDTO();
         assertThrows(ServiceNotFoundException.class, () -> serviceService.partialUpdateService(1L, dto));
+    }
+
+    @Test
+    void searchAvailableServices_throwsException_whenCategoryIsNull() {
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        assertThrows(IllegalArgumentException.class,
+                () -> serviceService.searchAvailableServices(null, "75001", tomorrow, LocalTime.NOON,
+                        LocalTime.MIDNIGHT));
+    }
+
+    @Test
+    void searchAvailableServices_throwsException_whenCategoryIsBlank() {
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        assertThrows(IllegalArgumentException.class,
+                () -> serviceService.searchAvailableServices("", "75001", tomorrow, LocalTime.NOON,
+                        LocalTime.MIDNIGHT));
+    }
+
+    @Test
+    void searchAvailableServices_throwsException_whenPostalCodeIsNull() {
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        assertThrows(IllegalArgumentException.class,
+                () -> serviceService.searchAvailableServices("Cat", null, tomorrow, LocalTime.NOON,
+                        LocalTime.MIDNIGHT));
+    }
+
+    @Test
+    void searchAvailableServices_throwsException_whenDateIsNull() {
+        assertThrows(IllegalArgumentException.class,
+                () -> serviceService.searchAvailableServices("Cat", "75001", null, LocalTime.NOON, LocalTime.MIDNIGHT));
     }
 }

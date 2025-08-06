@@ -6,6 +6,7 @@ import com.mastere_project.vacances_tranquilles.entity.Reservation;
 import com.mastere_project.vacances_tranquilles.entity.User;
 import com.mastere_project.vacances_tranquilles.entity.Service;
 import com.mastere_project.vacances_tranquilles.exception.ReservationNotFoundException;
+import com.mastere_project.vacances_tranquilles.exception.UnauthorizedReservationAccessException;
 import com.mastere_project.vacances_tranquilles.mapper.ReservationMapper;
 import com.mastere_project.vacances_tranquilles.model.enums.ReservationStatus;
 import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
@@ -173,7 +174,7 @@ class ReservationServiceImplTest {
             when(reservationRepository.findById(reservationId)).thenReturn(Optional.of(reservation));
 
             assertThatThrownBy(() -> reservationService.changeStatusOfReservationByProvider(reservationId))
-                .isInstanceOf(com.mastere_project.vacances_tranquilles.exception.UnauthorizedReservationAccessException.class)
+                .isInstanceOf(UnauthorizedReservationAccessException.class)
                 .hasMessage("Vous n'êtes pas autorisé à accepter cette réservation");
         }
     }
@@ -217,7 +218,7 @@ class ReservationServiceImplTest {
             when(userRepository.findById(userId)).thenReturn(Optional.of(client));
 
             assertThatThrownBy(() -> reservationService.changeStatusOfReservationByProvider(reservationId))
-                .isInstanceOf(com.mastere_project.vacances_tranquilles.exception.UnauthorizedReservationAccessException.class)
+                .isInstanceOf(UnauthorizedReservationAccessException.class)
                 .hasMessage("Seuls les prestataires peuvent modifier le statut d'une réservation");
         }
     }
@@ -279,7 +280,7 @@ class ReservationServiceImplTest {
             mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
 
             assertThatThrownBy(() -> reservationService.createReservation(createDTO))
-                .isInstanceOf(com.mastere_project.vacances_tranquilles.exception.UnauthorizedReservationAccessException.class)
+                .isInstanceOf(UnauthorizedReservationAccessException.class)
                 .hasMessage("Vous n'êtes pas autorisé à créer cette réservation");
         }
     }
@@ -304,7 +305,7 @@ class ReservationServiceImplTest {
         service.setId(id);
         service.setTitle("Test Service");
         service.setDescription("Test Description");
-        service.setPrice(100.0);
+        service.setPrice(BigDecimal.valueOf(100.0));
         service.setProvider(provider);
         
         return service;
@@ -337,7 +338,7 @@ class ReservationServiceImplTest {
         service.setId(1L);
         service.setTitle("Test Service");
         service.setDescription("Test Description");
-        service.setPrice(100.0);
+        service.setPrice(BigDecimal.valueOf(100.0));
         service.setProvider(provider);
         reservation.setService(service);
 

@@ -21,6 +21,7 @@ class ApplicationControllerAdviceTest {
     void handleEmailAlreadyExists_shouldReturn409() {
         EmailAlreadyExistsException ex = new EmailAlreadyExistsException("Email déjà utilisé");
         ResponseEntity<ErrorEntity> response = advice.handleEmailAlreadyExists(ex);
+        
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("EMAIL_ALREADY_USED");
@@ -32,6 +33,7 @@ class ApplicationControllerAdviceTest {
     void handleMissingField_shouldReturn400() {
         MissingFieldException ex = new MissingFieldException("Champ manquant");
         ResponseEntity<ErrorEntity> response = advice.handleMissingField(ex);
+        
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("MISSING_REQUIRED_FIELD");

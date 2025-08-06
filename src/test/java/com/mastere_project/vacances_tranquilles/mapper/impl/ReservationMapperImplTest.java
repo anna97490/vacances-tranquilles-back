@@ -206,7 +206,7 @@ class ReservationMapperImplTest {
         service.setId(1L);
         service.setTitle("Test Service");
         service.setDescription("Test Description");
-        service.setPrice(100.0);
+        service.setPrice(BigDecimal.valueOf(100.0));
         service.setProvider(provider);
         reservation.setService(service);
 

@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.mastere-project</groupId>
 	<artifactId>vacances-tranquilles</artifactId>
-	<version>0.1.2</version>
+	<version>0.3.0</version>
 	<name>vacances-tranquilles</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
@@ -30,6 +30,10 @@
 		<java.version>17</java.version>
 		<sonar.organization>anna97490</sonar.organization>
   		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+		<sonar.projectKey>anna97490_vacances-tranquilles-back</sonar.projectKey>
+		<sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+		<sonar.exclusions>**/target/site/jacoco/index.html,**/target/site/jacoco/*.html,**/target/site/jacoco/*.css,**/target/site/jacoco/*.js,**/target/site/jacoco/*.gif,**/target/site/jacoco/*.png</sonar.exclusions>
+		<sonar.test.exclusions>**/target/site/jacoco/index.html,**/target/site/jacoco/*.html,**/target/site/jacoco/*.css,**/target/site/jacoco/*.js,**/target/site/jacoco/*.gif,**/target/site/jacoco/*.png</sonar.test.exclusions>
 	</properties>
 
 	<dependencies>
@@ -169,6 +173,26 @@
 					<goal>report</goal>
 				</goals>
 				<configuration>
+					<excludes>
+						<exclude>**/dto/**</exclude>
+						<exclude>**/model/**</exclude>
+						<exclude>**/entity/**</exclude>
+						<exclude>**/VacancesTranquillesApplication.class</exclude>
+					</excludes>
+				</configuration>
+			</execution>
+			<!-- Rapport XML pour SonarQube -->
+			<execution>
+				<id>jacoco-xml</id>
+				<phase>verify</phase>
+				<goals>
+					<goal>report</goal>
+				</goals>
+				<configuration>
+					<formats>
+						<format>XML</format>
+					</formats>
+					<outputDirectory>target/site/jacoco</outputDirectory>
 					<excludes>
 						<exclude>**/dto/**</exclude>
 						<exclude>**/model/**</exclude>

@@ -1,27 +1,23 @@
 package com.mastere_project.vacances_tranquilles.dto;
 
-import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO représentant un utilisateur (client ou prestataire) de la plateforme.
+ * DTO pour la mise à jour du profil utilisateur.
+ * Tous les champs sont optionnels pour permettre une mise à jour partielle.
  */
 @Data
 @NoArgsConstructor
-public class UserDTO {
+public class UpdateUserDTO {
 
-    private Long id;
     private String firstName;
     private String lastName;
-    private String email;
-    private String password;
-    private UserRole userRole;
+    private String profilePicture;
     private String phoneNumber;
     private String address;
     private String city;
     private String postalCode;
-
-    private String siret;
+    private String siretSiren;
     private String companyName;
-}
+} 

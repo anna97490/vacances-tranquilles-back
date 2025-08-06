@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import static org.mockito.Mockito.*;
 
@@ -27,15 +28,18 @@ class JwtAuthenticationFilterTest {
     private HttpServletResponse response;
     @Mock
     private FilterChain filterChain;
+    @Mock
+    private PrintWriter printWriter;
 
     @InjectMocks
     private JwtAuthenticationFilter filter;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws IOException {
         MockitoAnnotations.openMocks(this);
         filter = new JwtAuthenticationFilter(jwtConfig);
         SecurityContextHolder.clearContext();
+        when(response.getWriter()).thenReturn(printWriter);
     }
 
     @Test
@@ -44,6 +48,7 @@ class JwtAuthenticationFilterTest {
         String token = "valid.jwt.token";
         String email = "user@example.com";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+        when(request.getRequestURI()).thenReturn("/api/test");
         when(jwtConfig.extractEmail(token)).thenReturn(email);
         when(jwtConfig.extractUserId(token)).thenReturn(1L);
         when(jwtConfig.validateToken(token, 1L)).thenReturn(true);
@@ -62,35 +67,45 @@ class JwtAuthenticationFilterTest {
         String token = "invalid.jwt.token";
         String email = "user@example.com";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+        when(request.getRequestURI()).thenReturn("/api/test");
         when(jwtConfig.extractEmail(token)).thenReturn(email);
+        when(jwtConfig.extractUserId(token)).thenReturn(1L);
         when(jwtConfig.validateToken(token, 1L)).thenReturn(false);
 
         filter.doFilterInternal(request, response, filterChain);
 
         assert SecurityContextHolder.getContext().getAuthentication() == null;
-        verify(filterChain).doFilter(request, response);
+        verify(filterChain, never()).doFilter(request, response);
+        verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        verify(response).setContentType("application/json");
     }
 
     @Test
-    @DisplayName("doFilterInternal - should skip if no Authorization header")
+    @DisplayName("doFilterInternal - should handle missing Authorization header")
     void doFilterInternal_shouldSkipIfNoAuthorizationHeader() throws ServletException, IOException {
         when(request.getHeader("Authorization")).thenReturn(null);
+        when(request.getRequestURI()).thenReturn("/api/test");
 
         filter.doFilterInternal(request, response, filterChain);
 
         assert SecurityContextHolder.getContext().getAuthentication() == null;
-        verify(filterChain).doFilter(request, response);
+        verify(filterChain, never()).doFilter(request, response);
+        verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        verify(response).setContentType("application/json");
     }
 
     @Test
-    @DisplayName("doFilterInternal - should skip if Authorization header does not start with Bearer")
+    @DisplayName("doFilterInternal - should handle Authorization header that does not start with Bearer")
     void doFilterInternal_shouldSkipIfHeaderNotBearer() throws ServletException, IOException {
         when(request.getHeader("Authorization")).thenReturn("Basic something");
+        when(request.getRequestURI()).thenReturn("/api/test");
 
         filter.doFilterInternal(request, response, filterChain);
 
         assert SecurityContextHolder.getContext().getAuthentication() == null;
-        verify(filterChain).doFilter(request, response);
+        verify(filterChain, never()).doFilter(request, response);
+        verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        verify(response).setContentType("application/json");
     }
 
     @Test
@@ -101,6 +116,7 @@ class JwtAuthenticationFilterTest {
         String token = "valid.jwt.token";
         String email = "user@example.com";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+        when(request.getRequestURI()).thenReturn("/api/test");
         when(jwtConfig.extractEmail(token)).thenReturn(email);
         when(jwtConfig.validateToken(token, 1L)).thenReturn(true);
 

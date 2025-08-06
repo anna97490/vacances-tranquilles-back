@@ -11,7 +11,6 @@ import com.mastere_project.vacances_tranquilles.service.ServiceService;
 import com.mastere_project.vacances_tranquilles.util.jwt.SecurityUtils;
 import com.mastere_project.vacances_tranquilles.exception.ServiceNotFoundException;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDate;
@@ -22,16 +21,26 @@ import java.util.List;
 @org.springframework.stereotype.Service
 public class ServiceServiceImpl implements ServiceService {
 
-    @Autowired
-    private ServiceRepository serviceRepository;
-
-    @Autowired
-    private ServiceMapper serviceMapper;
-
-    @Autowired
-    private UserRepository userRepository;
+    private final ServiceRepository serviceRepository;
+    private final ServiceMapper serviceMapper;
+    private final UserRepository userRepository;
 
     private static final String SERVICE_NOT_FOUND_MSG = "Service not found";
+
+    /**
+     * Constructeur avec injection de dépendances.
+     *
+     * @param serviceRepository repository pour les services
+     * @param serviceMapper     mapper pour la conversion DTO/Entity
+     * @param userRepository    repository pour les utilisateurs
+     */
+    public ServiceServiceImpl(ServiceRepository serviceRepository,
+            ServiceMapper serviceMapper,
+            UserRepository userRepository) {
+        this.serviceRepository = serviceRepository;
+        this.serviceMapper = serviceMapper;
+        this.userRepository = userRepository;
+    }
 
     /**
      * Crée un nouveau service pour le prestataire actuellement connecté.

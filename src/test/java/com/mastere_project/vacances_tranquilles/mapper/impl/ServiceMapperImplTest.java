@@ -3,26 +3,21 @@ package com.mastere_project.vacances_tranquilles.mapper.impl;
 import com.mastere_project.vacances_tranquilles.dto.ServiceDTO;
 import com.mastere_project.vacances_tranquilles.entity.Service;
 import com.mastere_project.vacances_tranquilles.entity.User;
-import com.mastere_project.vacances_tranquilles.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import java.util.Optional;
+
+import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class ServiceMapperImplTest {
 
     private ServiceMapperImpl mapper;
-    private UserRepository userRepository;
 
     @BeforeEach
     void setUp() {
-        userRepository = mock(UserRepository.class);
         mapper = new ServiceMapperImpl();
-    
-        mapper.userRepository = userRepository;
     }
 
     @Test
@@ -39,7 +34,7 @@ class ServiceMapperImplTest {
         service.setTitle("T");
         service.setDescription("Desc");
         service.setCategory("Cat");
-        service.setPrice(20.0);
+        service.setPrice(BigDecimal.valueOf(20.00));
 
         User provider = new User();
         provider.setId(99L);
@@ -51,7 +46,7 @@ class ServiceMapperImplTest {
         assertEquals("T", dto.getTitle());
         assertEquals("Desc", dto.getDescription());
         assertEquals("Cat", dto.getCategory());
-        assertEquals(20.0, dto.getPrice());
+        assertEquals(BigDecimal.valueOf(20.00), dto.getPrice());
         assertEquals(99L, dto.getProviderId());
     }
 
@@ -60,7 +55,6 @@ class ServiceMapperImplTest {
     void toDto_ReturnsDtoWithNullProviderId_WhenProviderIsNull() {
         Service service = new Service();
         service.setId(1L);
-        // Pas de provider
         ServiceDTO dto = mapper.toDto(service);
         assertNull(dto.getProviderId());
     }
@@ -72,19 +66,15 @@ class ServiceMapperImplTest {
     }
 
     @Test
-    @DisplayName("toEntity convertit tous les champs et provider (providerId non null)")
-    void toEntity_ReturnsServiceWithProvider_WhenProviderIdExists() {
+    @DisplayName("toEntity convertit tous les champs sans provider (géré par le service)")
+    void toEntity_ReturnsServiceWithoutProvider_WhenProviderIdExists() {
         ServiceDTO dto = new ServiceDTO();
         dto.setId(11L);
         dto.setTitle("Serv");
         dto.setDescription("Desc");
         dto.setCategory("Cat");
-        dto.setPrice(80.0);
+        dto.setPrice(BigDecimal.valueOf(80.00));
         dto.setProviderId(123L);
-
-        User provider = new User();
-        provider.setId(123L);
-        when(userRepository.findById(123L)).thenReturn(Optional.of(provider));
 
         Service service = mapper.toEntity(dto);
 
@@ -92,19 +82,8 @@ class ServiceMapperImplTest {
         assertEquals("Serv", service.getTitle());
         assertEquals("Desc", service.getDescription());
         assertEquals("Cat", service.getCategory());
-        assertEquals(80.0, service.getPrice());
-        assertEquals(provider, service.getProvider());
-    }
-
-    @Test
-    @DisplayName("toEntity lève une exception si le providerId n'existe pas")
-    void toEntity_Throws_WhenProviderNotFound() {
-        ServiceDTO dto = new ServiceDTO();
-        dto.setProviderId(999L);
-        when(userRepository.findById(999L)).thenReturn(Optional.empty());
-
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> mapper.toEntity(dto));
-        assertTrue(ex.getMessage().contains("Provider not found"));
+        assertEquals(BigDecimal.valueOf(80.00), service.getPrice());
+        assertNull(service.getProvider()); // Le provider est géré par le service
     }
 
     @Test
