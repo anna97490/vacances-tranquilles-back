@@ -2,6 +2,7 @@ package com.mastere_project.vacances_tranquilles.controller;
 
 import com.mastere_project.vacances_tranquilles.dto.ReservationDTO;
 import com.mastere_project.vacances_tranquilles.dto.ReservationResponseDTO;
+import com.mastere_project.vacances_tranquilles.dto.UpdateReservationStatusDTO;
 import com.mastere_project.vacances_tranquilles.exception.MissingReservationDataException;
 import com.mastere_project.vacances_tranquilles.exception.ReservationNotFoundException;
 import com.mastere_project.vacances_tranquilles.exception.ServiceNotFoundException;
@@ -87,19 +88,19 @@ public class ReservationController {
     /**
      * Modifie le statut d'une réservation.
      * Seul le prestataire associé à la réservation peut modifier le statut.
-     * Les transitions possibles : PENDING → IN_PROGRESS → CLOSED.
+     * Les transitions possibles : PENDING → IN_PROGRESS ou CANCELLED, IN_PROGRESS → CLOSED.
      * Le système vérifie automatiquement l'autorisation et la validité de la transition.
      *
      * @param id L'identifiant de la réservation à modifier
+     * @param dto DTO contenant le nouveau statut de la réservation (status requis)
      * @return ResponseEntity contenant la réservation mise à jour
      * @throws ReservationNotFoundException si la réservation n'existe pas
      * @throws UnauthorizedReservationAccessException si l'utilisateur n'est pas autorisé
      * @throws InvalidReservationStatusTransitionException si la transition de statut est invalide
      */
-    @PatchMapping("/{id}")
-    public ResponseEntity<ReservationResponseDTO> changeStatusOfReservationByProvider(@PathVariable Long id) {
-        ReservationResponseDTO updated = reservationService.changeStatusOfReservationByProvider(id);
-        
-        return ResponseEntity.ok(updated);
-    }
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<ReservationResponseDTO> updateStatus(@PathVariable Long id, @RequestBody UpdateReservationStatusDTO dto) {
+        ReservationResponseDTO updated = reservationService.changeStatusOfReservationByProvider(id, dto);
+    return ResponseEntity.ok(updated);
+}
 }
