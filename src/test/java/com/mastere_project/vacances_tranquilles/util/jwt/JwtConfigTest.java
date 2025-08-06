@@ -109,4 +109,3 @@ class JwtConfigTest {
                 .hasMessageContaining("au moins 32 caractères");
     }
 }
-

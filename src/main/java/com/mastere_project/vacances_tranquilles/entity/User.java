@@ -4,13 +4,15 @@ import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import java.time.LocalDateTime;
+
 /**
  * Entité JPA représentant un utilisateur (client ou prestataire) de la
  * plateforme.
  */
-import java.util.ArrayList;
-import java.util.List;
-
 @Entity
 @Table(name = "users")
 @Data
@@ -21,8 +23,6 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private String profilePicture;
 
     @Column(nullable = false)
     private String firstName;
@@ -56,10 +56,32 @@ public class User {
     private String siretSiren;
     private String companyName;
 
+    // Champs pour la conformité RGPD
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    @Column(name = "is_anonymized")
+    private Boolean isAnonymized = false;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+    
     @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Service> services = new ArrayList<>();
 
     @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL)
     private List<Schedule> schedules;
-
 }

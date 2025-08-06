@@ -1,7 +1,9 @@
 package com.mastere_project.vacances_tranquilles.dto;
 
+import com.mastere_project.vacances_tranquilles.model.enums.ReservationStatus;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -11,13 +13,15 @@ import java.time.LocalDateTime;
 @Data
 public class ReservationDTO {
     private Long id;
-    private String status;
+    private ReservationStatus status; 
     private LocalDateTime reservationDate;
-    private String comment;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private Double totalPrice;
-    private Long customerId;
+    private BigDecimal totalPrice;
+    
+    // Champs pour la création de réservation
+    private Long clientId;
     private Long providerId;
     private Long serviceId;
+    private Long paymentId;
 }
