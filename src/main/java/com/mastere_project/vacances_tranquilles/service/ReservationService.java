@@ -2,6 +2,7 @@ package com.mastere_project.vacances_tranquilles.service;
 
 import com.mastere_project.vacances_tranquilles.dto.ReservationDTO;
 import com.mastere_project.vacances_tranquilles.dto.ReservationResponseDTO;
+import com.mastere_project.vacances_tranquilles.dto.UpdateReservationStatusDTO;
 import com.mastere_project.vacances_tranquilles.exception.InvalidReservationStatusTransitionException;
 import com.mastere_project.vacances_tranquilles.exception.MissingReservationDataException;
 import com.mastere_project.vacances_tranquilles.exception.ReservationNotFoundException;
@@ -53,18 +54,19 @@ public interface ReservationService {
 
     /**
      * Permet à un prestataire de changer le statut d'une réservation.
-     * Change le statut selon les transitions autorisées : PENDING → IN_PROGRESS → CLOSED
+     * Change le statut selon les transitions autorisées : PENDING → IN_PROGRESS → CLOSED ou PENDING → CANCELLED
      * Le rôle est automatiquement déterminé côté serveur.
      * Le système vérifie que l'utilisateur est bien le prestataire de la réservation.
      *
      * @param reservationId L'identifiant de la réservation à modifier
+     * @param dto Les données de mise à jour du statut
      * @return La réservation mise à jour avec le nouveau statut
      * @throws ReservationNotFoundException Si la réservation n'existe pas
      * @throws InvalidReservationStatusTransitionException Si la réservation n'est pas dans un statut permettant la transition
      * @throws UnauthorizedReservationAccessException Si le prestataire n'est pas autorisé à modifier cette réservation
      * @throws UserNotFoundException si l'utilisateur n'existe pas en base
      */
-    ReservationResponseDTO changeStatusOfReservationByProvider(Long reservationId);
+    ReservationResponseDTO changeStatusOfReservationByProvider(Long reservationId, UpdateReservationStatusDTO dto);
 
     /**
      * Crée une nouvelle réservation.
