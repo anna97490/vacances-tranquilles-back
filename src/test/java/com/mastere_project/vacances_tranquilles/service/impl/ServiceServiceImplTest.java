@@ -171,4 +171,34 @@ class ServiceServiceImplTest {
         ServiceDTO dto = new ServiceDTO();
         assertThrows(ServiceNotFoundException.class, () -> serviceService.partialUpdateService(1L, dto));
     }
+
+    @Test
+    void searchAvailableServices_throwsException_whenCategoryIsNull() {
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        assertThrows(IllegalArgumentException.class,
+                () -> serviceService.searchAvailableServices(null, "75001", tomorrow, LocalTime.NOON,
+                        LocalTime.MIDNIGHT));
+    }
+
+    @Test
+    void searchAvailableServices_throwsException_whenCategoryIsBlank() {
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        assertThrows(IllegalArgumentException.class,
+                () -> serviceService.searchAvailableServices("", "75001", tomorrow, LocalTime.NOON,
+                        LocalTime.MIDNIGHT));
+    }
+
+    @Test
+    void searchAvailableServices_throwsException_whenPostalCodeIsNull() {
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        assertThrows(IllegalArgumentException.class,
+                () -> serviceService.searchAvailableServices("Cat", null, tomorrow, LocalTime.NOON,
+                        LocalTime.MIDNIGHT));
+    }
+
+    @Test
+    void searchAvailableServices_throwsException_whenDateIsNull() {
+        assertThrows(IllegalArgumentException.class,
+                () -> serviceService.searchAvailableServices("Cat", "75001", null, LocalTime.NOON, LocalTime.MIDNIGHT));
+    }
 }
