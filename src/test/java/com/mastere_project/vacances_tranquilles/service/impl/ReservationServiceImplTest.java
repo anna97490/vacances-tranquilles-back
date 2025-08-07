@@ -2,6 +2,7 @@ package com.mastere_project.vacances_tranquilles.service.impl;
 
 import com.mastere_project.vacances_tranquilles.dto.ReservationDTO;
 import com.mastere_project.vacances_tranquilles.dto.ReservationResponseDTO;
+import com.mastere_project.vacances_tranquilles.dto.UpdateReservationStatusDTO;
 import com.mastere_project.vacances_tranquilles.entity.Reservation;
 import com.mastere_project.vacances_tranquilles.entity.User;
 import com.mastere_project.vacances_tranquilles.entity.Service;
@@ -41,13 +42,13 @@ class ReservationServiceImplTest {
 
     @Mock
     private ReservationRepository reservationRepository;
-    
+
     @Mock
     private UserRepository userRepository;
-    
+
     @Mock
     private ServiceRepository serviceRepository;
-    
+
     @Mock
     private ReservationMapper reservationMapper;
 
@@ -66,11 +67,9 @@ class ReservationServiceImplTest {
         Long userId = 1L;
         User client = createSampleUser(userId, UserRole.CLIENT);
         List<Reservation> reservations = Arrays.asList(
-            createSampleReservation(1L, ReservationStatus.PENDING)
-        );
+                createSampleReservation(1L, ReservationStatus.PENDING));
         List<ReservationResponseDTO> expectedDtos = Arrays.asList(
-            createSampleReservationResponseDTO(1L, ReservationStatus.PENDING)
-        );
+                createSampleReservationResponseDTO(1L, ReservationStatus.PENDING));
 
         try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
             mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(userId);
@@ -94,7 +93,8 @@ class ReservationServiceImplTest {
         Long userId = 1L;
         User client = createSampleUser(userId, UserRole.CLIENT);
         Reservation reservation = createSampleReservation(reservationId, ReservationStatus.PENDING);
-        ReservationResponseDTO expectedDto = createSampleReservationResponseDTO(reservationId, ReservationStatus.PENDING);
+        ReservationResponseDTO expectedDto = createSampleReservationResponseDTO(reservationId,
+                ReservationStatus.PENDING);
 
         try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
             mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(userId);
@@ -123,11 +123,11 @@ class ReservationServiceImplTest {
             mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(userId);
             when(userRepository.findById(userId)).thenReturn(Optional.of(client));
             when(reservationRepository.findByIdAndUserId(reservationId, userId))
-                .thenReturn(Optional.empty());
+                    .thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> reservationService.getReservationById(reservationId))
-                .isInstanceOf(ReservationNotFoundException.class)
-                .hasMessage("Réservation introuvable ou non autorisée.");
+                    .isInstanceOf(ReservationNotFoundException.class)
+                    .hasMessage("Réservation introuvable ou non autorisée.");
         }
     }
 
@@ -139,7 +139,9 @@ class ReservationServiceImplTest {
         User provider = createSampleUser(providerId, UserRole.PROVIDER);
         Reservation reservation = createSampleReservation(reservationId, ReservationStatus.PENDING);
         Reservation updatedReservation = createSampleReservation(reservationId, ReservationStatus.IN_PROGRESS);
-        ReservationResponseDTO expectedDto = createSampleReservationResponseDTO(reservationId, ReservationStatus.IN_PROGRESS);
+        ReservationResponseDTO expectedDto = createSampleReservationResponseDTO(reservationId,
+                ReservationStatus.IN_PROGRESS);
+        UpdateReservationStatusDTO updateDTO = createSampleUpdateStatusDTO(ReservationStatus.IN_PROGRESS);
 
         try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
             mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(providerId);
@@ -148,7 +150,8 @@ class ReservationServiceImplTest {
             when(reservationRepository.save(any(Reservation.class))).thenReturn(updatedReservation);
             when(reservationMapper.toResponseDTO(updatedReservation)).thenReturn(expectedDto);
 
-            ReservationResponseDTO result = reservationService.changeStatusOfReservationByProvider(reservationId);
+            ReservationResponseDTO result = reservationService.changeStatusOfReservationByProvider(reservationId,
+                    updateDTO);
 
             assertThat(result).isEqualTo(expectedDto);
             verify(userRepository).findById(providerId);
@@ -167,15 +170,16 @@ class ReservationServiceImplTest {
         Reservation reservation = createSampleReservation(reservationId, ReservationStatus.PENDING);
         User unauthorizedProvider = createSampleUser(999L, UserRole.PROVIDER);
         reservation.setProvider(unauthorizedProvider);
+        UpdateReservationStatusDTO updateDTO = createSampleUpdateStatusDTO(ReservationStatus.IN_PROGRESS);
 
         try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
             mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(providerId);
             when(userRepository.findById(providerId)).thenReturn(Optional.of(provider));
             when(reservationRepository.findById(reservationId)).thenReturn(Optional.of(reservation));
 
-            assertThatThrownBy(() -> reservationService.changeStatusOfReservationByProvider(reservationId))
-                .isInstanceOf(UnauthorizedReservationAccessException.class)
-                .hasMessage("Vous n'êtes pas autorisé à accepter cette réservation");
+            assertThatThrownBy(() -> reservationService.changeStatusOfReservationByProvider(reservationId, updateDTO))
+                    .isInstanceOf(UnauthorizedReservationAccessException.class)
+                    .hasMessage("Vous n'êtes pas autorisé à accepter cette réservation");
         }
     }
 
@@ -187,7 +191,9 @@ class ReservationServiceImplTest {
         User provider = createSampleUser(providerId, UserRole.PROVIDER);
         Reservation reservation = createSampleReservation(reservationId, ReservationStatus.IN_PROGRESS);
         Reservation updatedReservation = createSampleReservation(reservationId, ReservationStatus.CLOSED);
-        ReservationResponseDTO expectedDto = createSampleReservationResponseDTO(reservationId, ReservationStatus.CLOSED);
+        ReservationResponseDTO expectedDto = createSampleReservationResponseDTO(reservationId,
+                ReservationStatus.CLOSED);
+        UpdateReservationStatusDTO updateDTO = createSampleUpdateStatusDTO(ReservationStatus.CLOSED);
 
         try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
             mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(providerId);
@@ -196,7 +202,8 @@ class ReservationServiceImplTest {
             when(reservationRepository.save(any(Reservation.class))).thenReturn(updatedReservation);
             when(reservationMapper.toResponseDTO(updatedReservation)).thenReturn(expectedDto);
 
-            ReservationResponseDTO result = reservationService.changeStatusOfReservationByProvider(reservationId);
+            ReservationResponseDTO result = reservationService.changeStatusOfReservationByProvider(reservationId,
+                    updateDTO);
 
             assertThat(result).isEqualTo(expectedDto);
             verify(userRepository).findById(providerId);
@@ -212,14 +219,15 @@ class ReservationServiceImplTest {
         Long reservationId = 1L;
         Long userId = 1L;
         User client = createSampleUser(userId, UserRole.CLIENT);
+        UpdateReservationStatusDTO updateDTO = createSampleUpdateStatusDTO(ReservationStatus.IN_PROGRESS);
 
         try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
             mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(userId);
             when(userRepository.findById(userId)).thenReturn(Optional.of(client));
 
-            assertThatThrownBy(() -> reservationService.changeStatusOfReservationByProvider(reservationId))
-                .isInstanceOf(UnauthorizedReservationAccessException.class)
-                .hasMessage("Seuls les prestataires peuvent modifier le statut d'une réservation");
+            assertThatThrownBy(() -> reservationService.changeStatusOfReservationByProvider(reservationId, updateDTO))
+                    .isInstanceOf(UnauthorizedReservationAccessException.class)
+                    .hasMessage("Seuls les prestataires peuvent modifier le statut d'une réservation");
         }
     }
 
@@ -230,19 +238,20 @@ class ReservationServiceImplTest {
         Long clientId = 1L;
         Long providerId = 2L;
         Long serviceId = 1L;
-        
+
         User client = createSampleUser(clientId, UserRole.CLIENT);
         User provider = createSampleUser(providerId, UserRole.PROVIDER);
         Service service = createSampleService(serviceId, provider);
-        
+
         ReservationDTO createDTO = new ReservationDTO();
         createDTO.setClientId(clientId);
         createDTO.setProviderId(providerId);
         createDTO.setServiceId(serviceId);
+        createDTO.setReservationDate(LocalDateTime.now().plusDays(1));
         createDTO.setStartDate(LocalDateTime.now().plusDays(1));
         createDTO.setEndDate(LocalDateTime.now().plusDays(1).plusHours(2));
         createDTO.setTotalPrice(BigDecimal.valueOf(100.0));
-        
+
         Reservation savedReservation = createSampleReservation(1L, ReservationStatus.PENDING);
         ReservationResponseDTO expectedDto = createSampleReservationResponseDTO(1L, ReservationStatus.PENDING);
 
@@ -269,8 +278,8 @@ class ReservationServiceImplTest {
     @DisplayName("createReservation should throw exception when user is not the client")
     void createReservation_shouldThrowException_whenUserIsNotClient() {
         Long currentUserId = 1L;
-        Long clientId = 2L; 
-        
+        Long clientId = 2L;
+
         ReservationDTO createDTO = new ReservationDTO();
         createDTO.setClientId(clientId);
         createDTO.setProviderId(3L);
@@ -280,8 +289,8 @@ class ReservationServiceImplTest {
             mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
 
             assertThatThrownBy(() -> reservationService.createReservation(createDTO))
-                .isInstanceOf(UnauthorizedReservationAccessException.class)
-                .hasMessage("Vous n'êtes pas autorisé à créer cette réservation");
+                    .isInstanceOf(UnauthorizedReservationAccessException.class)
+                    .hasMessage("Vous n'êtes pas autorisé à créer cette réservation");
         }
     }
 
@@ -296,7 +305,7 @@ class ReservationServiceImplTest {
         user.setAddress("Test Address");
         user.setCity("Test City");
         user.setPostalCode("12345");
-        
+
         return user;
     }
 
@@ -307,7 +316,7 @@ class ReservationServiceImplTest {
         service.setDescription("Test Description");
         service.setPrice(BigDecimal.valueOf(100.0));
         service.setProvider(provider);
-        
+
         return service;
     }
 
@@ -350,10 +359,17 @@ class ReservationServiceImplTest {
         dto.setId(id);
         dto.setStatus(status);
         dto.setReservationDate(LocalDateTime.now());
+        dto.setReservationDate(LocalDateTime.now().plusDays(1));
         dto.setStartDate(LocalDateTime.now().plusDays(1));
         dto.setEndDate(LocalDateTime.now().plusDays(2));
         dto.setTotalPrice(BigDecimal.valueOf(100.0));
-        
+
         return dto;
     }
-} 
+
+    private UpdateReservationStatusDTO createSampleUpdateStatusDTO(ReservationStatus status) {
+        UpdateReservationStatusDTO dto = new UpdateReservationStatusDTO();
+        dto.setStatus(status);
+        return dto;
+    }
+}

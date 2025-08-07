@@ -2,6 +2,7 @@ package com.mastere_project.vacances_tranquilles.service.impl;
 
 import com.mastere_project.vacances_tranquilles.dto.ReservationDTO;
 import com.mastere_project.vacances_tranquilles.dto.ReservationResponseDTO;
+import com.mastere_project.vacances_tranquilles.dto.UpdateReservationStatusDTO;
 import com.mastere_project.vacances_tranquilles.entity.Reservation;
 import com.mastere_project.vacances_tranquilles.entity.User;
 import com.mastere_project.vacances_tranquilles.entity.Service;
@@ -27,7 +28,8 @@ import java.util.List;
  * Implémentation du service de gestion des réservations.
  * Fournit les opérations métier pour la gestion des réservations
  * incluant la récupération, le filtrage et la modification des statuts.
- * Cette implémentation gère l'authentification et l'autorisation automatiquement.
+ * Cette implémentation gère l'authentification et l'autorisation
+ * automatiquement.
  */
 @org.springframework.stereotype.Service
 @RequiredArgsConstructor
@@ -65,8 +67,10 @@ public class ReservationServiceImpl implements ReservationService {
      * les réservations appropriées selon le rôle.
      *
      * @return Liste des réservations de l'utilisateur selon son rôle
-     * @throws UserNotFoundException si l'utilisateur n'existe pas en base
-     * @throws UnauthorizedReservationAccessException si l'utilisateur n'a pas le bon rôle
+     * @throws UserNotFoundException                  si l'utilisateur n'existe pas
+     *                                                en base
+     * @throws UnauthorizedReservationAccessException si l'utilisateur n'a pas le
+     *                                                bon rôle
      */
     @Override
     public List<ReservationResponseDTO> getAllReservations() {
@@ -92,12 +96,10 @@ public class ReservationServiceImpl implements ReservationService {
         if (databaseRole == UserRole.CLIENT) {
             // Pour un client, récupérer toutes les réservations où il est le client
             reservations = reservationRepository.findByClientId(userId);
-        } else if (databaseRole == UserRole.PROVIDER) {
+        } else {
             // Pour un prestataire, récupérer toutes les réservations où il est le
             // prestataire
             reservations = reservationRepository.findByProviderId(userId);
-        } else {
-            throw new UnauthorizedReservationAccessException("Rôle utilisateur non reconnu");
         }
 
         return reservations.stream()
@@ -107,16 +109,22 @@ public class ReservationServiceImpl implements ReservationService {
 
     /**
      * Récupère une réservation spécifique par son identifiant.
-     * Vérifie que l'utilisateur authentifié a accès à cette réservation (client ou prestataire).
+     * Vérifie que l'utilisateur authentifié a accès à cette réservation (client ou
+     * prestataire).
      * Vérifie que l'utilisateur existe en base et récupère son rôle
      * automatiquement.
-     * Le système vérifie l'autorisation en comparant l'utilisateur avec les participants.
+     * Le système vérifie l'autorisation en comparant l'utilisateur avec les
+     * participants.
      *
      * @param id L'identifiant de la réservation
      * @return La réservation si trouvée et accessible
-     * @throws ReservationNotFoundException Si la réservation n'existe pas ou si l'utilisateur n'y a pas accès
-     * @throws UserNotFoundException si l'utilisateur n'existe pas en base
-     * @throws UnauthorizedReservationAccessException si l'utilisateur n'est pas autorisé
+     * @throws ReservationNotFoundException           Si la réservation n'existe pas
+     *                                                ou si l'utilisateur n'y a pas
+     *                                                accès
+     * @throws UserNotFoundException                  si l'utilisateur n'existe pas
+     *                                                en base
+     * @throws UnauthorizedReservationAccessException si l'utilisateur n'est pas
+     *                                                autorisé
      */
     @Override
     public ReservationResponseDTO getReservationById(Long id) {
@@ -157,21 +165,28 @@ public class ReservationServiceImpl implements ReservationService {
     /**
      * Permet à un prestataire de changer le statut d'une réservation.
      * Change le statut selon les transitions autorisées : PENDING → IN_PROGRESS →
-     * CLOSED
+     * CLOSED ou PENDING → CANCELLED
      * Le rôle est automatiquement déterminé côté serveur.
-     * Le système vérifie que l'utilisateur est bien le prestataire de la réservation.
+     * Le système vérifie que l'utilisateur est bien le prestataire de la
+     * réservation.
      *
      * @param reservationId L'identifiant de la réservation à modifier
+     * @param dto           Les données de mise à jour du statut
      * @return La réservation mise à jour avec le nouveau statut
-     * @throws ReservationNotFoundException                Si la réservation n'existe pas
-     * @throws InvalidReservationStatusTransitionException Si la réservation n'est pas dans un statut
+     * @throws ReservationNotFoundException                Si la réservation
+     *                                                     n'existe pas
+     * @throws InvalidReservationStatusTransitionException Si la réservation n'est
+     *                                                     pas dans un statut
      *                                                     permettant la transition
-     * @throws UnauthorizedReservationAccessException      Si le prestataire n'est pas autorisé à modifier
+     * @throws UnauthorizedReservationAccessException      Si le prestataire n'est
+     *                                                     pas autorisé à modifier
      *                                                     cette réservation
-     * @throws UserNotFoundException si l'utilisateur n'existe pas en base
+     * @throws UserNotFoundException                       si l'utilisateur n'existe
+     *                                                     pas en base
      */
     @Override
-    public ReservationResponseDTO changeStatusOfReservationByProvider(Long reservationId) {
+    public ReservationResponseDTO changeStatusOfReservationByProvider(Long reservationId,
+            UpdateReservationStatusDTO dto) {
         // Récupérer l'utilisateur authentifié
         Long providerId = SecurityUtils.getCurrentUserId();
 
@@ -184,7 +199,8 @@ public class ReservationServiceImpl implements ReservationService {
 
         // Vérifier que l'utilisateur a le bon rôle pour accepter une réservation
         if (databaseRole != UserRole.PROVIDER) {
-            throw new UnauthorizedReservationAccessException("Seuls les prestataires peuvent modifier le statut d'une réservation");
+            throw new UnauthorizedReservationAccessException(
+                    "Seuls les prestataires peuvent modifier le statut d'une réservation");
         }
 
         // Récupérer la réservation
@@ -197,21 +213,20 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         // Gérer les transitions de statut selon le statut actuel
-        ReservationStatus newStatus;
-        if (reservation.getStatus() == ReservationStatus.PENDING) {
-            newStatus = ReservationStatus.IN_PROGRESS;
-        } else if (reservation.getStatus() == ReservationStatus.IN_PROGRESS) {
-            newStatus = ReservationStatus.CLOSED;
+        ReservationStatus current = reservation.getStatus();
+        ReservationStatus next = dto.getStatus();
+
+        if (current == ReservationStatus.PENDING
+                && (next == ReservationStatus.IN_PROGRESS || next == ReservationStatus.CANCELLED)) {
+            reservation.setStatus(next);
+        } else if (current == ReservationStatus.IN_PROGRESS && next == ReservationStatus.CLOSED) {
+            reservation.setStatus(next);
         } else {
-            throw new InvalidReservationStatusTransitionException(
-                    "Le statut actuel ne permet pas de transition");
+            throw new IllegalArgumentException("Transition de statut invalide : de " + current + " vers " + next);
         }
 
-        // Changer le statut et sauvegarder
-        reservation.setStatus(newStatus);
-        Reservation updated = reservationRepository.save(reservation);
-
-        return reservationMapper.toResponseDTO(updated);
+        Reservation saved = reservationRepository.save(reservation);
+        return reservationMapper.toResponseDTO(saved);
     }
 
     /**
@@ -222,10 +237,13 @@ public class ReservationServiceImpl implements ReservationService {
      *
      * @param dto Les données de création de la réservation
      * @return La réservation créée
-     * @throws UnauthorizedReservationAccessException Si l'utilisateur n'est pas autorisé à créer cette
+     * @throws UnauthorizedReservationAccessException Si l'utilisateur n'est pas
+     *                                                autorisé à créer cette
      *                                                réservation
-     * @throws MissingReservationDataException si des données requises sont manquantes
-     * @throws ServiceNotFoundException si le service spécifié n'existe pas
+     * @throws MissingReservationDataException        si des données requises sont
+     *                                                manquantes
+     * @throws ServiceNotFoundException               si le service spécifié
+     *                                                n'existe pas
      */
     @Override
     public ReservationResponseDTO createReservation(ReservationDTO dto) {
@@ -254,6 +272,7 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setClient(client);
         reservation.setProvider(provider);
         reservation.setService(service);
+        reservation.setReservationDate(dto.getReservationDate().toLocalDate());
         reservation.setStartDate(dto.getStartDate().toLocalTime());
         reservation.setEndDate(dto.getEndDate().toLocalTime());
         reservation.setTotalPrice(dto.getTotalPrice());
