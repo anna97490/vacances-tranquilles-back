@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mastere_project.vacances_tranquilles.dto.ReservationDTO;
 import com.mastere_project.vacances_tranquilles.dto.ReservationResponseDTO;
+import com.mastere_project.vacances_tranquilles.dto.UpdateReservationStatusDTO;
 import com.mastere_project.vacances_tranquilles.exception.ApplicationControllerAdvice;
 import com.mastere_project.vacances_tranquilles.exception.ReservationNotFoundException;
 import com.mastere_project.vacances_tranquilles.exception.UnauthorizedReservationAccessException;
@@ -30,10 +31,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ReservationControllerTest {
 
     private MockMvc mockMvc;
-    
+
     @Mock
     private ReservationService reservationService;
-    
+
     private ObjectMapper objectMapper;
 
     @BeforeEach
@@ -41,7 +42,7 @@ class ReservationControllerTest {
         reservationService = mock(ReservationService.class);
         ReservationController reservationController = new ReservationController(reservationService);
         ApplicationControllerAdvice applicationControllerAdvice = new ApplicationControllerAdvice();
-        
+
         mockMvc = MockMvcBuilders.standaloneSetup(reservationController)
                 .setControllerAdvice(applicationControllerAdvice)
                 .build();
@@ -52,10 +53,9 @@ class ReservationControllerTest {
     @Test
     void getAllReservations_shouldReturnReservationsList() throws Exception {
         List<ReservationResponseDTO> reservations = Arrays.asList(
-            createSampleReservationResponseDTO(1L, "PENDING"),
-            createSampleReservationResponseDTO(2L, "IN_PROGRESS")
-        );
-        
+                createSampleReservationResponseDTO(1L, "PENDING"),
+                createSampleReservationResponseDTO(2L, "IN_PROGRESS"));
+
         when(reservationService.getAllReservations()).thenReturn(reservations);
 
         mockMvc.perform(get("/api/reservations")
@@ -71,7 +71,7 @@ class ReservationControllerTest {
     @Test
     void getReservationById_shouldReturnReservation() throws Exception {
         ReservationResponseDTO reservation = createSampleReservationResponseDTO(1L, "PENDING");
-        
+
         when(reservationService.getReservationById(1L)).thenReturn(reservation);
 
         mockMvc.perform(get("/api/reservations/1")
@@ -96,37 +96,42 @@ class ReservationControllerTest {
     }
 
     @Test
-    void changeStatusOfReservationByProvider_shouldReturnUpdatedReservation() throws Exception {
+    void updateStatus_shouldReturnUpdatedReservation() throws Exception {
         ReservationResponseDTO updatedReservation = createSampleReservationResponseDTO(1L, "IN_PROGRESS");
-        
-        when(reservationService.changeStatusOfReservationByProvider(1L)).thenReturn(updatedReservation);
+        UpdateReservationStatusDTO updateDTO = createSampleUpdateStatusDTO("IN_PROGRESS");
 
-        mockMvc.perform(patch("/api/reservations/1")
-                .contentType(MediaType.APPLICATION_JSON))
+        when(reservationService.changeStatusOfReservationByProvider(1L, updateDTO)).thenReturn(updatedReservation);
+
+        mockMvc.perform(patch("/api/reservations/1/status")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
 
-        verify(reservationService, times(1)).changeStatusOfReservationByProvider(1L);
+        verify(reservationService, times(1)).changeStatusOfReservationByProvider(1L, updateDTO);
     }
 
     @Test
-    void changeStatusOfReservationByProvider_whenReservationNotFound_shouldReturnNotFound() throws Exception {
-        when(reservationService.changeStatusOfReservationByProvider(999L))
+    void updateStatus_whenReservationNotFound_shouldReturnNotFound() throws Exception {
+        UpdateReservationStatusDTO updateDTO = createSampleUpdateStatusDTO("IN_PROGRESS");
+
+        when(reservationService.changeStatusOfReservationByProvider(999L, updateDTO))
                 .thenThrow(new ReservationNotFoundException("Réservation introuvable"));
 
-        mockMvc.perform(patch("/api/reservations/999")
-                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(patch("/api/reservations/999/status")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateDTO)))
                 .andExpect(status().isNotFound());
 
-        verify(reservationService, times(1)).changeStatusOfReservationByProvider(999L);
+        verify(reservationService, times(1)).changeStatusOfReservationByProvider(999L, updateDTO);
     }
 
     @Test
     void createReservation_shouldReturnCreatedReservation() throws Exception {
         ReservationDTO createDTO = createSampleReservationCreateDTO();
         ReservationResponseDTO createdReservation = createSampleReservationResponseDTO(1L, "PENDING");
-        
+
         when(reservationService.createReservation(createDTO)).thenReturn(createdReservation);
 
         mockMvc.perform(post("/api/reservations")
@@ -142,9 +147,10 @@ class ReservationControllerTest {
     @Test
     void createReservation_whenError_shouldReturnForbidden() throws Exception {
         ReservationDTO createDTO = createSampleReservationCreateDTO();
-        
+
         when(reservationService.createReservation(createDTO))
-                .thenThrow(new UnauthorizedReservationAccessException("Vous n'êtes pas autorisé à créer cette réservation"));
+                .thenThrow(new UnauthorizedReservationAccessException(
+                        "Vous n'êtes pas autorisé à créer cette réservation"));
 
         mockMvc.perform(post("/api/reservations")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -163,7 +169,7 @@ class ReservationControllerTest {
         dto.setStartDate(LocalDateTime.now().plusDays(1));
         dto.setEndDate(LocalDateTime.now().plusDays(1).plusHours(2));
         dto.setTotalPrice(new BigDecimal("100.0"));
-        
+
         return dto;
     }
 
@@ -175,7 +181,13 @@ class ReservationControllerTest {
         dto.setStartDate(LocalDateTime.now());
         dto.setEndDate(LocalDateTime.now().plusDays(1));
         dto.setTotalPrice(new BigDecimal("100.0"));
-        
+
         return dto;
     }
-} 
+
+    private UpdateReservationStatusDTO createSampleUpdateStatusDTO(String status) {
+        UpdateReservationStatusDTO dto = new UpdateReservationStatusDTO();
+        dto.setStatus(ReservationStatus.valueOf(status.toUpperCase()));
+        return dto;
+    }
+}
