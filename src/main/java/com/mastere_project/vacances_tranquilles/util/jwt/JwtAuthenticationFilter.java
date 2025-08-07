@@ -118,4 +118,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         response.getWriter().write(jsonResponse);
     }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+    String path = request.getRequestURI();
+    return path.startsWith("/actuator/prometheus");
+}
+
 } 
