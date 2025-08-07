@@ -2,30 +2,37 @@ package com.mastere_project.vacances_tranquilles.service.impl;
 
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
+import com.mastere_project.vacances_tranquilles.dto.ReservationDTO;
 import com.mastere_project.vacances_tranquilles.dto.StripeCheckoutSessionRequestDTO;
 import com.mastere_project.vacances_tranquilles.repository.ServiceRepository;
+import com.mastere_project.vacances_tranquilles.service.ReservationService;
 import com.mastere_project.vacances_tranquilles.service.StripeService;
 import com.mastere_project.vacances_tranquilles.entity.Service;
-
+import com.mastere_project.vacances_tranquilles.exception.ServiceNotFoundException;
+import com.mastere_project.vacances_tranquilles.exception.StripeSessionCreationException;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.HashMap;
 
 @org.springframework.stereotype.Service
+@RequiredArgsConstructor
 public class StripeServiceImpl implements StripeService {
 
-    @Autowired
-    private ServiceRepository serviceRepo;
+    private static final String SERVICE_NOT_FOUND_MSG = "Service not found";
+    private final ServiceRepository serviceRepo;
+    private final ReservationService reservationService;
 
     @Value("${stripe.api.key}")
     private String stripeApiKey;
@@ -41,7 +48,7 @@ public class StripeServiceImpl implements StripeService {
     @Override
     public Map<String, String> createCheckoutSession(StripeCheckoutSessionRequestDTO dto) {
         Service service = serviceRepo.findById(dto.getServiceId())
-                .orElseThrow(() -> new RuntimeException("Service non trouvé"));
+                .orElseThrow(() -> new ServiceNotFoundException(SERVICE_NOT_FOUND_MSG));
 
         Duration duration = Duration.between(dto.getStartTime(), dto.getEndTime());
         long hours = duration.toHours();
@@ -89,7 +96,44 @@ public class StripeServiceImpl implements StripeService {
             return response;
 
         } catch (StripeException e) {
-            throw new RuntimeException("Stripe session creation failed", e);
+            throw new StripeSessionCreationException("La création de la session Stripe a échoué.", e);
         }
     }
+
+    @Override
+    public void confirmReservation(String sessionId) {
+        try {
+            Session session = Session.retrieve(sessionId);
+            Map<String, String> metadata = session.getMetadata();
+
+            Long serviceId = Long.parseLong(metadata.get("serviceId"));
+            Long customerId = Long.parseLong(metadata.get("customerId"));
+            Long providerId = Long.parseLong(metadata.get("providerId"));
+            LocalDate date = LocalDate.parse(metadata.get("date"));
+            LocalTime start = LocalTime.parse(metadata.get("startTime"));
+            LocalTime end = LocalTime.parse(metadata.get("endTime"));
+
+            Service service = serviceRepo.findById(serviceId)
+                    .orElseThrow(() -> new ServiceNotFoundException(SERVICE_NOT_FOUND_MSG));
+
+            Duration duration = Duration.between(start, end);
+            long hours = duration.toHours();
+            BigDecimal price = service.getPrice().multiply(BigDecimal.valueOf(hours));
+
+            ReservationDTO dto = new ReservationDTO();
+            dto.setServiceId(serviceId);
+            dto.setClientId(customerId);
+            dto.setProviderId(providerId);
+            dto.setReservationDate(date.atStartOfDay());
+            dto.setStartDate(date.atTime(start));
+            dto.setEndDate(date.atTime(end));
+            dto.setTotalPrice(price);
+
+            reservationService.createReservation(dto);
+
+        } catch (StripeException e) {
+            throw new StripeSessionCreationException("La récupération de la session Stripe a échoué.", e);
+        }
+    }
+
 }

@@ -6,5 +6,8 @@ import com.mastere_project.vacances_tranquilles.dto.StripeCheckoutSessionRequest
 
 public interface StripeService {
     Map<String, String> createCheckoutSession(StripeCheckoutSessionRequestDTO dto);
+
+    void confirmReservation(String sessionId);
+
 }
 
