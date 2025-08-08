@@ -5,7 +5,10 @@ import com.mastere_project.vacances_tranquilles.util.jwt.JwtConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -105,6 +108,42 @@ class SecurityConfigTest {
     void authorizeRequests_shouldNotBeNull() {
         var customizer = securityConfig.authorizeRequests();
         assertThat(customizer).isNotNull();
+    }
+
+    @Test
+    void monitoringUserDetailsService_shouldReturnConfiguredUser() {
+        // Given
+        ReflectionTestUtils.setField(securityConfig, "monitoringUsername", "monitor");
+        ReflectionTestUtils.setField(securityConfig, "monitoringPassword", "pass");
+
+        // When
+        UserDetailsService userDetailsService = securityConfig.monitoringUserDetailsService();
+
+        // Then
+        assertThat(userDetailsService).isInstanceOf(InMemoryUserDetailsManager.class);
+        UserDetails user = userDetailsService.loadUserByUsername("monitor");
+        assertThat(user.getUsername()).isEqualTo("monitor");
+        assertThat(user.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_MONITORING"))).isTrue();
+    }
+
+    @Test
+    void prometheusSecurityFilterChain_shouldConfigureBasicAuthForPrometheus() throws Exception {
+        HttpSecurity http = mock(HttpSecurity.class, RETURNS_DEEP_STUBS);
+
+        when(http.securityMatcher(anyString())).thenReturn(http);
+        when(http.authorizeHttpRequests(any())).thenReturn(http);
+        when(http.httpBasic(any())).thenReturn(http);
+        when(http.csrf(any())).thenReturn(http);
+        when(http.build()).thenReturn(mock(DefaultSecurityFilterChain.class));
+
+        SecurityFilterChain chain = securityConfig.prometheusSecurityFilterChain(http);
+
+        assertThat(chain).isNotNull();
+        verify(http).securityMatcher("/actuator/prometheus");
+        verify(http).authorizeHttpRequests(any());
+        verify(http).httpBasic(any());
+        verify(http).csrf(any());
+        verify(http).build();
     }
 
 }
