@@ -2,6 +2,7 @@ package com.mastere_project.vacances_tranquilles.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
@@ -148,43 +149,7 @@ public class ApplicationControllerAdvice {
     }
 
     /**
-     * Gère l'exception levée lorsqu'une conversation n'est pas trouvée.
-     *
-     * @param ex l'exception ConversationNotFoundException
-     * @return une réponse HTTP 404 avec un code d'erreur spécifique
-     */
-    @ExceptionHandler(ConversationNotFoundException.class)
-    public ResponseEntity<ErrorEntity> handleConversationNotFound(ConversationNotFoundException ex) {
-        ErrorEntity error = new ErrorEntity("CONVERSATION_NOT_FOUND", ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
-    }
-
-    /**
-     * Gère l'exception levée lorsqu'un accès est interdit à une conversation.
-     *
-     * @param ex l'exception ConversationForbiddenException
-     * @return une réponse HTTP 403 avec un code d'erreur spécifique
-     */
-    @ExceptionHandler(ConversationForbiddenException.class)
-    public ResponseEntity<ErrorEntity> handleConversationForbidden(ConversationForbiddenException ex) {
-        ErrorEntity error = new ErrorEntity("FORBIDDEN", ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
-    }
-
-    /**
-     * Gère l'exception levée lorsqu'une conversation existe déjà.
-     *
-     * @param ex l'exception ConversationAlreadyExistsException
-     * @return une réponse HTTP 400 avec un code d'erreur spécifique
-     */
-    @ExceptionHandler(ConversationAlreadyExistsException.class)
-    public ResponseEntity<ErrorEntity> handleConversationAlreadyExists(ConversationAlreadyExistsException ex) {
-        ErrorEntity error = new ErrorEntity("CONVERSATION_ALREADY_EXISTS", ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
-
-    /**
-     * Gère l'exception levée lorsqu'un utilisateur n'est pas trouvé.
+     * Gère l'exception levée lorsqu'un utilisateur n'est pas trouvé en base.
      *
      * @param ex l'exception UserNotFoundException
      * @return une réponse HTTP 404 avec un code d'erreur spécifique
@@ -195,15 +160,102 @@ public class ApplicationControllerAdvice {
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
+
     /**
-     * Gère toute autre exception non spécifiquement capturée.
+     * Gère toutes les exceptions non spécifiquement gérées.
      *
-     * @param ex l'exception levée
-     * @return une réponse HTTP 500 avec un message d'erreur générique
+     * @param ex l'exception générique
+     * @return une réponse HTTP 500 avec un code d'erreur générique
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorEntity> handleAllExceptions(Exception ex) {
         ErrorEntity error = new ErrorEntity("INTERNAL_ERROR", ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    /**
+     * Gère les cas où une réservation est introuvable.
+     *
+     * @param ex l'exception ReservationNotFoundException
+     * @return une réponse HTTP 404 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(ReservationNotFoundException.class)
+    public ResponseEntity<ErrorEntity> handleReservationNotFound(ReservationNotFoundException ex) {
+        ErrorEntity error = new ErrorEntity("RESERVATION_NOT_FOUND", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    /**
+     * Gère les cas d'accès non autorisé à une réservation.
+     *
+     * @param ex l'exception UnauthorizedReservationAccessException
+     * @return une réponse HTTP 403 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(UnauthorizedReservationAccessException.class)
+    public ResponseEntity<ErrorEntity> handleUnauthorizedAccess(UnauthorizedReservationAccessException ex) {
+        ErrorEntity error = new ErrorEntity("UNAUTHORIZED_ACCESS", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+    }
+
+    /**
+     * Gère les cas où les données nécessaires à une réservation sont absentes.
+     *
+     * @param ex l'exception MissingReservationDataException
+     * @return une réponse HTTP 400 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(MissingReservationDataException.class)
+    public ResponseEntity<ErrorEntity> handleMissingReservationData(MissingReservationDataException ex) {
+        ErrorEntity error = new ErrorEntity("MISSING_RESERVATION_DATA", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Gère les cas où un statut de réservation invalide est fourni.
+     *
+     * @param ex l'exception InvalidReservationStatusException
+     * @return une réponse HTTP 400 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(InvalidReservationStatusException.class)
+    public ResponseEntity<ErrorEntity> handleInvalidReservationStatus(InvalidReservationStatusException ex) {
+        ErrorEntity error = new ErrorEntity("INVALID_RESERVATION_STATUS", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Gère les cas où une transition de statut de réservation invalide est tentée.
+     *
+     * @param ex l'exception InvalidReservationStatusTransitionException
+     * @return une réponse HTTP 400 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(InvalidReservationStatusTransitionException.class)
+    public ResponseEntity<ErrorEntity> handleInvalidReservationStatusTransition(
+            InvalidReservationStatusTransitionException ex) {
+        ErrorEntity error = new ErrorEntity("INVALID_RESERVATION_STATUS_TRANSITION", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+      /**
+     * Gère l'exception levée lorsqu'un accès est refusé (utilisateur non trouvé, anonymisé, etc.).
+     *
+     * @param ex l'exception AccessDeniedException
+     * @return une réponse HTTP 403 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorEntity> handleAccessDenied(AccessDeniedException ex) {
+        ErrorEntity error = new ErrorEntity("ACCESS_DENIED", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+    }
+
+    /**
+     * Gère l'exception levée lorsqu'un token JWT est invalide, expiré ou manquant.
+     *
+     * @param ex l'exception InvalidTokenException
+     * @return une réponse HTTP 401 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ErrorEntity> handleInvalidToken(InvalidTokenException ex) {
+        ErrorEntity error = new ErrorEntity("INVALID_TOKEN", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
 }

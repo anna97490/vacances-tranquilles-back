@@ -1,16 +1,26 @@
 package com.mastere_project.vacances_tranquilles.exception;
 
 /**
- * Exception levée lorsqu'un utilisateur demandé n'est pas trouvé dans le système.
+ * Exception levée lorsqu'un utilisateur n'est pas trouvé.
  */
 public class UserNotFoundException extends RuntimeException {
     
     /**
-     * Construit une nouvelle exception UserNotFoundException avec le message fourni.
-     *
-     * @param message le détail de l'erreur
+     * Constructeur avec message.
+     * 
+     * @param message le message d'erreur
      */
     public UserNotFoundException(String message) {
         super(message);
+    }
+    
+    /**
+     * Constructeur avec message et cause.
+     * 
+     * @param message le message d'erreur
+     * @param cause la cause de l'exception
+     */
+    public UserNotFoundException(String message, Throwable cause) {
+        super(message, cause);
     }
 } 

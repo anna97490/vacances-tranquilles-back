@@ -1,5 +1,8 @@
 package com.mastere_project.vacances_tranquilles.util.jwt;
 
+import com.mastere_project.vacances_tranquilles.entity.User;
+import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
+import com.mastere_project.vacances_tranquilles.repository.UserRepository;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,5 +26,20 @@ public final class SecurityUtils {
             throw new AccessDeniedException("Utilisateur non authentifié !");
         }
         return userId;
+    }
+
+    /**
+     * Récupère le rôle de l'utilisateur actuellement authentifié.
+     * Le rôle est récupéré depuis la base de données pour éviter la manipulation côté client.
+     * 
+     * @param userRepository Repository pour accéder aux données utilisateur
+     * @return le rôle de l'utilisateur
+     * @throws AccessDeniedException si l'utilisateur n'est pas authentifié ou introuvable
+     */
+    public static UserRole getCurrentUserRole(UserRepository userRepository) {
+        Long userId = getCurrentUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AccessDeniedException("Utilisateur introuvable"));
+        return user.getUserRole();
     }
 }

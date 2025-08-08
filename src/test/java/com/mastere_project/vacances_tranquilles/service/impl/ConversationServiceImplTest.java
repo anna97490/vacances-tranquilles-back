@@ -24,6 +24,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
+import com.mastere_project.vacances_tranquilles.model.enums.ReservationStatus;
 
 class ConversationServiceImplTest {
     @Mock ConversationRepository conversationRepository;
@@ -90,7 +91,7 @@ class ConversationServiceImplTest {
             u2.setUserRole(UserRole.PROVIDER);
             Reservation reservation = new Reservation();
             reservation.setId(1L);
-            reservation.setStatus("in_progress");
+            reservation.setStatus(ReservationStatus.IN_PROGRESS);
             
             when(userRepository.findById(1L)).thenReturn(Optional.of(u1));
             when(userRepository.findById(2L)).thenReturn(Optional.of(u2));
@@ -139,7 +140,7 @@ class ConversationServiceImplTest {
             u2.setUserRole(UserRole.CLIENT); // Same role
             Reservation reservation = new Reservation();
             reservation.setId(1L);
-            reservation.setStatus("in_progress");
+            reservation.setStatus(ReservationStatus.IN_PROGRESS);
             
             when(userRepository.findById(1L)).thenReturn(Optional.of(u1));
             when(userRepository.findById(2L)).thenReturn(Optional.of(u2));
@@ -208,7 +209,7 @@ class ConversationServiceImplTest {
             u2.setUserRole(UserRole.PROVIDER);
             Reservation reservation = new Reservation();
             reservation.setId(1L);
-            reservation.setStatus("completed");
+            reservation.setStatus(ReservationStatus.CLOSED);
             
             when(userRepository.findById(1L)).thenReturn(Optional.of(u1));
             when(userRepository.findById(2L)).thenReturn(Optional.of(u2));
@@ -231,7 +232,7 @@ class ConversationServiceImplTest {
             u2.setUserRole(UserRole.PROVIDER);
             Reservation reservation = new Reservation();
             reservation.setId(1L);
-            reservation.setStatus("in_progress");
+            reservation.setStatus(ReservationStatus.IN_PROGRESS);
             
             when(userRepository.findById(1L)).thenReturn(Optional.of(u1));
             when(userRepository.findById(2L)).thenReturn(Optional.of(u2));

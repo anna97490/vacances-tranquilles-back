@@ -11,6 +11,7 @@ import com.mastere_project.vacances_tranquilles.exception.UserNotFoundException;
 import com.mastere_project.vacances_tranquilles.exception.ReservationNotFoundException;
 import com.mastere_project.vacances_tranquilles.mapper.ConversationMapper;
 import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
+import com.mastere_project.vacances_tranquilles.model.enums.ReservationStatus;
 import com.mastere_project.vacances_tranquilles.repository.ConversationRepository;
 import com.mastere_project.vacances_tranquilles.repository.UserRepository;
 import com.mastere_project.vacances_tranquilles.repository.ReservationRepository;
@@ -79,7 +80,7 @@ public class ConversationServiceImpl implements ConversationService {
                 .orElseThrow(() -> new ReservationNotFoundException("Reservation not found"));
         
         // Vérifier que le statut de la réservation permet la création d'une conversation
-        if (!"in_progress".equalsIgnoreCase(reservation.getStatus())) {
+        if (reservation.getStatus() != ReservationStatus.IN_PROGRESS) {
             throw new ConversationForbiddenException("Cannot create a conversation for a reservation with status: " + reservation.getStatus());
         }
 
