@@ -92,6 +92,44 @@ class ReservationMapperImplTest {
     }
 
     @Test
+    @DisplayName("toDTO should handle null reservationDate and return null date-times")
+    void toDTO_shouldHandleNullDates() {
+        Reservation reservation = createSampleReservation();
+        reservation.setReservationDate(null);
+
+        ReservationDTO result = reservationMapper.toDTO(reservation);
+
+        assertThat(result.getReservationDate()).isNull();
+        assertThat(result.getStartDate()).isNull();
+        assertThat(result.getEndDate()).isNull();
+    }
+
+    @Test
+    @DisplayName("toResponseDTO should handle null reservationDate and return null date-times")
+    void toResponseDTO_shouldHandleNullDates() {
+        Reservation reservation = createSampleReservation();
+        reservation.setReservationDate(null);
+
+        ReservationResponseDTO result = reservationMapper.toResponseDTO(reservation);
+
+        assertThat(result.getReservationDate()).isNull();
+        assertThat(result.getStartDate()).isNull();
+        assertThat(result.getEndDate()).isNull();
+    }
+
+    @Test
+    @DisplayName("toResponseDTO should set createdAt and updatedAt based on reservationDate at midnight")
+    void toResponseDTO_shouldSetCreatedAndUpdatedAt() {
+        Reservation reservation = createSampleReservation();
+        LocalDateTime expected = reservation.getReservationDate().atStartOfDay();
+
+        ReservationResponseDTO result = reservationMapper.toResponseDTO(reservation);
+
+        assertThat(result.getCreatedAt()).isEqualTo(expected);
+        assertThat(result.getUpdatedAt()).isEqualTo(expected);
+    }
+
+    @Test
     @DisplayName("toDTO and toResponseDTO should produce same basic fields")
     void toDTOAndToResponseDTO_shouldProduceSameBasicFields() {
         Reservation reservation = createSampleReservation();
