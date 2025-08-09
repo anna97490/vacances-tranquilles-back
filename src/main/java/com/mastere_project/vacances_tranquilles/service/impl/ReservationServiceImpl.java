@@ -272,9 +272,11 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setClient(client);
         reservation.setProvider(provider);
         reservation.setService(service);
-        reservation.setReservationDate(dto.getReservationDate().toLocalDate());
-        reservation.setStartDate(dto.getStartDate().toLocalTime());
-        reservation.setEndDate(dto.getEndDate().toLocalTime());
+        // Convert LocalDateTime from DTO to LocalDate expected by model
+        reservation.setReservationDate(dto.getReservationDate() != null ? dto.getReservationDate().toLocalDate() : null);
+        // Convert LocalDateTime from DTO to LocalTime for model
+        reservation.setStartDate(dto.getStartDate() != null ? dto.getStartDate().toLocalTime() : null);
+        reservation.setEndDate(dto.getEndDate() != null ? dto.getEndDate().toLocalTime() : null);
         reservation.setTotalPrice(dto.getTotalPrice());
         reservation.setStatus(ReservationStatus.PENDING);
 

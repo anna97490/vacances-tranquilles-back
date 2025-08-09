@@ -248,8 +248,8 @@ class ReservationServiceImplTest {
         createDTO.setProviderId(providerId);
         createDTO.setServiceId(serviceId);
         createDTO.setReservationDate(LocalDateTime.now().plusDays(1));
-        createDTO.setStartDate(LocalDateTime.now().plusDays(1));
-        createDTO.setEndDate(LocalDateTime.now().plusDays(1).plusHours(2));
+        createDTO.setStartDate(LocalDateTime.now());
+        createDTO.setEndDate(LocalDateTime.now().plusHours(2));
         createDTO.setTotalPrice(BigDecimal.valueOf(100.0));
 
         Reservation savedReservation = createSampleReservation(1L, ReservationStatus.PENDING);
@@ -359,9 +359,8 @@ class ReservationServiceImplTest {
         dto.setId(id);
         dto.setStatus(status);
         dto.setReservationDate(LocalDateTime.now());
-        dto.setReservationDate(LocalDateTime.now().plusDays(1));
-        dto.setStartDate(LocalDateTime.now().plusDays(1));
-        dto.setEndDate(LocalDateTime.now().plusDays(2));
+        dto.setStartDate(LocalDateTime.now());
+        dto.setEndDate(LocalDateTime.now().plusHours(2));
         dto.setTotalPrice(BigDecimal.valueOf(100.0));
 
         return dto;

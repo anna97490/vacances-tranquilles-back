@@ -166,8 +166,9 @@ class ReservationControllerTest {
         dto.setProviderId(2L);
         dto.setServiceId(1L);
         dto.setPaymentId(1L);
-        dto.setStartDate(LocalDateTime.now().plusDays(1));
-        dto.setEndDate(LocalDateTime.now().plusDays(1).plusHours(2));
+        dto.setReservationDate(LocalDateTime.now().plusDays(1));
+        dto.setStartDate(LocalDateTime.now());
+        dto.setEndDate(LocalDateTime.now().plusHours(2));
         dto.setTotalPrice(new BigDecimal("100.0"));
 
         return dto;
@@ -179,7 +180,7 @@ class ReservationControllerTest {
         dto.setStatus(ReservationStatus.valueOf(status.toUpperCase()));
         dto.setReservationDate(LocalDateTime.now());
         dto.setStartDate(LocalDateTime.now());
-        dto.setEndDate(LocalDateTime.now().plusDays(1));
+        dto.setEndDate(LocalDateTime.now().plusHours(2));
         dto.setTotalPrice(new BigDecimal("100.0"));
 
         return dto;

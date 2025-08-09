@@ -38,9 +38,14 @@ public class ReservationMapperImpl implements ReservationMapper {
         ReservationDTO dto = new ReservationDTO();
         dto.setId(reservation.getId());
         dto.setStatus(reservation.getStatus());
-        dto.setReservationDate(reservation.getReservationDate().atStartOfDay());
-        dto.setStartDate(reservation.getReservationDate().atTime(reservation.getStartDate()));
-        dto.setEndDate(reservation.getReservationDate().atTime(reservation.getEndDate()));
+        // Convert LocalDate to LocalDateTime at midnight for DTO expectations
+        dto.setReservationDate(reservation.getReservationDate() != null ? reservation.getReservationDate().atStartOfDay() : null);
+        dto.setStartDate(reservation.getReservationDate() != null && reservation.getStartDate() != null
+                ? reservation.getReservationDate().atTime(reservation.getStartDate())
+                : null);
+        dto.setEndDate(reservation.getReservationDate() != null && reservation.getEndDate() != null
+                ? reservation.getReservationDate().atTime(reservation.getEndDate())
+                : null);
         dto.setTotalPrice(reservation.getTotalPrice());
 
         return dto;
@@ -68,10 +73,50 @@ public class ReservationMapperImpl implements ReservationMapper {
         ReservationResponseDTO dto = new ReservationResponseDTO();
         dto.setId(reservation.getId());
         dto.setStatus(reservation.getStatus());
-        dto.setReservationDate(reservation.getReservationDate().atStartOfDay());
-        dto.setStartDate(reservation.getReservationDate().atTime(reservation.getStartDate()));
-        dto.setEndDate(reservation.getReservationDate().atTime(reservation.getEndDate()));
+        dto.setReservationDate(reservation.getReservationDate() != null ? reservation.getReservationDate().atStartOfDay() : null);
+        dto.setStartDate(reservation.getReservationDate() != null && reservation.getStartDate() != null
+                ? reservation.getReservationDate().atTime(reservation.getStartDate())
+                : null);
+        dto.setEndDate(reservation.getReservationDate() != null && reservation.getEndDate() != null
+                ? reservation.getReservationDate().atTime(reservation.getEndDate())
+                : null);
         dto.setTotalPrice(reservation.getTotalPrice());
+
+        // Mapper les informations des utilisateurs
+        if (reservation.getClient() != null) {
+            dto.setClientId(reservation.getClient().getId());
+            dto.setClientName(reservation.getClient().getFirstName() + " " + reservation.getClient().getLastName());
+            dto.setClientEmail(reservation.getClient().getEmail());
+        }
+
+        if (reservation.getProvider() != null) {
+            dto.setProviderId(reservation.getProvider().getId());
+            dto.setProviderName(reservation.getProvider().getFirstName() + " " + reservation.getProvider().getLastName());
+            dto.setProviderEmail(reservation.getProvider().getEmail());
+        }
+
+        // Mapper les informations du service
+        if (reservation.getService() != null) {
+            dto.setServiceId(reservation.getService().getId());
+            dto.setServiceName(reservation.getService().getTitle());
+            dto.setServiceDescription(reservation.getService().getDescription());
+        }
+
+        // Mapper les informations du paiement
+        if (reservation.getPayment() != null) {
+            dto.setPaymentId(reservation.getPayment().getId());
+            dto.setPaymentStatus(reservation.getPayment().getStatus().toString());
+        }
+
+        // Champs additionnels (à adapter selon vos besoins)
+        dto.setPropertyName("Propriété par défaut"); // À adapter
+        dto.setPropertyAddress("Adresse par défaut"); // À adapter
+        dto.setComments("Commentaires par défaut"); // À adapter
+        dto.setServices(java.util.List.of("Service par défaut")); // À adapter
+
+        // Timestamps (à adapter selon vos besoins)
+        dto.setCreatedAt(reservation.getReservationDate() != null ? reservation.getReservationDate().atStartOfDay() : null); // À adapter avec un vrai champ createdAt
+        dto.setUpdatedAt(reservation.getReservationDate() != null ? reservation.getReservationDate().atStartOfDay() : null); // À adapter avec un vrai champ updatedAt
 
         return dto;
     }
