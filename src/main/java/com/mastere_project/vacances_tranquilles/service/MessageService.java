@@ -1,6 +1,8 @@
 package com.mastere_project.vacances_tranquilles.service;
 
 import com.mastere_project.vacances_tranquilles.dto.MessageDTO;
+import com.mastere_project.vacances_tranquilles.dto.MessageResponseDTO;
+
 import java.util.List;
 
 /**
@@ -14,7 +16,7 @@ public interface MessageService {
      * @param conversationId l'identifiant de la conversation
      * @return la liste des messages de la conversation
      */
-    List<MessageDTO> getMessagesByConversationId(Long conversationId);
+    List<MessageResponseDTO> getMessagesByConversationId(Long conversationId);
 
     /**
      * Envoie un nouveau message dans une conversation.

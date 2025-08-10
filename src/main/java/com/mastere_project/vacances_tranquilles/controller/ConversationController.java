@@ -1,17 +1,16 @@
 package com.mastere_project.vacances_tranquilles.controller;
 
 import com.mastere_project.vacances_tranquilles.dto.ConversationDTO;
-import com.mastere_project.vacances_tranquilles.dto.ConversationWithMessagesDTO;
-import com.mastere_project.vacances_tranquilles.dto.MessageDTO;
+import com.mastere_project.vacances_tranquilles.dto.ConversationSummaryDto;
 import com.mastere_project.vacances_tranquilles.exception.ErrorEntity;
 import com.mastere_project.vacances_tranquilles.service.ConversationService;
-import com.mastere_project.vacances_tranquilles.service.MessageService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Contrôleur REST pour la gestion des conversations entre utilisateurs.
@@ -26,11 +25,11 @@ class ConversationCreateRequest {
 @RequestMapping("/api/conversations")
 @RequiredArgsConstructor
 public class ConversationController {
+    Logger log = Logger.getLogger(ConversationController.class.getName());
 
     private static final String ERROR_TYPE = "ERROR";
 
     private final ConversationService conversationService;
-    private final MessageService messageService;
 
     /**
      * Récupère toutes les conversations de l'utilisateur connecté.
@@ -38,9 +37,9 @@ public class ConversationController {
      * @return une réponse contenant la liste des conversations de l'utilisateur
      */
     @GetMapping
-    public ResponseEntity<List<ConversationDTO>> getConversations() {
-        List<ConversationDTO> conversations = conversationService.getConversationsForUser();
-        
+    public ResponseEntity<List<ConversationSummaryDto>> getConversations() {
+        log.info("Get conversations");
+        List<ConversationSummaryDto> conversations = conversationService.getConversationsForUser();
         return ResponseEntity.ok(conversations);
     }
 
@@ -82,31 +81,6 @@ public class ConversationController {
             return ResponseEntity.ok(conversation);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new ErrorEntity(ERROR_TYPE, e.getMessage()));
-        }
-    }
-
-    /**
-     * Récupère une conversation par son ID avec ses messages.
-     * Marque comme lus les messages non lus envoyés par l'autre utilisateur.
-     *
-     * @param id l'identifiant de la conversation à récupérer
-     * @return une réponse contenant la conversation et ses messages, ou une erreur si non autorisé ou non trouvée
-     */
-    @GetMapping("/{id}/messages")
-    public ResponseEntity<ConversationWithMessagesDTO> getConversationWithMessages(@PathVariable Long id) {
-        try {
-            if (id == null) {
-                return ResponseEntity.badRequest().build();
-            }
-            
-            ConversationDTO conversation = conversationService.getConversationById(id);
-            List<MessageDTO> messages = messageService.getMessagesByConversationId(id);
-            
-            ConversationWithMessagesDTO result = new ConversationWithMessagesDTO(conversation, messages);
-            
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
         }
     }
 }

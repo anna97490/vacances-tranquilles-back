@@ -1,10 +1,8 @@
 package com.mastere_project.vacances_tranquilles.controller;
 
 import com.mastere_project.vacances_tranquilles.dto.ConversationDTO;
-import com.mastere_project.vacances_tranquilles.dto.ConversationWithMessagesDTO;
-import com.mastere_project.vacances_tranquilles.dto.MessageDTO;
+import com.mastere_project.vacances_tranquilles.dto.ConversationSummaryDto;
 import com.mastere_project.vacances_tranquilles.service.ConversationService;
-import com.mastere_project.vacances_tranquilles.service.MessageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -18,15 +16,11 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import com.mastere_project.vacances_tranquilles.exception.ConversationNotFoundException;
 
 class ConversationControllerTest {
 
     @Mock
     private ConversationService conversationService;
-
-    @Mock
-    private MessageService messageService;
 
     @InjectMocks
     private ConversationController conversationController;
@@ -38,14 +32,12 @@ class ConversationControllerTest {
 
     @Test
     void getConversations_shouldReturnList() {
-        ConversationDTO c1 = new ConversationDTO();
-        c1.setId(1L);
-        ConversationDTO c2 = new ConversationDTO();
-        c2.setId(2L);
-        List<ConversationDTO> conversations = Arrays.asList(c1, c2);
+        ConversationSummaryDto c1 = new ConversationSummaryDto(1L, "User1", "Service1", null, null);
+        ConversationSummaryDto c2 = new ConversationSummaryDto(2L, "User2", "Service2", null, null);
+        List<ConversationSummaryDto> conversations = Arrays.asList(c1, c2);
         when(conversationService.getConversationsForUser()).thenReturn(conversations);
 
-        ResponseEntity<List<ConversationDTO>> response = conversationController.getConversations();
+        ResponseEntity<List<ConversationSummaryDto>> response = conversationController.getConversations();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(2, response.getBody().size());
     }
@@ -54,7 +46,7 @@ class ConversationControllerTest {
     void getConversations_shouldReturnEmptyList() {
         when(conversationService.getConversationsForUser()).thenReturn(List.of());
 
-        ResponseEntity<List<ConversationDTO>> response = conversationController.getConversations();
+        ResponseEntity<List<ConversationSummaryDto>> response = conversationController.getConversations();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(0, response.getBody().size());
     }
@@ -101,35 +93,6 @@ class ConversationControllerTest {
         req.setReservationId(null);
 
         ResponseEntity<Object> response = conversationController.createConversation(req);
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    }
-
-    @Test
-    void getConversationWithMessages_shouldReturnOk() {
-        ConversationDTO conv = new ConversationDTO();
-        conv.setId(2L);
-        List<MessageDTO> messages = Arrays.asList(new MessageDTO(), new MessageDTO());
-        when(conversationService.getConversationById(2L)).thenReturn(conv);
-        when(messageService.getMessagesByConversationId(2L)).thenReturn(messages);
-
-        ResponseEntity<ConversationWithMessagesDTO> response = conversationController.getConversationWithMessages(2L);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(conv, response.getBody().getConversation());
-        assertEquals(2, response.getBody().getMessages().size());
-    }
-
-    @Test
-    void getConversationWithMessages_shouldReturnBadRequest_whenException() {
-        when(conversationService.getConversationById(99L))
-                .thenThrow(new ConversationNotFoundException("Conversation not found: 99"));
-        
-        ResponseEntity<ConversationWithMessagesDTO> response = conversationController.getConversationWithMessages(99L);
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    }
-
-    @Test
-    void getConversationWithMessages_shouldReturnBadRequest_whenIdNull() {
-        ResponseEntity<ConversationWithMessagesDTO> response = conversationController.getConversationWithMessages(null);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 

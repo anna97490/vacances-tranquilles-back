@@ -1,6 +1,8 @@
 package com.mastere_project.vacances_tranquilles.service;
 
 import com.mastere_project.vacances_tranquilles.dto.ConversationDTO;
+import com.mastere_project.vacances_tranquilles.dto.ConversationSummaryDto;
+
 import java.util.List;
 
 /**
@@ -13,7 +15,7 @@ public interface ConversationService {
      *
      * @return la liste des conversations de l'utilisateur connecté
      */
-    List<ConversationDTO> getConversationsForUser();
+    List<ConversationSummaryDto> getConversationsForUser();
 
     /**
      * Crée une nouvelle conversation entre l'utilisateur connecté et un autre utilisateur pour une réservation spécifique.

@@ -16,5 +16,5 @@ import java.util.List;
 public class ConversationWithMessagesDTO {
 
     private ConversationDTO conversation;
-    private List<MessageDTO> messages;
+    private List<MessageResponseDTO> messages;
 } 

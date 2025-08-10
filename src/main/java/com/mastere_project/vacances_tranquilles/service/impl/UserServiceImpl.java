@@ -46,6 +46,7 @@ public class UserServiceImpl implements UserService {
     private final JwtConfig jwt;
     private static final int MAX_ATTEMPTS = 5;
     private static final long BLOCK_TIME_MS = 10 * 60 * 1000L; // 10 minutes
+    private static final String USER_NOT_FOUND_MESSAGE = "Utilisateur non trouvé";
     private final Map<String, Integer> loginAttempts = new ConcurrentHashMap<>();
     private final Map<String, Long> blockedUntil = new ConcurrentHashMap<>();
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
@@ -161,7 +162,6 @@ public class UserServiceImpl implements UserService {
                     "Erreur serveur inattendue lors de la tentative de connexion", e);
         }
     }
-
     
     /**
      * Récupère le profil de l'utilisateur authentifié.
@@ -175,7 +175,7 @@ public class UserServiceImpl implements UserService {
         
         // Vérification en base de données que l'utilisateur existe
         User user = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new AccessDeniedException("Utilisateur non trouvé."));
+                .orElseThrow(() -> new AccessDeniedException(USER_NOT_FOUND_MESSAGE));
 
         // Vérification que l'utilisateur n'est pas anonymisé
         if (Boolean.TRUE.equals(user.getIsAnonymized())) {
@@ -198,7 +198,7 @@ public class UserServiceImpl implements UserService {
 
         // Vérification en base de données que l'utilisateur existe
         User user = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new AccessDeniedException("Utilisateur non trouvé"));
+                .orElseThrow(() -> new AccessDeniedException(USER_NOT_FOUND_MESSAGE));
 
         // Vérification que l'utilisateur n'est pas anonymisé
         if (Boolean.TRUE.equals(user.getIsAnonymized())) {
@@ -223,7 +223,7 @@ public class UserServiceImpl implements UserService {
         
         // Vérification en base de données que l'utilisateur existe
         User user = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new AccessDeniedException("Utilisateur non trouvé"));
+                .orElseThrow(() -> new AccessDeniedException(USER_NOT_FOUND_MESSAGE));
 
         // Vérification que l'utilisateur n'est pas anonymisé
         if (Boolean.TRUE.equals(user.getIsAnonymized())) {
@@ -262,7 +262,7 @@ public class UserServiceImpl implements UserService {
     public UserBasicInfoDTO getUserBasicInfoById(final Long userId) throws AccessDeniedException {
         // Vérification en base de données que l'utilisateur existe
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AccessDeniedException("Utilisateur non trouvé"));
+                .orElseThrow(() -> new AccessDeniedException(USER_NOT_FOUND_MESSAGE));
 
         // Vérification que l'utilisateur n'est pas anonymisé
         if (Boolean.TRUE.equals(user.getIsAnonymized())) {

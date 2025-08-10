@@ -35,4 +35,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return un Optional contenant l'utilisateur s'il existe
      */
     Optional<User> findById(Long id);
+
+    /**
+     * Recherche un utilisateur par son nom de famille.
+     *
+     * @param lastName le nom de famille à rechercher
+     * @return un Optional contenant l'utilisateur s'il existe, sinon vide
+     */
+    Optional<User> findByLastName(String lastName);
 }

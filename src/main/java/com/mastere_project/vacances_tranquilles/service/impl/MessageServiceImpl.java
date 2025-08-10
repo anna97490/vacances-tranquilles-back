@@ -1,6 +1,7 @@
 package com.mastere_project.vacances_tranquilles.service.impl;
 
 import com.mastere_project.vacances_tranquilles.dto.MessageDTO;
+import com.mastere_project.vacances_tranquilles.dto.MessageResponseDTO;
 import com.mastere_project.vacances_tranquilles.entity.Conversation;
 import com.mastere_project.vacances_tranquilles.entity.Message;
 import com.mastere_project.vacances_tranquilles.entity.User;
@@ -14,6 +15,7 @@ import com.mastere_project.vacances_tranquilles.repository.UserRepository;
 import com.mastere_project.vacances_tranquilles.service.MessageService;
 import com.mastere_project.vacances_tranquilles.util.jwt.SecurityUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,63 +34,81 @@ public class MessageServiceImpl implements MessageService {
     private final UserRepository userRepository;
 
     public MessageServiceImpl(MessageRepository messageRepository,
-                              MessageMapper messageMapper,
-                              ConversationRepository conversationRepository,
-                              UserRepository userRepository) {
+            MessageMapper messageMapper,
+            ConversationRepository conversationRepository,
+            UserRepository userRepository) {
         this.messageRepository = messageRepository;
         this.messageMapper = messageMapper;
         this.conversationRepository = conversationRepository;
         this.userRepository = userRepository;
     }
 
+    /**
+     * Récupère tous les messages d'une conversation et marque les messages non lus
+     * comme lus.
+     * Vérifie que l'utilisateur connecté est participant de cette conversation.
+     *
+     * @param conversationId l'identifiant de la conversation
+     * @return la liste des messages de la conversation sous forme de DTO
+     * @throws UserNotFoundException          si l'utilisateur connecté n'existe pas
+     * @throws ConversationNotFoundException  si la conversation n'existe pas
+     * @throws ConversationForbiddenException si l'utilisateur n'est pas participant
+     *                                        de la conversation
+     */
+    @Transactional
     @Override
-    public List<MessageDTO> getMessagesByConversationId(Long conversationId) {
+    public List<MessageResponseDTO> getMessagesByConversationId(Long conversationId) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        
+
         // Vérifier que l'utilisateur connecté existe en base
         userRepository.findById(currentUserId)
                 .orElseThrow(() -> new UserNotFoundException(CURRENT_USER_NOT_FOUND_MESSAGE + currentUserId));
-        
+
         // Vérifier que la conversation existe
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new ConversationNotFoundException("Conversation not found: " + conversationId));
-        
+
         // Vérifier que l'utilisateur connecté est participant de cette conversation
-        if (!(conversation.getUser1().getId().equals(currentUserId) || conversation.getUser2().getId().equals(currentUserId))) {
+        if (!(conversation.getUser1().getId().equals(currentUserId)
+                || conversation.getUser2().getId().equals(currentUserId))) {
             throw new ConversationForbiddenException("User is not a participant in this conversation");
         }
-        
-        List<Message> messages = messageRepository.findByConversationIdOrderBySentAtAsc(conversationId);
-        boolean updated = false;
 
-        for (Message msg : messages) {
-            if (!msg.isRead() && !msg.getSender().getId().equals(currentUserId)) {
-                msg.setRead(true);
-                updated = true;
-            }
-        }
+        User whoIam = this.userRepository.getReferenceById(currentUserId);
 
-        if (updated) {
-            messageRepository.saveAll(messages);
-        }
+        messageRepository.markMessagesAsRead(conversationId, currentUserId);
 
-        return messages.stream().map(messageMapper::toDto).toList();
+        return messageRepository.findMessagesDTOByConversationId(conversationId,
+                whoIam.getFirstName() + " " + whoIam.getLastName());
     }
 
+    /**
+     * Envoie un nouveau message dans une conversation.
+     * Vérifie que l'utilisateur connecté est participant de cette conversation.
+     *
+     * @param messageDTO le DTO contenant les informations du message à envoyer
+     * @return le DTO du message envoyé
+     * @throws UserNotFoundException          si l'utilisateur connecté n'existe pas
+     * @throws ConversationNotFoundException  si la conversation n'existe pas
+     * @throws ConversationForbiddenException si l'utilisateur n'est pas participant
+     *                                        de la conversation
+     */
     @Override
     public MessageDTO sendMessage(MessageDTO messageDTO) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        
+
         // Vérifier que l'utilisateur connecté existe en base
         User currentUser = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new UserNotFoundException(CURRENT_USER_NOT_FOUND_MESSAGE + currentUserId));
-        
+
         Message message = messageMapper.toEntity(messageDTO);
 
         Conversation conversation = conversationRepository.findById(messageDTO.getConversationId())
-                .orElseThrow(() -> new ConversationNotFoundException("Conversation not found: " + messageDTO.getConversationId()));
+                .orElseThrow(() -> new ConversationNotFoundException(
+                        "Conversation not found: " + messageDTO.getConversationId()));
 
-        if (!(conversation.getUser1().getId().equals(currentUserId) || conversation.getUser2().getId().equals(currentUserId))) {
+        if (!(conversation.getUser1().getId().equals(currentUserId)
+                || conversation.getUser2().getId().equals(currentUserId))) {
             throw new ConversationForbiddenException("Sender is not a participant in this conversation");
         }
 
@@ -100,14 +120,26 @@ public class MessageServiceImpl implements MessageService {
         return messageMapper.toDto(messageRepository.save(message));
     }
 
+    /**
+     * Met à jour le contenu d'un message existant.
+     * Vérifie que l'utilisateur connecté est l'expéditeur du message.
+     *
+     * @param id         l'identifiant du message à mettre à jour
+     * @param messageDTO le DTO contenant le nouveau contenu du message
+     * @return le DTO du message mis à jour
+     * @throws UserNotFoundException          si l'utilisateur connecté n'existe pas
+     * @throws ConversationNotFoundException  si le message n'existe pas
+     * @throws ConversationForbiddenException si l'utilisateur n'est pas
+     *                                        l'expéditeur du message
+     */
     @Override
     public MessageDTO updateMessage(Long id, MessageDTO messageDTO) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        
+
         // Vérifier que l'utilisateur connecté existe en base
         userRepository.findById(currentUserId)
                 .orElseThrow(() -> new UserNotFoundException(CURRENT_USER_NOT_FOUND_MESSAGE));
-        
+
         Message message = messageRepository.findById(id)
                 .orElseThrow(() -> new ConversationNotFoundException("Message not found: " + id));
 

@@ -1,6 +1,7 @@
 package com.mastere_project.vacances_tranquilles.controller;
 
 import com.mastere_project.vacances_tranquilles.dto.MessageDTO;
+import com.mastere_project.vacances_tranquilles.dto.MessageResponseDTO;
 import com.mastere_project.vacances_tranquilles.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -45,13 +46,13 @@ public class MessageController {
      * @return une réponse contenant la liste des messages de la conversation
      */
     @GetMapping("/conversation/{conversationId}")
-    public ResponseEntity<List<MessageDTO>> getMessagesByConversation(@PathVariable Long conversationId) {
+    public ResponseEntity<List<MessageResponseDTO>> getMessagesByConversation(@PathVariable Long conversationId) {
         try {
             if (conversationId == null) {
                 return ResponseEntity.badRequest().build();
             }
             
-            List<MessageDTO> messages = messageService.getMessagesByConversationId(conversationId);
+            List<MessageResponseDTO> messages = messageService.getMessagesByConversationId(conversationId);
             return ResponseEntity.ok(messages);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();

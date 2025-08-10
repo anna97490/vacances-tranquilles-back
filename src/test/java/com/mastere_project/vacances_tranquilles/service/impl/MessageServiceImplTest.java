@@ -13,6 +13,7 @@ import com.mastere_project.vacances_tranquilles.repository.MessageRepository;
 import com.mastere_project.vacances_tranquilles.repository.UserRepository;
 import com.mastere_project.vacances_tranquilles.util.jwt.SecurityUtils;
 import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
+import com.mastere_project.vacances_tranquilles.dto.MessageResponseDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -48,21 +49,23 @@ class MessageServiceImplTest {
             User currentUser = new User(); 
             currentUser.setId(1L);
             currentUser.setUserRole(UserRole.CLIENT);
+            currentUser.setFirstName("John");
+            currentUser.setLastName("Doe");
             when(userRepository.findById(1L)).thenReturn(Optional.of(currentUser));
+            when(userRepository.getReferenceById(1L)).thenReturn(currentUser);
             
             Message m1 = new Message(); 
             m1.setId(1L); 
-            User sender = new User(); 
-            sender.setId(2L); 
-            m1.setSender(sender); 
-            m1.setRead(false);
+            m1.setRead(false); 
+            User sender1 = new User();
+            sender1.setId(2L);
+            m1.setSender(sender1);
             Message m2 = new Message(); 
             m2.setId(2L); 
-            User sender2 = new User(); 
-            sender2.setId(1L); 
-            m2.setSender(sender2); 
-            m2.setRead(false);
-            
+            m2.setRead(true); 
+            User sender2 = new User();
+            sender2.setId(1L);
+            m2.setSender(sender2);
             Conversation conv = new Conversation(); 
             conv.setId(10L);
             User u1 = new User(); 
@@ -74,13 +77,14 @@ class MessageServiceImplTest {
             
             when(conversationRepository.findById(10L)).thenReturn(Optional.of(conv));
             when(messageRepository.findByConversationIdOrderBySentAtAsc(10L)).thenReturn(List.of(m1, m2));
-            when(messageMapper.toDto(any())).thenReturn(new MessageDTO());
             when(messageRepository.saveAll(any())).thenReturn(List.of(m1, m2));
+            when(messageRepository.markMessagesAsRead(10L, 1L)).thenReturn(1);
+            when(messageRepository.findMessagesDTOByConversationId(10L, "John Doe")).thenReturn(List.of());
             
-            List<MessageDTO> result = service.getMessagesByConversationId(10L);
+            List<MessageResponseDTO> result = service.getMessagesByConversationId(10L);
             
-            assertEquals(2, result.size());
-            assertTrue(m1.isRead());
+            assertEquals(0, result.size());
+            verify(messageRepository).markMessagesAsRead(10L, 1L);
         }
     }
 
@@ -272,7 +276,10 @@ class MessageServiceImplTest {
             User currentUser = new User(); 
             currentUser.setId(1L);
             currentUser.setUserRole(UserRole.CLIENT);
+            currentUser.setFirstName("John");
+            currentUser.setLastName("Doe");
             when(userRepository.findById(1L)).thenReturn(Optional.of(currentUser));
+            when(userRepository.getReferenceById(1L)).thenReturn(currentUser);
             
             Conversation conv = new Conversation(); 
             conv.setId(10L);
@@ -285,8 +292,10 @@ class MessageServiceImplTest {
             
             when(conversationRepository.findById(10L)).thenReturn(Optional.of(conv));
             when(messageRepository.findByConversationIdOrderBySentAtAsc(10L)).thenReturn(List.of());
+            when(messageRepository.markMessagesAsRead(10L, 1L)).thenReturn(0);
+            when(messageRepository.findMessagesDTOByConversationId(10L, "John Doe")).thenReturn(List.of());
             
-            List<MessageDTO> result = service.getMessagesByConversationId(10L);
+            List<MessageResponseDTO> result = service.getMessagesByConversationId(10L);
             
             assertEquals(0, result.size());
         }
@@ -300,7 +309,10 @@ class MessageServiceImplTest {
             User currentUser = new User(); 
             currentUser.setId(1L);
             currentUser.setUserRole(UserRole.CLIENT);
+            currentUser.setFirstName("John");
+            currentUser.setLastName("Doe");
             when(userRepository.findById(1L)).thenReturn(Optional.of(currentUser));
+            when(userRepository.getReferenceById(1L)).thenReturn(currentUser);
             
             Message m1 = new Message(); 
             m1.setId(1L); 
@@ -326,13 +338,13 @@ class MessageServiceImplTest {
             
             when(conversationRepository.findById(10L)).thenReturn(Optional.of(conv));
             when(messageRepository.findByConversationIdOrderBySentAtAsc(10L)).thenReturn(List.of(m1, m2));
-            when(messageMapper.toDto(any())).thenReturn(new MessageDTO());
+            when(messageRepository.markMessagesAsRead(10L, 1L)).thenReturn(0);
+            when(messageRepository.findMessagesDTOByConversationId(10L, "John Doe")).thenReturn(List.of());
             
-            List<MessageDTO> result = service.getMessagesByConversationId(10L);
+            List<MessageResponseDTO> result = service.getMessagesByConversationId(10L);
             
-            assertEquals(2, result.size());
-            assertTrue(m1.isRead()); // Should remain read
-            assertFalse(m2.isRead()); // Own message should not be marked as read
+            assertEquals(0, result.size());
+            verify(messageRepository).markMessagesAsRead(10L, 1L);
         }
     }
 

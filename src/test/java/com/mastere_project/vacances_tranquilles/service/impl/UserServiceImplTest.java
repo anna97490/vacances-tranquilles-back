@@ -29,7 +29,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
@@ -244,7 +243,7 @@ class UserServiceImplTest {
             when(userRepository.findById(userId)).thenReturn(Optional.empty());
             
             AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> userService.getUserProfile());
-            assertEquals("Utilisateur non trouvé.", exception.getMessage());
+            assertEquals("Utilisateur non trouvé", exception.getMessage());
             
             verify(userRepository).findById(userId);
             verify(userMapper, never()).toUserProfileDTO(any());
@@ -809,8 +808,6 @@ class UserServiceImplTest {
     // nécessaire.
     // Ici, nous savons que le champ est bien du bon type car nous contrôlons le
     // contexte du test.
-    // Ce pattern est acceptable uniquement en test, jamais en production.
-    @SuppressWarnings("unchecked")
     @Test
     void getUserProfile_WhenUserMapperThrowsException_ShouldPropagateException() {
         Long userId = 37L;
@@ -892,13 +889,6 @@ class UserServiceImplTest {
         }
     }
 
-    // Suppression du warning "unchecked" :
-    // La réflexion retourne toujours un Object, donc un cast explicite est
-    // nécessaire.
-    // Ici, nous savons que le champ est bien du bon type car nous contrôlons le
-    // contexte du test.
-    // Ce pattern est acceptable uniquement en test, jamais en production.
-    @SuppressWarnings("unchecked")
     @Test
     void deleteUserAccount_WhenSecurityUtilsThrowsException_ShouldPropagateException() {
         try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
