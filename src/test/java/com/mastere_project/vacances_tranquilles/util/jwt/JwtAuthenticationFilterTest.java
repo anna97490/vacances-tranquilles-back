@@ -127,4 +127,3 @@ class JwtAuthenticationFilterTest {
         verify(filterChain).doFilter(request, response);
     }
 }
-

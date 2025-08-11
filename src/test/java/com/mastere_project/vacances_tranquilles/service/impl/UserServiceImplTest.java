@@ -203,8 +203,6 @@ class UserServiceImplTest {
         userDTO.setPassword("password123");
         
         // Simuler un compte bloqué en utilisant la réflexion pour accéder aux maps privées
-        // Note: Ce test nécessite une approche différente car les maps sont privées
-        // Pour l'instant, on teste le comportement normal
         when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(userDTO.getPassword(), mockUser.getPassword())).thenReturn(true);
         when(jwtConfig.generateToken(mockUser.getId(), mockUser.getUserRole())).thenReturn("jwt-token");
@@ -536,11 +534,6 @@ class UserServiceImplTest {
     }
 
 
-
-    // Tests pour les cas limites de business logic
-
-
-
     @Test
     void deleteUserAccount_WhenUserRepositorySaveThrowsException_ShouldPropagateException() {
         Long userId = 37L;
@@ -705,7 +698,6 @@ class UserServiceImplTest {
         userDTO.setEmail(null);
         userDTO.setPassword("password123");
         
-        // Le code actuel ne gère pas les emails null, donc on s'attend à une NullPointerException
         assertThrows(NullPointerException.class, () -> userService.login(userDTO));
     }
 

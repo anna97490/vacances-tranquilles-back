@@ -32,7 +32,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
- * Implémentation du service utilisateur gérant l'inscription, la connexion et la sécurité des utilisateurs.
+ * Implémentation du service utilisateur gérant l'inscription, la connexion et
+ * la sécurité des utilisateurs.
  */
 @Service
 public class UserServiceImpl implements UserService {
@@ -89,7 +90,7 @@ public class UserServiceImpl implements UserService {
      * Inscrit un nouveau prestataire.
      * 
      * @param dto les informations du prestataire à enregistrer
-     * @throws MissingFieldException si des champs obligatoires sont manquants
+     * @throws MissingFieldException       si des champs obligatoires sont manquants
      * @throws EmailAlreadyExistsException si l'email existe déjà
      */
     @Override
@@ -117,7 +118,7 @@ public class UserServiceImpl implements UserService {
      * @return un objet LoginResponseDTO contenant le token JWT et le rôle
      * @throws EmailNotFoundException si l'email n'existe pas
      * @throws WrongPasswordException si le mot de passe est incorrect
-     * @throws RuntimeException en cas d'erreur inattendue ou de compte bloqué
+     * @throws RuntimeException       en cas d'erreur inattendue ou de compte bloqué
      */
     @Override
     public LoginResponseDTO login(final UserDTO userDTO) {
