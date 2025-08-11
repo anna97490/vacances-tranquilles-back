@@ -23,7 +23,7 @@ public class JwtConfig {
 
     // Clé secrète utilisée pour signer les tokens JWT.
     private final String secretKey = dotenv.get("JWT_SECRET", "defaultSecretKeyForTesting12345678901234567890123456789012");
-
+// retirer recup de dotenv car pas de .env fonctionnel
     // Durée de validité du token JWT, ici : 1 heure (60 * 60 * 1000 ms).
     private static final long EXPIRATION_TIME_MS = 60L * 60 * 1000;
 

@@ -4,9 +4,10 @@ import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import java.time.LocalDateTime;
 
 /**
  * Entité JPA représentant un utilisateur (client ou prestataire) de la

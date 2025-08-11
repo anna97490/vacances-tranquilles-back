@@ -69,7 +69,6 @@ class ApplicationControllerAdviceTest {
     void handleAccountLockedException_shouldReturn423() {
         AccountLockedException ex = new AccountLockedException("Compte bloqué");
         ResponseEntity<ErrorEntity> response = advice.handleAccountLockedException(ex);
-        
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.LOCKED);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("ACCOUNT_LOCKED");
@@ -81,7 +80,6 @@ class ApplicationControllerAdviceTest {
     void handleLoginInternalException_shouldReturn500() {
         LoginInternalException ex = new LoginInternalException("Erreur interne", new RuntimeException());
         ResponseEntity<ErrorEntity> response = advice.handleLoginInternalException(ex);
-        
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("LOGIN_INTERNAL_ERROR");
@@ -93,7 +91,6 @@ class ApplicationControllerAdviceTest {
     void handleEmailNotFoundException_shouldReturn401() {
         EmailNotFoundException ex = new EmailNotFoundException("Email inconnu");
         ResponseEntity<ErrorEntity> response = advice.handleEmailNotFoundException(ex);
-        
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("EMAIL_NOT_FOUND");
@@ -105,7 +102,6 @@ class ApplicationControllerAdviceTest {
     void handleWrongPasswordException_shouldReturn401() {
         WrongPasswordException ex = new WrongPasswordException("Mot de passe incorrect");
         ResponseEntity<ErrorEntity> response = advice.handleWrongPasswordException(ex);
-        
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("WRONG_PASSWORD");
@@ -117,7 +113,6 @@ class ApplicationControllerAdviceTest {
     void handleUnexpectedLoginException_shouldReturn500() {
         UnexpectedLoginException ex = new UnexpectedLoginException("Erreur inattendue", new RuntimeException());
         ResponseEntity<ErrorEntity> response = advice.handleUnexpectedLoginException(ex);
-        
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("UNEXPECTED_LOGIN_ERROR");
@@ -125,56 +120,101 @@ class ApplicationControllerAdviceTest {
     }
 
     @Test
-    @DisplayName("Doit renvoyer une erreur 404 avec code SERVICE_NOT_FOUND et message correct")
-    void shouldHandleServiceNotFoundException() {
-        // Arrange
-        String message = "Le service n'a pas été trouvé.";
-        ServiceNotFoundException ex = new ServiceNotFoundException(message);
-
-        // Act
-        ResponseEntity<ErrorEntity> response = advice.handleServiceNotFound(ex);
-
-        // Assert
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getCode()).isEqualTo("SERVICE_NOT_FOUND");
-        assertThat(response.getBody().getMessage()).isEqualTo(message);
-    }
-
-    @Test
-    @DisplayName("handleInvalidToken should return 401 and error entity")
-    void handleInvalidToken_shouldReturn401() {
-        InvalidTokenException ex = new InvalidTokenException("Token JWT invalide ou expiré");
-        ResponseEntity<ErrorEntity> response = advice.handleInvalidToken(ex);
-        
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getCode()).isEqualTo("INVALID_TOKEN");
-        assertThat(response.getBody().getMessage()).isEqualTo("Token JWT invalide ou expiré");
-    }
-
-    @Test
-    @DisplayName("handleIllegalArgument should return 400 and error entity")
-    void handleIllegalArgument_shouldReturn400() {
-        IllegalArgumentException ex = new IllegalArgumentException("Argument invalide");
+    @DisplayName("handleIllegalArgumentException should return 400 and error entity")
+    void handleIllegalArgumentException_shouldReturn400() {
+        IllegalArgumentException ex = new IllegalArgumentException("Note invalide");
         ResponseEntity<ErrorEntity> response = advice.handleIllegalArgument(ex);
-        
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("INVALID_ARGUMENT");
-        assertThat(response.getBody().getMessage()).isEqualTo("Argument invalide");
+        assertThat(response.getBody().getMessage()).isEqualTo("Note invalide");
     }
 
     @Test
-    @DisplayName("handleAccessDenied should return 403 and error entity")
-    void handleAccessDenied_shouldReturn403() {
-        org.springframework.security.access.AccessDeniedException ex = 
-            new org.springframework.security.access.AccessDeniedException("Accès refusé");
-        ResponseEntity<ErrorEntity> response = advice.handleAccessDenied(ex);
-        
+    @DisplayName("handleAllExceptions should return 500 and error entity")
+    void handleAllExceptions_shouldReturn500() {
+        Exception ex = new Exception("Erreur inconnue");
+        ResponseEntity<ErrorEntity> response = advice.handleAllExceptions(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("INTERNAL_ERROR");
+        assertThat(response.getBody().getMessage()).isEqualTo("Erreur inconnue");
+    }
+
+    @Test
+    @DisplayName("handleReservationNotFound should return 404 and error entity")
+    void handleReservationNotFound_shouldReturn404() {
+        ReservationNotFoundException ex = new ReservationNotFoundException("Réservation introuvable");
+        ResponseEntity<ErrorEntity> response = advice.handleReservationNotFound(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("RESERVATION_NOT_FOUND");
+        assertThat(response.getBody().getMessage()).isEqualTo("Réservation introuvable");
+    }
+
+    @Test
+    @DisplayName("handleUnauthorizedAccess should return 403 and error entity")
+    void handleUnauthorizedAccess_shouldReturn403() {
+        UnauthorizedReservationAccessException ex = new UnauthorizedReservationAccessException("Accès non autorisé");
+        ResponseEntity<ErrorEntity> response = advice.handleUnauthorizedAccess(ex);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getCode()).isEqualTo("ACCESS_DENIED");
-        assertThat(response.getBody().getMessage()).isEqualTo("Accès refusé");
+        assertThat(response.getBody().getCode()).isEqualTo("UNAUTHORIZED_ACCESS");
+        assertThat(response.getBody().getMessage()).isEqualTo("Accès non autorisé");
+    }
+
+    @Test
+    @DisplayName("handleMissingReservationData should return 400 and error entity")
+    void handleMissingReservationData_shouldReturn400() {
+        MissingReservationDataException ex = new MissingReservationDataException("Données de réservation manquantes");
+        ResponseEntity<ErrorEntity> response = advice.handleMissingReservationData(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("MISSING_RESERVATION_DATA");
+        assertThat(response.getBody().getMessage()).isEqualTo("Données de réservation manquantes");
+    }
+
+    @Test
+    @DisplayName("handleInvalidReservationStatus should return 400 and error entity")
+    void handleInvalidReservationStatus_shouldReturn400() {
+        InvalidReservationStatusException ex = new InvalidReservationStatusException("Statut invalide");
+        ResponseEntity<ErrorEntity> response = advice.handleInvalidReservationStatus(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("INVALID_RESERVATION_STATUS");
+        assertThat(response.getBody().getMessage()).isEqualTo("Statut invalide");
+    }
+
+    @Test
+    @DisplayName("handleInvalidReservationStatusTransition should return 400 and error entity")
+    void handleInvalidReservationStatusTransition_shouldReturn400() {
+        InvalidReservationStatusTransitionException ex = new InvalidReservationStatusTransitionException("Transition invalide");
+        ResponseEntity<ErrorEntity> response = advice.handleInvalidReservationStatusTransition(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("INVALID_RESERVATION_STATUS_TRANSITION");
+        assertThat(response.getBody().getMessage()).isEqualTo("Transition invalide");
+    }
+
+    @Test
+    @DisplayName("handleServiceNotFound should return 404 and error entity")
+    void handleServiceNotFound_shouldReturn404() {
+        ServiceNotFoundException ex = new ServiceNotFoundException("Service introuvable");
+        ResponseEntity<ErrorEntity> response = advice.handleServiceNotFound(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("SERVICE_NOT_FOUND");
+        assertThat(response.getBody().getMessage()).isEqualTo("Service introuvable");
+    }
+
+    @Test
+    @DisplayName("handleUserNotFound should return 404 and error entity")
+    void handleUserNotFound_shouldReturn404() {
+        UserNotFoundException ex = new UserNotFoundException("Utilisateur introuvable");
+        ResponseEntity<ErrorEntity> response = advice.handleUserNotFound(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("USER_NOT_FOUND");
+        assertThat(response.getBody().getMessage()).isEqualTo("Utilisateur introuvable");
     }
 }
