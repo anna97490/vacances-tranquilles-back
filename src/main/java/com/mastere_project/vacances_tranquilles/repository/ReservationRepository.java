@@ -93,5 +93,4 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
      */
     @Query("SELECT r FROM Reservation r WHERE r.id = :id AND (r.client.id = :userId OR r.provider.id = :userId)")
     Optional<Reservation> findByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
-
 }

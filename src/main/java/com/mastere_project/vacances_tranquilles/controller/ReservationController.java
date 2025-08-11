@@ -101,6 +101,6 @@ public class ReservationController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<ReservationResponseDTO> updateStatus(@PathVariable Long id, @RequestBody UpdateReservationStatusDTO dto) {
         ReservationResponseDTO updated = reservationService.changeStatusOfReservationByProvider(id, dto);
-    return ResponseEntity.ok(updated);
-}
+        return ResponseEntity.ok(updated);
+    }
 }
