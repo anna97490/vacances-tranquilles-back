@@ -118,15 +118,16 @@ class ReservationMapperImplTest {
     }
 
     @Test
-    @DisplayName("toResponseDTO should set createdAt and updatedAt based on reservationDate at midnight")
-    void toResponseDTO_shouldSetCreatedAndUpdatedAt() {
+    @DisplayName("toResponseDTO should map client and provider information correctly")
+    void toResponseDTO_shouldMapClientAndProviderInfo() {
         Reservation reservation = createSampleReservation();
-        LocalDateTime expected = reservation.getReservationDate().atStartOfDay();
 
         ReservationResponseDTO result = reservationMapper.toResponseDTO(reservation);
 
-        assertThat(result.getCreatedAt()).isEqualTo(expected);
-        assertThat(result.getUpdatedAt()).isEqualTo(expected);
+        assertThat(result.getClientId()).isEqualTo(1L);
+        assertThat(result.getClientName()).isEqualTo("John Doe");
+        assertThat(result.getProviderId()).isEqualTo(2L);
+        assertThat(result.getProviderName()).isEqualTo("Jane Smith");
     }
 
     @Test
@@ -209,11 +210,62 @@ class ReservationMapperImplTest {
         assertThat(result.getTotalPrice()).isEqualTo(BigDecimal.valueOf(200.75));
     }
 
-    /**
-     * Crée une réservation de test avec des données valides.
-     * 
-     * @return Une réservation de test
-     */
+    @Test
+    @DisplayName("toResponseDTO should handle null client and provider")
+    void toResponseDTO_shouldHandleNullClientAndProvider() {
+        Reservation reservation = createSampleReservation();
+        reservation.setClient(null);
+        reservation.setProvider(null);
+
+        ReservationResponseDTO result = reservationMapper.toResponseDTO(reservation);
+
+        assertThat(result.getClientId()).isNull();
+        assertThat(result.getClientName()).isNull();
+        assertThat(result.getClientEmail()).isNull();
+        assertThat(result.getProviderId()).isNull();
+        assertThat(result.getProviderName()).isNull();
+        assertThat(result.getProviderEmail()).isNull();
+    }
+
+    @Test
+    @DisplayName("toResponseDTO should handle null conversation")
+    void toResponseDTO_shouldHandleNullConversation() {
+        Reservation reservation = createSampleReservation();
+        reservation.setConversation(null);
+
+        ReservationResponseDTO result = reservationMapper.toResponseDTO(reservation);
+
+        assertThat(result.getConversationId()).isNull();
+    }
+
+    @Test
+    @DisplayName("toResponseDTO should handle null startDate and endDate")
+    void toResponseDTO_shouldHandleNullStartAndEndDates() {
+        Reservation reservation = createSampleReservation();
+        reservation.setStartDate(null);
+        reservation.setEndDate(null);
+
+        ReservationResponseDTO result = reservationMapper.toResponseDTO(reservation);
+
+        assertThat(result.getStartDate()).isNull();
+        assertThat(result.getEndDate()).isNull();
+        assertThat(result.getReservationDate()).isNotNull(); // reservationDate reste non-null
+    }
+
+    @Test
+    @DisplayName("toDTO should handle null startDate and endDate")
+    void toDTO_shouldHandleNullStartAndEndDates() {
+        Reservation reservation = createSampleReservation();
+        reservation.setStartDate(null);
+        reservation.setEndDate(null);
+
+        ReservationDTO result = reservationMapper.toDTO(reservation);
+
+        assertThat(result.getStartDate()).isNull();
+        assertThat(result.getEndDate()).isNull();
+        assertThat(result.getReservationDate()).isNotNull(); // reservationDate reste non-null
+    }
+
     private Reservation createSampleReservation() {
         Reservation reservation = new Reservation();
         reservation.setId(1L);

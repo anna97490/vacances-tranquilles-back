@@ -18,10 +18,6 @@ import java.util.List;
  * incluant la récupération et la modification des statuts.
  * Le rôle de l'utilisateur est automatiquement déterminé côté serveur.
  * Cette interface centralise la logique métier pour assurer la cohérence des opérations.
- * 
- * @author VacancesTranquilles
- * @version 1.0
- * @since 1.0
  */
 public interface ReservationService {
     /**
