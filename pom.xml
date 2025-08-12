@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.mastere-project</groupId>
 	<artifactId>vacances-tranquilles</artifactId>
-	<version>0.3.0</version>
+	<version>0.5.0</version>
 	<name>vacances-tranquilles</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
@@ -126,6 +126,16 @@
   			<groupId>com.stripe</groupId>
   			<artifactId>stripe-java</artifactId>
   			<version>24.10.0</version>
+		</dependency>
+
+
+		<dependency>
+ 			 <groupId>org.springframework.boot</groupId>
+ 			 <artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+		  <groupId>io.micrometer</groupId>
+		  <artifactId>micrometer-registry-prometheus</artifactId>
 		</dependency>
 
 
