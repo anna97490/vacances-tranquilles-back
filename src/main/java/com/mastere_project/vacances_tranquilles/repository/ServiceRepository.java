@@ -7,9 +7,12 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface ServiceRepository extends JpaRepository<Service, Long> {
         List<Service> findByProviderId(Long providerId);
+
+        Optional<Service> findById(Long id);
 
         @Query("SELECT s FROM Service s " +
                         "JOIN s.provider p " +

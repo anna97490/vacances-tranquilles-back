@@ -21,7 +21,7 @@ class ApplicationControllerAdviceTest {
     void handleEmailAlreadyExists_shouldReturn409() {
         EmailAlreadyExistsException ex = new EmailAlreadyExistsException("Email déjà utilisé");
         ResponseEntity<ErrorEntity> response = advice.handleEmailAlreadyExists(ex);
-        
+
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("EMAIL_ALREADY_USED");
@@ -33,7 +33,7 @@ class ApplicationControllerAdviceTest {
     void handleMissingField_shouldReturn400() {
         MissingFieldException ex = new MissingFieldException("Champ manquant");
         ResponseEntity<ErrorEntity> response = advice.handleMissingField(ex);
-        
+
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("MISSING_REQUIRED_FIELD");
@@ -188,7 +188,8 @@ class ApplicationControllerAdviceTest {
     @Test
     @DisplayName("handleInvalidReservationStatusTransition should return 400 and error entity")
     void handleInvalidReservationStatusTransition_shouldReturn400() {
-        InvalidReservationStatusTransitionException ex = new InvalidReservationStatusTransitionException("Transition invalide");
+        InvalidReservationStatusTransitionException ex = new InvalidReservationStatusTransitionException(
+                "Transition invalide");
         ResponseEntity<ErrorEntity> response = advice.handleInvalidReservationStatusTransition(ex);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody()).isNotNull();
@@ -216,5 +217,28 @@ class ApplicationControllerAdviceTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("USER_NOT_FOUND");
         assertThat(response.getBody().getMessage()).isEqualTo("Utilisateur introuvable");
+    }
+
+    @Test
+    @DisplayName("handleStripeException should return 500 and error entity")
+    void handleStripeException_shouldReturn500() {
+        StripeException ex = new StripeException("Erreur lors de l'opération Stripe");
+        ResponseEntity<ErrorEntity> response = advice.handleStripeException(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("STRIPE_ERROR");
+        assertThat(response.getBody().getMessage()).isEqualTo("Erreur lors de l'opération Stripe");
+    }
+
+    @Test
+    @DisplayName("handleStripeSessionCreationException should return 500 and error entity")
+    void handleStripeSessionCreationException_shouldReturn500() {
+        StripeSessionCreationException ex = new StripeSessionCreationException(
+                "La création de la session Stripe a échoué");
+        ResponseEntity<ErrorEntity> response = advice.handleStripeSessionCreationException(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("STRIPE_SESSION_CREATION_ERROR");
+        assertThat(response.getBody().getMessage()).isEqualTo("La création de la session Stripe a échoué");
     }
 }
