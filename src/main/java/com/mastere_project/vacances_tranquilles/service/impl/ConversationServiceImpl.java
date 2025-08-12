@@ -2,6 +2,7 @@ package com.mastere_project.vacances_tranquilles.service.impl;
 
 import com.mastere_project.vacances_tranquilles.dto.ConversationDTO;
 import com.mastere_project.vacances_tranquilles.dto.ConversationSummaryDto;
+import com.mastere_project.vacances_tranquilles.dto.ReservationResponseDTO;
 import com.mastere_project.vacances_tranquilles.entity.Conversation;
 import com.mastere_project.vacances_tranquilles.entity.User;
 import com.mastere_project.vacances_tranquilles.entity.Reservation;
@@ -11,6 +12,7 @@ import com.mastere_project.vacances_tranquilles.exception.ConversationNotFoundEx
 import com.mastere_project.vacances_tranquilles.exception.UserNotFoundException;
 import com.mastere_project.vacances_tranquilles.exception.ReservationNotFoundException;
 import com.mastere_project.vacances_tranquilles.mapper.ConversationMapper;
+import com.mastere_project.vacances_tranquilles.mapper.ReservationMapper;
 import com.mastere_project.vacances_tranquilles.model.enums.UserRole;
 import com.mastere_project.vacances_tranquilles.model.enums.ReservationStatus;
 import com.mastere_project.vacances_tranquilles.repository.ConversationRepository;
@@ -37,22 +39,24 @@ public class ConversationServiceImpl implements ConversationService {
     private final UserRepository userRepository;
     private final ReservationRepository reservationRepository;
     private final ConversationMapper conversationMapper;
+    private final ReservationMapper reservationMapper;
 
     public ConversationServiceImpl(
             ConversationRepository conversationRepository,
             UserRepository userRepository,
             ReservationRepository reservationRepository,
-            ConversationMapper conversationMapper) {
+            ConversationMapper conversationMapper,
+            ReservationMapper reservationMapper) {
         this.conversationRepository = conversationRepository;
         this.userRepository = userRepository;
         this.reservationRepository = reservationRepository;
         this.conversationMapper = conversationMapper;
+        this.reservationMapper = reservationMapper;
     }
 
     /**
      * Récupère toutes les conversations de l'utilisateur connecté.
-     * Vérifie que l'utilisateur existe en base avant de récupérer ses
-     * conversations.
+     * Vérifie que l'utilisateur existe en base avant de récupérer ses conversations.
      *
      * @return la liste des résumés de conversations de l'utilisateur
      * @throws UserNotFoundException si l'utilisateur connecté n'existe pas en base
@@ -61,8 +65,7 @@ public class ConversationServiceImpl implements ConversationService {
     public List<ConversationSummaryDto> getConversationsForUser() {
         Long currentUserId = SecurityUtils.getCurrentUserId();
 
-        // Vérifier que l'utilisateur connecté existe en base et récupérer ses
-        // informations
+        // Vérifier que l'utilisateur connecté existe en base et récupérer ses informations
         userRepository.findById(currentUserId)
                 .orElseThrow(() -> new UserNotFoundException(CURRENT_USER_NOT_FOUND_MESSAGE));
 
@@ -70,43 +73,48 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     /**
-     * Crée une nouvelle conversation entre l'utilisateur connecté et un autre
-     * utilisateur
-     * pour une réservation spécifique. Effectue plusieurs validations avant la
-     * création.
+     * Crée une nouvelle conversation entre l'utilisateur connecté et un autre utilisateur
+     * pour une réservation spécifique. Effectue plusieurs validations avant la création.
      *
-     * @param otherUserId   l'identifiant de l'autre utilisateur
      * @param reservationId l'identifiant de la réservation
      * @return le DTO de la conversation créée
-     * @throws UserNotFoundException              si l'un des utilisateurs n'existe
-     *                                            pas
+     * @throws UserNotFoundException              si l'un des utilisateurs n'existe pas
      * @throws ReservationNotFoundException       si la réservation n'existe pas
-     * @throws ConversationForbiddenException     si la création de conversation
-     *                                            n'est pas autorisée
-     * @throws ConversationAlreadyExistsException si une conversation existe déjà
-     *                                            pour cette réservation
+     * @throws ConversationForbiddenException     si la création de conversation n'est pas autorisée
+     * @throws ConversationAlreadyExistsException si une conversation existe déjà pour cette réservation
      */
     @Override
-    public ConversationDTO createConversation(Long otherUserId, Long reservationId) {
+    public ConversationDTO createConversation(Long reservationId) {
+        if (reservationId == null) {
+            throw new IllegalArgumentException("Reservation ID cannot be null");
+        }
+
         Long currentUserId = SecurityUtils.getCurrentUserId();
 
         // Vérifier que l'utilisateur connecté existe en base
         User currentUser = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new UserNotFoundException(CURRENT_USER_NOT_FOUND_MESSAGE + currentUserId));
 
-        if (currentUserId.equals(otherUserId)) {
-            throw new ConversationForbiddenException("Cannot create a conversation with yourself");
-        }
-
-        User otherUser = userRepository.findById(otherUserId)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-
         // Vérifier que la réservation existe et a le bon statut
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new ReservationNotFoundException("Reservation not found"));
 
-        // Vérifier que le statut de la réservation permet la création d'une
-        // conversation
+        // Vérifier que l'utilisateur connecté est participant de cette réservation
+        if (!reservation.getClient().getId().equals(currentUserId) && !reservation.getProvider().getId().equals(currentUserId)) {
+            throw new ConversationForbiddenException("You are not authorized to create a conversation for this reservation");
+        }
+
+        // Déterminer automatiquement l'autre utilisateur à partir de la réservation
+        User otherUser;
+        if (reservation.getClient().getId().equals(currentUserId)) {
+            // L'utilisateur connecté est le client, l'autre est le provider
+            otherUser = reservation.getProvider();
+        } else {
+            // L'utilisateur connecté est le provider, l'autre est le client
+            otherUser = reservation.getClient();
+        }
+
+        // Vérifier que le statut de la réservation permet la création d'une conversation
         if (reservation.getStatus() != ReservationStatus.IN_PROGRESS) {
             throw new ConversationForbiddenException(
                     "Cannot create a conversation for a reservation with status: " + reservation.getStatus());
@@ -117,8 +125,7 @@ public class ConversationServiceImpl implements ConversationService {
 
         // Vérifier qu'une conversation n'existe pas déjà pour cette réservation
         if (reservation.getConversation() != null) {
-            throw new ConversationAlreadyExistsException(
-                    "A conversation already exists for reservation: " + reservationId);
+            throw new ConversationAlreadyExistsException("A conversation already exists for reservation: " + reservationId);
         }
 
         Conversation conversation = new Conversation();
@@ -126,6 +133,10 @@ public class ConversationServiceImpl implements ConversationService {
         conversation.setUser2(otherUser);
         conversation.setCreatedAt(LocalDateTime.now());
         Conversation saved = conversationRepository.save(conversation);
+
+        // Mettre à jour la réservation avec l'ID de la conversation
+        reservation.setConversation(saved);
+        reservationRepository.save(reservation);
 
         return conversationMapper.toDto(saved);
     }
@@ -138,15 +149,17 @@ public class ConversationServiceImpl implements ConversationService {
      * @return le DTO de la conversation
      * @throws UserNotFoundException          si l'utilisateur connecté n'existe pas
      * @throws ConversationNotFoundException  si la conversation n'existe pas
-     * @throws ConversationForbiddenException si l'utilisateur n'est pas participant
-     *                                        de la conversation
+     * @throws ConversationForbiddenException si l'utilisateur n'est pas participant de la conversation
      */
     @Override
     public ConversationDTO getConversationById(Long conversationId) {
+        if (conversationId == null) {
+            throw new IllegalArgumentException("Conversation ID cannot be null");
+        }
+
         Long currentUserId = SecurityUtils.getCurrentUserId();
 
-        // Vérifier que l'utilisateur connecté existe en base et récupérer ses
-        // informations
+        // Vérifier que l'utilisateur connecté existe en base et récupérer ses informations
         userRepository.findById(currentUserId)
                 .orElseThrow(() -> new UserNotFoundException(CURRENT_USER_NOT_FOUND_MESSAGE));
 
@@ -164,8 +177,7 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     /**
-     * Valide que les rôles des utilisateurs sont compatibles pour créer une
-     * conversation.
+     * Valide que les rôles des utilisateurs sont compatibles pour créer une conversation.
      * Une conversation ne peut être créée qu'entre un CLIENT et un PROVIDER.
      *
      * @param user1 le premier utilisateur
@@ -185,5 +197,43 @@ public class ConversationServiceImpl implements ConversationService {
                     "A conversation can only be created between a client and a provider. " +
                             "Current roles: " + role1 + " and " + role2);
         }
+    }
+
+    /**
+     * Récupère les informations de la réservation associée à une conversation.
+     * Vérifie que l'utilisateur connecté est participant de cette conversation.
+     *
+     * @param conversationId l'identifiant de la conversation
+     * @return le DTO de la réservation associée
+     * @throws UserNotFoundException          si l'utilisateur connecté n'existe pas
+     * @throws ConversationNotFoundException  si la conversation n'existe pas
+     * @throws ConversationForbiddenException si l'utilisateur n'est pas participant de la conversation
+     */
+    @Override
+    public ReservationResponseDTO getReservationByConversationId(Long conversationId) {
+        if (conversationId == null) {
+            throw new IllegalArgumentException("Conversation ID cannot be null");
+        }
+
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+
+        // Vérifier que l'utilisateur connecté existe en base
+        userRepository.findById(currentUserId)
+                .orElseThrow(() -> new UserNotFoundException(CURRENT_USER_NOT_FOUND_MESSAGE + currentUserId));
+
+        // Vérifier que la conversation existe
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new ConversationNotFoundException("Conversation not found: " + conversationId));
+
+        // Vérifier que l'utilisateur connecté est participant de cette conversation
+        if (!conversation.getUser1().getId().equals(currentUserId) && !conversation.getUser2().getId().equals(currentUserId)) {
+            throw new ConversationForbiddenException("You are not authorized to access this conversation");
+        }
+
+        // Récupérer la réservation associée à cette conversation
+        Reservation reservation = reservationRepository.findByConversationId(conversationId)
+                .orElseThrow(() -> new ReservationNotFoundException("No reservation found for conversation: " + conversationId));
+
+        return reservationMapper.toResponseDTO(reservation);
     }
 }

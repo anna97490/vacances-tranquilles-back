@@ -36,7 +36,8 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
         r.startDate
     )
     FROM Reservation r
-    WHERE r.client.id = :userId OR r.provider.id = :userId
+    WHERE (r.client.id = :userId OR r.provider.id = :userId)
+    AND r.conversation IS NOT NULL
     ORDER BY r.reservationDate DESC, r.startDate DESC
     """)
     List<ConversationSummaryDto> findConversationsForUser(@Param("userId") Long userId);

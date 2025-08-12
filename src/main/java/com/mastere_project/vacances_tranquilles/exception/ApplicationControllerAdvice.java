@@ -258,4 +258,40 @@ public class ApplicationControllerAdvice {
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
+    /**
+     * Gère l'exception levée lorsqu'une conversation n'est pas trouvée.
+     *
+     * @param ex l'exception ConversationNotFoundException
+     * @return une réponse HTTP 404 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(ConversationNotFoundException.class)
+    public ResponseEntity<ErrorEntity> handleConversationNotFound(ConversationNotFoundException ex) {
+        ErrorEntity error = new ErrorEntity("CONVERSATION_NOT_FOUND", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    /**
+     * Gère l'exception levée lorsqu'un accès à une conversation est interdit.
+     *
+     * @param ex l'exception ConversationForbiddenException
+     * @return une réponse HTTP 403 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(ConversationForbiddenException.class)
+    public ResponseEntity<ErrorEntity> handleConversationForbidden(ConversationForbiddenException ex) {
+        ErrorEntity error = new ErrorEntity("CONVERSATION_FORBIDDEN", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+    }
+
+    /**
+     * Gère l'exception levée lorsqu'une conversation existe déjà.
+     *
+     * @param ex l'exception ConversationAlreadyExistsException
+     * @return une réponse HTTP 409 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(ConversationAlreadyExistsException.class)
+    public ResponseEntity<ErrorEntity> handleConversationAlreadyExists(ConversationAlreadyExistsException ex) {
+        ErrorEntity error = new ErrorEntity("CONVERSATION_ALREADY_EXISTS", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
 }

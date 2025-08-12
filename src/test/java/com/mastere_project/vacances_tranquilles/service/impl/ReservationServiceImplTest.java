@@ -247,9 +247,10 @@ class ReservationServiceImplTest {
         createDTO.setClientId(clientId);
         createDTO.setProviderId(providerId);
         createDTO.setServiceId(serviceId);
-        createDTO.setReservationDate(LocalDateTime.now().plusDays(1));
-        createDTO.setStartDate(LocalDateTime.now().plusDays(1));
-        createDTO.setEndDate(LocalDateTime.now().plusDays(1).plusHours(2));
+        LocalDateTime now = LocalDateTime.now();
+        createDTO.setReservationDate(now.plusDays(1));
+        createDTO.setStartDate(now);
+        createDTO.setEndDate(now.plusHours(2));
         createDTO.setTotalPrice(BigDecimal.valueOf(100.0));
 
         Reservation savedReservation = createSampleReservation(1L, ReservationStatus.PENDING);
@@ -271,6 +272,53 @@ class ReservationServiceImplTest {
             verify(serviceRepository).findById(serviceId);
             verify(reservationRepository).save(any(Reservation.class));
             verify(reservationMapper).toResponseDTO(savedReservation);
+        }
+    }
+
+    @Test
+    @DisplayName("createReservation should map LocalDateTime to LocalDate/LocalTime for entity")
+    void createReservation_shouldMapDateTimeToEntityTypes() {
+        Long currentUserId = 1L;
+        Long clientId = 1L;
+        Long providerId = 2L;
+        Long serviceId = 1L;
+
+        User client = createSampleUser(clientId, UserRole.CLIENT);
+        User provider = createSampleUser(providerId, UserRole.PROVIDER);
+        Service service = createSampleService(serviceId, provider);
+
+        LocalDateTime now = LocalDateTime.of(2025, 8, 9, 10, 0);
+        ReservationDTO dto = new ReservationDTO();
+        dto.setClientId(clientId);
+        dto.setProviderId(providerId);
+        dto.setServiceId(serviceId);
+        dto.setReservationDate(now);
+        dto.setStartDate(now);
+        dto.setEndDate(now.plusHours(1));
+        dto.setTotalPrice(BigDecimal.valueOf(90.0));
+
+        Reservation captured = new Reservation();
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(invocation -> {
+            Reservation r = invocation.getArgument(0);
+            captured.setReservationDate(r.getReservationDate());
+            captured.setStartDate(r.getStartDate());
+            captured.setEndDate(r.getEndDate());
+            return r;
+        });
+
+        try (MockedStatic<SecurityUtils> mocked = mockStatic(SecurityUtils.class)) {
+            mocked.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+            when(userRepository.findById(clientId)).thenReturn(Optional.of(client));
+            when(userRepository.findById(providerId)).thenReturn(Optional.of(provider));
+            when(serviceRepository.findById(serviceId)).thenReturn(Optional.of(service));
+
+            // Exécute
+            assertThatCode(() -> reservationService.createReservation(dto)).doesNotThrowAnyException();
+
+            // Vérifie mapping
+            assertThat(captured.getReservationDate()).isEqualTo(now.toLocalDate());
+            assertThat(captured.getStartDate()).isEqualTo(now.toLocalTime());
+            assertThat(captured.getEndDate()).isEqualTo(now.plusHours(1).toLocalTime());
         }
     }
 
@@ -359,9 +407,8 @@ class ReservationServiceImplTest {
         dto.setId(id);
         dto.setStatus(status);
         dto.setReservationDate(LocalDateTime.now());
-        dto.setReservationDate(LocalDateTime.now().plusDays(1));
-        dto.setStartDate(LocalDateTime.now().plusDays(1));
-        dto.setEndDate(LocalDateTime.now().plusDays(2));
+        dto.setStartDate(LocalDateTime.now());
+        dto.setEndDate(LocalDateTime.now().plusHours(2));
         dto.setTotalPrice(BigDecimal.valueOf(100.0));
 
         return dto;

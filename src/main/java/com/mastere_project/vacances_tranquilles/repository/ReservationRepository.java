@@ -93,4 +93,14 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
      */
     @Query("SELECT r FROM Reservation r WHERE r.id = :id AND (r.client.id = :userId OR r.provider.id = :userId)")
     Optional<Reservation> findByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
+
+    /**
+     * Trouve une réservation par l'identifiant de sa conversation.
+     * Récupère la réservation associée à une conversation spécifique.
+     *
+     * @param conversationId L'identifiant de la conversation
+     * @return Optional contenant la réservation si trouvée
+     * @throws IllegalArgumentException si conversationId est null
+     */
+    Optional<Reservation> findByConversationId(Long conversationId);
 }

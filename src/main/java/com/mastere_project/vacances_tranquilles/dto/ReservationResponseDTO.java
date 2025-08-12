@@ -18,4 +18,15 @@ public class ReservationResponseDTO {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private BigDecimal totalPrice;
+    
+    // Informations sur les utilisateurs
+    private Long clientId;
+    private String clientName;
+    private String clientEmail;
+    private Long providerId;
+    private String providerName;
+    private String providerEmail;
+    
+    // ID de la conversation si elle existe
+    private Long conversationId;
 } 

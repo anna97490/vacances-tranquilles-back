@@ -137,6 +137,7 @@ class MessageServiceImplTest {
             
             MessageDTO dto = new MessageDTO(); 
             dto.setConversationId(10L);
+            dto.setContent("test message");
             when(messageMapper.toEntity(dto)).thenReturn(new Message());
             when(conversationRepository.findById(10L)).thenReturn(Optional.empty());
             
@@ -156,6 +157,7 @@ class MessageServiceImplTest {
             
             MessageDTO dto = new MessageDTO(); 
             dto.setConversationId(10L);
+            dto.setContent("test message");
             Message entity = new Message();
             Conversation conv = new Conversation(); 
             conv.setId(10L);
@@ -182,6 +184,7 @@ class MessageServiceImplTest {
             
             MessageDTO dto = new MessageDTO(); 
             dto.setConversationId(10L);
+            dto.setContent("test message");
             Message entity = new Message();
             Conversation conv = new Conversation(); 
             conv.setId(10L);
@@ -240,6 +243,7 @@ class MessageServiceImplTest {
             
             when(messageRepository.findById(1L)).thenReturn(Optional.empty());
             MessageDTO dto = new MessageDTO();
+            dto.setContent("test message");
             
             assertThrows(ConversationNotFoundException.class, () -> service.updateMessage(1L, dto));
         }
@@ -263,6 +267,7 @@ class MessageServiceImplTest {
             
             when(messageRepository.findById(1L)).thenReturn(Optional.of(m));
             MessageDTO dto = new MessageDTO();
+            dto.setContent("test message");
             
             assertThrows(ConversationForbiddenException.class, () -> service.updateMessage(1L, dto));
         }
@@ -405,12 +410,69 @@ class MessageServiceImplTest {
             dto.setContent(null); // Test null content
             
             when(messageRepository.findById(1L)).thenReturn(Optional.of(m));
-            when(messageRepository.save(any())).thenReturn(m);
-            when(messageMapper.toDto(m)).thenReturn(dto);
             
-            MessageDTO result = service.updateMessage(1L, dto);
+            assertThrows(IllegalArgumentException.class, () -> service.updateMessage(1L, dto));
+        }
+    }
+
+    @Test
+    void testSendMessageWithNullContent() {
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(2L);
             
-            assertEquals(null, result.getContent());
+            User currentUser = new User(); 
+            currentUser.setId(2L);
+            currentUser.setUserRole(UserRole.PROVIDER);
+            when(userRepository.findById(2L)).thenReturn(Optional.of(currentUser));
+            
+            MessageDTO dto = new MessageDTO(); 
+            dto.setConversationId(10L); 
+            dto.setContent(null); // Test null content
+            
+            assertThrows(IllegalArgumentException.class, () -> service.sendMessage(dto));
+        }
+    }
+
+    @Test
+    void testSendMessageWithEmptyContent() {
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(2L);
+            
+            User currentUser = new User(); 
+            currentUser.setId(2L);
+            currentUser.setUserRole(UserRole.PROVIDER);
+            when(userRepository.findById(2L)).thenReturn(Optional.of(currentUser));
+            
+            MessageDTO dto = new MessageDTO(); 
+            dto.setConversationId(10L); 
+            dto.setContent(""); // Test empty content
+            
+            assertThrows(IllegalArgumentException.class, () -> service.sendMessage(dto));
+        }
+    }
+
+    @Test
+    void testUpdateMessageWithEmptyContent() {
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(2L);
+            
+            User currentUser = new User(); 
+            currentUser.setId(2L);
+            currentUser.setUserRole(UserRole.PROVIDER);
+            when(userRepository.findById(2L)).thenReturn(Optional.of(currentUser));
+            
+            Message m = new Message(); 
+            m.setId(1L); 
+            User sender = new User(); 
+            sender.setId(2L); 
+            m.setSender(sender); 
+            m.setContent("old");
+            MessageDTO dto = new MessageDTO(); 
+            dto.setContent(""); // Test empty content
+            
+            when(messageRepository.findById(1L)).thenReturn(Optional.of(m));
+            
+            assertThrows(IllegalArgumentException.class, () -> service.updateMessage(1L, dto));
         }
     }
 } 

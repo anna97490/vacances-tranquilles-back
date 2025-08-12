@@ -35,6 +35,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
      * @return la liste des messages sous forme de DTO triés par date d'envoi croissante
      */
     @Query("SELECT new com.mastere_project.vacances_tranquilles.dto.MessageResponseDTO(" +
+       "m.id, " +
        "concat(m.sender.firstName, ' ', m.sender.lastName), " +
        "m.content, " +
        "m.sentAt, " +

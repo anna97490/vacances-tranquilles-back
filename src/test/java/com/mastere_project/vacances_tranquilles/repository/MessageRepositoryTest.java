@@ -98,10 +98,8 @@ class MessageRepositoryTest {
 
     @Test
     void findByConversationIdOrderBySentAtAsc_shouldReturnMessagesInOrder() {
-        // When
         List<Message> result = messageRepository.findByConversationIdOrderBySentAtAsc(conversation.getId());
 
-        // Then
         assertNotNull(result);
         assertEquals(3, result.size());
         
@@ -116,26 +114,22 @@ class MessageRepositoryTest {
 
     @Test
     void findByConversationIdOrderBySentAtAsc_shouldReturnEmptyList_whenNoMessages() {
-        // Given - Créer une conversation sans messages
+        // Créer une conversation sans messages
         Conversation emptyConversation = new Conversation();
         emptyConversation.setUser1(sender);
         emptyConversation.setUser2(receiver);
         emptyConversation = entityManager.persistAndFlush(emptyConversation);
 
-        // When
         List<Message> result = messageRepository.findByConversationIdOrderBySentAtAsc(emptyConversation.getId());
 
-        // Then
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
 
     @Test
     void findMessagesDTOByConversationId_shouldReturnMessageDTOs() {
-        // When
         List<MessageResponseDTO> result = messageRepository.findMessagesDTOByConversationId(conversation.getId(), "John Doe");
 
-        // Then
         assertNotNull(result);
         assertEquals(3, result.size());
         
@@ -163,31 +157,28 @@ class MessageRepositoryTest {
 
     @Test
     void findMessagesDTOByConversationId_shouldReturnEmptyList_whenNoMessages() {
-        // Given - Créer une conversation sans messages
+        // Créer une conversation sans messages
         Conversation emptyConversation = new Conversation();
         emptyConversation.setUser1(sender);
         emptyConversation.setUser2(receiver);
         emptyConversation = entityManager.persistAndFlush(emptyConversation);
 
-        // When
         List<MessageResponseDTO> result = messageRepository.findMessagesDTOByConversationId(emptyConversation.getId(), "John Doe");
 
-        // Then
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
 
     @Test
     void markMessagesAsRead_shouldMarkUnreadMessagesAsRead() {
-        // Given - Vérifier l'état initial
+        // Vérifier l'état initial
         List<Message> initialMessages = messageRepository.findByConversationIdOrderBySentAtAsc(conversation.getId());
         long unreadCount = initialMessages.stream().filter(m -> !m.isRead()).count();
         assertEquals(2, unreadCount); // message1 et message2 sont non lus
 
-        // When - Marquer comme lus les messages non lus envoyés par l'autre utilisateur
+        // Marquer comme lus les messages non lus envoyés par l'autre utilisateur
         int updatedCount = messageRepository.markMessagesAsRead(conversation.getId(), sender.getId());
 
-        // Then
         assertEquals(1, updatedCount); // Seul message2 (envoyé par receiver) devrait être marqué comme lu
         
         // Vérifier que les messages ont été mis à jour
@@ -221,42 +212,37 @@ class MessageRepositoryTest {
 
     @Test
     void markMessagesAsRead_shouldReturnZero_whenNoUnreadMessages() {
-        // Given - Marquer tous les messages comme lus
+        // Marquer tous les messages comme lus
         messageRepository.markMessagesAsRead(conversation.getId(), sender.getId());
         entityManager.clear();
 
-        // When - Essayer de marquer à nouveau comme lus
+        // Essayer de marquer à nouveau comme lus
         int updatedCount = messageRepository.markMessagesAsRead(conversation.getId(), sender.getId());
 
-        // Then
+        
         assertEquals(0, updatedCount);
     }
 
     @Test
     void markMessagesAsRead_shouldReturnZero_whenNoMessages() {
-        // Given - Créer une conversation sans messages
+        // Créer une conversation sans messages
         Conversation emptyConversation = new Conversation();
         emptyConversation.setUser1(sender);
         emptyConversation.setUser2(receiver);
         emptyConversation = entityManager.persistAndFlush(emptyConversation);
 
-        // When
         int updatedCount = messageRepository.markMessagesAsRead(emptyConversation.getId(), sender.getId());
 
-        // Then
         assertEquals(0, updatedCount);
     }
 
     @Test
     void findMessagesDTOByConversationId_shouldOrderBySentAtAsc() {
-        // When
         List<MessageResponseDTO> result = messageRepository.findMessagesDTOByConversationId(conversation.getId(), "John Doe");
 
-        // Then
         assertNotNull(result);
         assertEquals(3, result.size());
         
-        // Vérifier l'ordre chronologique
         assertTrue(result.get(0).getSentAt().isBefore(result.get(1).getSentAt()));
         assertTrue(result.get(1).getSentAt().isBefore(result.get(2).getSentAt()));
     }

@@ -26,6 +26,7 @@ public class ConversationMapperImpl implements ConversationMapper {
         dto.setUser1Id(conversation.getUser1() != null ? conversation.getUser1().getId() : null);
         dto.setUser2Id(conversation.getUser2() != null ? conversation.getUser2().getId() : null);
         dto.setCreatedAt(conversation.getCreatedAt());
+        
         return dto;
     }
 
@@ -43,6 +44,7 @@ public class ConversationMapperImpl implements ConversationMapper {
         Conversation conversation = new Conversation();
         conversation.setId(dto.getId());
         conversation.setCreatedAt(dto.getCreatedAt());
+        
         return conversation;
     }
 }

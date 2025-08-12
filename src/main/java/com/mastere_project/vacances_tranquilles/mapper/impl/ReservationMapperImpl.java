@@ -19,10 +19,8 @@ public class ReservationMapperImpl implements ReservationMapper {
 
     /**
      * Convertit une entité Reservation en ReservationDTO.
-     * Mappe tous les champs de base nécessaires pour les opérations de création et
-     * modification.
-     * Effectue la conversion des dates en LocalDateTime pour la compatibilité avec
-     * les DTOs.
+     * Mappe tous les champs de base nécessaires pour les opérations de création et modification.
+     * Effectue la conversion des dates en LocalDateTime pour la compatibilité avec les DTOs.
      * Gère les cas où l'entité reservation est null.
      *
      * @param reservation L'entité Reservation à convertir
@@ -38,9 +36,18 @@ public class ReservationMapperImpl implements ReservationMapper {
         ReservationDTO dto = new ReservationDTO();
         dto.setId(reservation.getId());
         dto.setStatus(reservation.getStatus());
-        dto.setReservationDate(reservation.getReservationDate().atStartOfDay());
-        dto.setStartDate(reservation.getReservationDate().atTime(reservation.getStartDate()));
-        dto.setEndDate(reservation.getReservationDate().atTime(reservation.getEndDate()));
+        
+        // Gestion sécurisée des dates avec vérification null
+        if (reservation.getReservationDate() != null) {
+            dto.setReservationDate(reservation.getReservationDate().atStartOfDay());
+            if (reservation.getStartDate() != null) {
+                dto.setStartDate(reservation.getReservationDate().atTime(reservation.getStartDate()));
+            }
+            if (reservation.getEndDate() != null) {
+                dto.setEndDate(reservation.getReservationDate().atTime(reservation.getEndDate()));
+            }
+        }
+        
         dto.setTotalPrice(reservation.getTotalPrice());
 
         return dto;
@@ -48,15 +55,12 @@ public class ReservationMapperImpl implements ReservationMapper {
 
     /**
      * Convertit une entité Reservation en ReservationResponseDTO.
-     * Mappe uniquement les champs de base pour les réponses sécurisées vers le
-     * frontend.
-     * Exclut les informations sensibles des objets associés (client, prestataire,
-     * service, paiement).
+     * Mappe uniquement les champs de base pour les réponses sécurisées vers le frontend.
+     * Exclut les informations sensibles des objets associés (client, prestataire, service, paiement).
      * Effectue la conversion des dates en LocalDateTime pour la compatibilité.
      *
      * @param reservation L'entité Reservation à convertir
-     * @return Le ReservationResponseDTO correspondant, ou null si reservation est
-     *         null
+     * @return Le ReservationResponseDTO correspondant, ou null si reservation est null
      * @throws IllegalArgumentException si les données de réservation sont invalides
      */
     @Override
@@ -68,10 +72,37 @@ public class ReservationMapperImpl implements ReservationMapper {
         ReservationResponseDTO dto = new ReservationResponseDTO();
         dto.setId(reservation.getId());
         dto.setStatus(reservation.getStatus());
-        dto.setReservationDate(reservation.getReservationDate().atStartOfDay());
-        dto.setStartDate(reservation.getReservationDate().atTime(reservation.getStartDate()));
-        dto.setEndDate(reservation.getReservationDate().atTime(reservation.getEndDate()));
+        
+        // Gestion sécurisée des dates avec vérification null
+        if (reservation.getReservationDate() != null) {
+            dto.setReservationDate(reservation.getReservationDate().atStartOfDay());
+            if (reservation.getStartDate() != null) {
+                dto.setStartDate(reservation.getReservationDate().atTime(reservation.getStartDate()));
+            }
+            if (reservation.getEndDate() != null) {
+                dto.setEndDate(reservation.getReservationDate().atTime(reservation.getEndDate()));
+            }
+        }
+        
         dto.setTotalPrice(reservation.getTotalPrice());
+        
+        // Mapper les IDs des utilisateurs
+        if (reservation.getClient() != null) {
+            dto.setClientId(reservation.getClient().getId());
+            dto.setClientName(reservation.getClient().getFirstName() + " " + reservation.getClient().getLastName());
+            dto.setClientEmail(reservation.getClient().getEmail());
+        }
+        
+        if (reservation.getProvider() != null) {
+            dto.setProviderId(reservation.getProvider().getId());
+            dto.setProviderName(reservation.getProvider().getFirstName() + " " + reservation.getProvider().getLastName());
+            dto.setProviderEmail(reservation.getProvider().getEmail());
+        }
+        
+        // Mapper l'ID de la conversation si elle existe
+        if (reservation.getConversation() != null) {
+            dto.setConversationId(reservation.getConversation().getId());
+        }
 
         return dto;
     }

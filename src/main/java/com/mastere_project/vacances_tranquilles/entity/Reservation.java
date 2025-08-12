@@ -48,3 +48,4 @@ public class Reservation {
     @JoinColumn(name = "conversation_id", unique = true)
     private Conversation conversation;
 }
+

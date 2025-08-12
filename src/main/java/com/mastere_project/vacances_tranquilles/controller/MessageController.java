@@ -2,12 +2,14 @@ package com.mastere_project.vacances_tranquilles.controller;
 
 import com.mastere_project.vacances_tranquilles.dto.MessageDTO;
 import com.mastere_project.vacances_tranquilles.dto.MessageResponseDTO;
+import com.mastere_project.vacances_tranquilles.exception.ErrorEntity;
 import com.mastere_project.vacances_tranquilles.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Contrôleur REST pour la gestion des messages dans les conversations.
@@ -17,7 +19,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MessageController {
 
+    private static final String ERROR_TYPE = "ERROR";
     private final MessageService messageService;
+    private final Logger log = Logger.getLogger(MessageController.class.getName());
 
     /**
      * Envoie un nouveau message dans une conversation.
@@ -26,16 +30,13 @@ public class MessageController {
      * @return une réponse contenant le message sauvegardé
      */
     @PostMapping
-    public ResponseEntity<MessageDTO> sendMessage(@RequestBody MessageDTO messageDTO) {
+    public ResponseEntity<Object> sendMessage(@RequestBody MessageDTO messageDTO) {
         try {
-            if (messageDTO == null || messageDTO.getConversationId() == null) {
-                return ResponseEntity.badRequest().build();
-            }
-            
             MessageDTO saved = messageService.sendMessage(messageDTO);
+            
             return ResponseEntity.ok(saved);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(new ErrorEntity(ERROR_TYPE, e.getMessage()));
         }
     }
 
@@ -46,16 +47,13 @@ public class MessageController {
      * @return une réponse contenant la liste des messages de la conversation
      */
     @GetMapping("/conversation/{conversationId}")
-    public ResponseEntity<List<MessageResponseDTO>> getMessagesByConversation(@PathVariable Long conversationId) {
+    public ResponseEntity<Object> getMessagesByConversation(@PathVariable Long conversationId) {
         try {
-            if (conversationId == null) {
-                return ResponseEntity.badRequest().build();
-            }
-            
             List<MessageResponseDTO> messages = messageService.getMessagesByConversationId(conversationId);
+            
             return ResponseEntity.ok(messages);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(new ErrorEntity(ERROR_TYPE, e.getMessage()));
         }
     }
 
@@ -67,20 +65,14 @@ public class MessageController {
      * @return une réponse contenant le message modifié ou une erreur si non autorisé ou non trouvé
      */
     @PutMapping("/{id}")
-    public ResponseEntity<MessageDTO> updateMessage(@PathVariable Long id, @RequestBody MessageDTO messageDTO) {
+    public ResponseEntity<Object> updateMessage(@PathVariable Long id, @RequestBody MessageDTO messageDTO) {
         try {
-            if (id == null || messageDTO == null) {
-                return ResponseEntity.badRequest().build();
-            }
-            
             MessageDTO updated = messageService.updateMessage(id, messageDTO);
+            
             return ResponseEntity.ok(updated);
-        } catch (com.mastere_project.vacances_tranquilles.exception.ConversationNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (com.mastere_project.vacances_tranquilles.exception.ConversationForbiddenException e) {
-            return ResponseEntity.status(403).build();
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            log.severe("Error updating message: " + e.getMessage());
+            return ResponseEntity.badRequest().body(new ErrorEntity(ERROR_TYPE, e.getMessage()));
         }
     }
 }

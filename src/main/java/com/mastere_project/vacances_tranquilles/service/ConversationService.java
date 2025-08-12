@@ -2,6 +2,7 @@ package com.mastere_project.vacances_tranquilles.service;
 
 import com.mastere_project.vacances_tranquilles.dto.ConversationDTO;
 import com.mastere_project.vacances_tranquilles.dto.ConversationSummaryDto;
+import com.mastere_project.vacances_tranquilles.dto.ReservationResponseDTO;
 
 import java.util.List;
 
@@ -18,13 +19,12 @@ public interface ConversationService {
     List<ConversationSummaryDto> getConversationsForUser();
 
     /**
-     * Crée une nouvelle conversation entre l'utilisateur connecté et un autre utilisateur pour une réservation spécifique.
+     * Crée une nouvelle conversation entre l'utilisateur connecté et l'autre participant de la réservation.
      *
-     * @param otherUserId l'identifiant de l'autre utilisateur
      * @param reservationId l'identifiant de la réservation liée à cette conversation
      * @return la conversation créée sous forme de DTO
      */
-    ConversationDTO createConversation(Long otherUserId, Long reservationId);
+    ConversationDTO createConversation(Long reservationId);
 
     /**
      * Récupère une conversation par son ID si l'utilisateur connecté y participe.
@@ -33,4 +33,12 @@ public interface ConversationService {
      * @return la conversation correspondante sous forme de DTO
      */
     ConversationDTO getConversationById(Long conversationId);
+
+    /**
+     * Récupère les informations de la réservation associée à une conversation.
+     *
+     * @param conversationId l'identifiant de la conversation
+     * @return la réservation associée sous forme de DTO
+     */
+    ReservationResponseDTO getReservationByConversationId(Long conversationId);
 }

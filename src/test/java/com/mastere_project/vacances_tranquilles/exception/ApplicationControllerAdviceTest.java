@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
 
@@ -231,5 +232,60 @@ class ApplicationControllerAdviceTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("USER_NOT_FOUND");
         assertThat(response.getBody().getMessage()).isEqualTo("Utilisateur introuvable");
+    }
+
+    @Test
+    @DisplayName("handleAccessDenied should return 403 and error entity")
+    void handleAccessDenied_shouldReturn403() {
+        AccessDeniedException ex = new AccessDeniedException("Access denied");
+        ResponseEntity<ErrorEntity> response = advice.handleAccessDenied(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("ACCESS_DENIED");
+        assertThat(response.getBody().getMessage()).isEqualTo("Access denied");
+    }
+
+    @Test
+    @DisplayName("handleInvalidToken should return 401 and error entity")
+    void handleInvalidToken_shouldReturn401() {
+        InvalidTokenException ex = new InvalidTokenException("Invalid token");
+        ResponseEntity<ErrorEntity> response = advice.handleInvalidToken(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("INVALID_TOKEN");
+        assertThat(response.getBody().getMessage()).isEqualTo("Invalid token");
+    }
+
+    @Test
+    @DisplayName("handleConversationNotFound should return 404 and error entity")
+    void handleConversationNotFound_shouldReturn404() {
+        ConversationNotFoundException ex = new ConversationNotFoundException("Conversation not found");
+        ResponseEntity<ErrorEntity> response = advice.handleConversationNotFound(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("CONVERSATION_NOT_FOUND");
+        assertThat(response.getBody().getMessage()).isEqualTo("Conversation not found");
+    }
+
+    @Test
+    @DisplayName("handleConversationForbidden should return 403 and error entity")
+    void handleConversationForbidden_shouldReturn403() {
+        ConversationForbiddenException ex = new ConversationForbiddenException("Conversation forbidden");
+        ResponseEntity<ErrorEntity> response = advice.handleConversationForbidden(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("CONVERSATION_FORBIDDEN");
+        assertThat(response.getBody().getMessage()).isEqualTo("Conversation forbidden");
+    }
+
+    @Test
+    @DisplayName("handleConversationAlreadyExists should return 409 and error entity")
+    void handleConversationAlreadyExists_shouldReturn409() {
+        ConversationAlreadyExistsException ex = new ConversationAlreadyExistsException("Conversation already exists");
+        ResponseEntity<ErrorEntity> response = advice.handleConversationAlreadyExists(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("CONVERSATION_ALREADY_EXISTS");
+        assertThat(response.getBody().getMessage()).isEqualTo("Conversation already exists");
     }
 }

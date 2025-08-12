@@ -2,6 +2,7 @@ package com.mastere_project.vacances_tranquilles.controller;
 
 import com.mastere_project.vacances_tranquilles.dto.ConversationDTO;
 import com.mastere_project.vacances_tranquilles.dto.ConversationSummaryDto;
+import com.mastere_project.vacances_tranquilles.dto.ReservationResponseDTO;
 import com.mastere_project.vacances_tranquilles.service.ConversationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,11 +55,10 @@ class ConversationControllerTest {
     @Test
     void createConversation_shouldReturnCreated() {
         ConversationCreateRequest req = new ConversationCreateRequest();
-        req.setOtherUserId(10L);
         req.setReservationId(1L);
         ConversationDTO created = new ConversationDTO();
         created.setId(3L);
-        when(conversationService.createConversation(10L, 1L)).thenReturn(created);
+        when(conversationService.createConversation(1L)).thenReturn(created);
 
         ResponseEntity<?> response = conversationController.createConversation(req);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -68,28 +68,22 @@ class ConversationControllerTest {
     @Test
     void createConversation_shouldReturnBadRequest_whenException() {
         ConversationCreateRequest req = new ConversationCreateRequest();
-        req.setOtherUserId(10L);
         req.setReservationId(1L);
-        when(conversationService.createConversation(10L, 1L)).thenThrow(new RuntimeException("Error"));
+        when(conversationService.createConversation(1L)).thenThrow(new RuntimeException("Error"));
 
         ResponseEntity<?> response = conversationController.createConversation(req);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
-    void createConversation_shouldReturnBadRequest_whenOtherUserIdNull() {
-        ConversationCreateRequest req = new ConversationCreateRequest();
-        req.setOtherUserId(null);
-        req.setReservationId(1L);
-
-        ResponseEntity<Object> response = conversationController.createConversation(req);
+    void createConversation_shouldReturnBadRequest_whenRequestNull() {
+        ResponseEntity<Object> response = conversationController.createConversation(null);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
     void createConversation_shouldReturnBadRequest_whenReservationIdNull() {
         ConversationCreateRequest req = new ConversationCreateRequest();
-        req.setOtherUserId(10L);
         req.setReservationId(null);
 
         ResponseEntity<Object> response = conversationController.createConversation(req);
@@ -119,6 +113,32 @@ class ConversationControllerTest {
     @Test
     void getConversationById_shouldReturnBadRequest_whenIdNull() {
         ResponseEntity<Object> response = conversationController.getConversationById(null);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void getReservationByConversationId_shouldReturnOk() {
+        ReservationResponseDTO reservation = new ReservationResponseDTO();
+        reservation.setId(1L);
+        when(conversationService.getReservationByConversationId(1L)).thenReturn(reservation);
+
+        ResponseEntity<?> response = conversationController.getReservationByConversationId(1L);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(reservation, response.getBody());
+    }
+
+    @Test
+    void getReservationByConversationId_shouldReturnBadRequest_whenException() {
+        when(conversationService.getReservationByConversationId(9999L))
+                .thenThrow(new RuntimeException("Reservation not found"));
+        
+        ResponseEntity<?> response = conversationController.getReservationByConversationId(9999L);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void getReservationByConversationId_shouldReturnBadRequest_whenIdNull() {
+        ResponseEntity<Object> response = conversationController.getReservationByConversationId(null);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 } 

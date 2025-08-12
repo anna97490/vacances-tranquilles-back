@@ -44,20 +44,22 @@ public class MessageServiceImpl implements MessageService {
     }
 
     /**
-     * Récupère tous les messages d'une conversation et marque les messages non lus
-     * comme lus.
+     * Récupère tous les messages d'une conversation et marque les messages non lus comme lus.
      * Vérifie que l'utilisateur connecté est participant de cette conversation.
      *
      * @param conversationId l'identifiant de la conversation
      * @return la liste des messages de la conversation sous forme de DTO
      * @throws UserNotFoundException          si l'utilisateur connecté n'existe pas
      * @throws ConversationNotFoundException  si la conversation n'existe pas
-     * @throws ConversationForbiddenException si l'utilisateur n'est pas participant
-     *                                        de la conversation
+     * @throws ConversationForbiddenException si l'utilisateur n'est pas participant de la conversation
      */
     @Transactional
     @Override
     public List<MessageResponseDTO> getMessagesByConversationId(Long conversationId) {
+        if (conversationId == null) {
+            throw new IllegalArgumentException("Conversation ID cannot be null");
+        }
+
         Long currentUserId = SecurityUtils.getCurrentUserId();
 
         // Vérifier que l'utilisateur connecté existe en base
@@ -90,11 +92,20 @@ public class MessageServiceImpl implements MessageService {
      * @return le DTO du message envoyé
      * @throws UserNotFoundException          si l'utilisateur connecté n'existe pas
      * @throws ConversationNotFoundException  si la conversation n'existe pas
-     * @throws ConversationForbiddenException si l'utilisateur n'est pas participant
-     *                                        de la conversation
+     * @throws ConversationForbiddenException si l'utilisateur n'est pas participant de la conversation
      */
     @Override
     public MessageDTO sendMessage(MessageDTO messageDTO) {
+        if (messageDTO == null) {
+            throw new IllegalArgumentException("Message DTO cannot be null");
+        }
+        if (messageDTO.getConversationId() == null) {
+            throw new IllegalArgumentException("Conversation ID cannot be null");
+        }
+        if (messageDTO.getContent() == null || messageDTO.getContent().trim().isEmpty()) {
+            throw new IllegalArgumentException("Message content cannot be null or empty");
+        }
+
         Long currentUserId = SecurityUtils.getCurrentUserId();
 
         // Vérifier que l'utilisateur connecté existe en base
@@ -129,25 +140,39 @@ public class MessageServiceImpl implements MessageService {
      * @return le DTO du message mis à jour
      * @throws UserNotFoundException          si l'utilisateur connecté n'existe pas
      * @throws ConversationNotFoundException  si le message n'existe pas
-     * @throws ConversationForbiddenException si l'utilisateur n'est pas
-     *                                        l'expéditeur du message
+     * @throws ConversationForbiddenException si l'utilisateur n'est pas l'expéditeur du message
      */
     @Override
     public MessageDTO updateMessage(Long id, MessageDTO messageDTO) {
+        if (id == null) {
+            throw new IllegalArgumentException("Message ID cannot be null");
+        }
+        if (messageDTO == null) {
+            throw new IllegalArgumentException("Message DTO cannot be null");
+        }
+        if (messageDTO.getContent() == null || messageDTO.getContent().trim().isEmpty()) {
+            throw new IllegalArgumentException("Message content cannot be null or empty");
+        }
+
         Long currentUserId = SecurityUtils.getCurrentUserId();
 
         // Vérifier que l'utilisateur connecté existe en base
         userRepository.findById(currentUserId)
-                .orElseThrow(() -> new UserNotFoundException(CURRENT_USER_NOT_FOUND_MESSAGE));
+                .orElseThrow(() -> new UserNotFoundException(CURRENT_USER_NOT_FOUND_MESSAGE + currentUserId));
 
-        Message message = messageRepository.findById(id)
+        // Récupérer le message existant
+        Message existingMessage = messageRepository.findById(id)
                 .orElseThrow(() -> new ConversationNotFoundException("Message not found: " + id));
 
-        if (!message.getSender().getId().equals(currentUserId)) {
-            throw new ConversationForbiddenException("User is not the message sender");
+        // Vérifier que l'utilisateur connecté est l'expéditeur du message
+        if (!existingMessage.getSender().getId().equals(currentUserId)) {
+            throw new ConversationForbiddenException("You can only update your own messages");
         }
 
-        message.setContent(messageDTO.getContent());
-        return messageMapper.toDto(messageRepository.save(message));
+        // Mettre à jour le contenu du message
+        existingMessage.setContent(messageDTO.getContent().trim());
+        existingMessage.setSentAt(LocalDateTime.now());
+
+        return messageMapper.toDto(messageRepository.save(existingMessage));
     }
 }

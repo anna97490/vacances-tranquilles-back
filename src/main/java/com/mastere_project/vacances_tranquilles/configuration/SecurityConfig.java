@@ -56,7 +56,7 @@ public class SecurityConfig {
     @Value("${monitoring.password}")
     private String monitoringPassword;
 
-     private final JwtConfig jwt;
+    private final JwtConfig jwt;
 
     /**
      * Fournit un encodeur de mots de passe utilisant BCrypt.

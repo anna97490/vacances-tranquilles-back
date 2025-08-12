@@ -2,6 +2,7 @@ package com.mastere_project.vacances_tranquilles.controller;
 
 import com.mastere_project.vacances_tranquilles.dto.ConversationDTO;
 import com.mastere_project.vacances_tranquilles.dto.ConversationSummaryDto;
+import com.mastere_project.vacances_tranquilles.dto.ReservationResponseDTO;
 import com.mastere_project.vacances_tranquilles.exception.ErrorEntity;
 import com.mastere_project.vacances_tranquilles.service.ConversationService;
 import lombok.Data;
@@ -17,7 +18,6 @@ import java.util.logging.Logger;
  */
 @Data
 class ConversationCreateRequest {
-    private Long otherUserId;
     private Long reservationId;
 }
 
@@ -38,8 +38,8 @@ public class ConversationController {
      */
     @GetMapping
     public ResponseEntity<List<ConversationSummaryDto>> getConversations() {
-        log.info("Get conversations");
         List<ConversationSummaryDto> conversations = conversationService.getConversationsForUser();
+        
         return ResponseEntity.ok(conversations);
     }
 
@@ -52,11 +52,11 @@ public class ConversationController {
     @PostMapping
     public ResponseEntity<Object> createConversation(@RequestBody ConversationCreateRequest request) {
         try {
-            if (request == null || request.getOtherUserId() == null || request.getReservationId() == null) {
-                return ResponseEntity.badRequest().body(new ErrorEntity(ERROR_TYPE, "Invalid request parameters"));
+            if (request == null || request.getReservationId() == null) {
+                return ResponseEntity.badRequest().body(new ErrorEntity(ERROR_TYPE, "Reservation ID cannot be null"));
             }
             
-            ConversationDTO conversation = conversationService.createConversation(request.getOtherUserId(), request.getReservationId());
+            ConversationDTO conversation = conversationService.createConversation(request.getReservationId());
             
             return ResponseEntity.ok(conversation);
         } catch (Exception e) {
@@ -74,11 +74,33 @@ public class ConversationController {
     public ResponseEntity<Object> getConversationById(@PathVariable Long id) {
         try {
             if (id == null) {
-                return ResponseEntity.badRequest().body(new ErrorEntity(ERROR_TYPE, "Invalid conversation ID"));
+                return ResponseEntity.badRequest().body(new ErrorEntity(ERROR_TYPE, "Conversation ID cannot be null"));
             }
             
             ConversationDTO conversation = conversationService.getConversationById(id);
+            
             return ResponseEntity.ok(conversation);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ErrorEntity(ERROR_TYPE, e.getMessage()));
+        }
+    }
+
+    /**
+     * Récupère la réservation associée à une conversation.
+     *
+     * @param id l'identifiant de la conversation
+     * @return une réponse contenant la réservation associée, ou une erreur si non autorisé ou non trouvée
+     */
+    @GetMapping("/{id}/reservation")
+    public ResponseEntity<Object> getReservationByConversationId(@PathVariable Long id) {
+        try {
+            if (id == null) {
+                return ResponseEntity.badRequest().body(new ErrorEntity(ERROR_TYPE, "Conversation ID cannot be null"));
+            }
+            
+            ReservationResponseDTO reservation = conversationService.getReservationByConversationId(id);
+            
+            return ResponseEntity.ok(reservation);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new ErrorEntity(ERROR_TYPE, e.getMessage()));
         }

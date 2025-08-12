@@ -28,6 +28,7 @@ public class MessageMapperImpl implements MessageMapper {
         dto.setContent(message.getContent());
         dto.setSentAt(message.getSentAt());
         dto.setRead(message.isRead());
+        
         return dto;
     }
 
@@ -47,6 +48,7 @@ public class MessageMapperImpl implements MessageMapper {
         message.setContent(dto.getContent());
         message.setSentAt(dto.getSentAt());
         message.setRead(dto.isRead());
+        
         return message;
     }
 }

@@ -96,10 +96,8 @@ class ConversationRepositoryTest {
 
     @Test
     void findConversationsForUser_shouldReturnConversationsForClient() {
-        // When
         List<ConversationSummaryDto> result = conversationRepository.findConversationsForUser(client.getId());
 
-        // Then
         assertNotNull(result);
         assertEquals(1, result.size());
         
@@ -113,10 +111,8 @@ class ConversationRepositoryTest {
 
     @Test
     void findConversationsForUser_shouldReturnConversationsForProvider() {
-        // When
         List<ConversationSummaryDto> result = conversationRepository.findConversationsForUser(provider.getId());
 
-        // Then
         assertNotNull(result);
         assertEquals(1, result.size());
         
@@ -130,7 +126,6 @@ class ConversationRepositoryTest {
 
     @Test
     void findConversationsForUser_shouldReturnEmptyList_whenUserHasNoConversations() {
-        // Given
         User otherUser = new User();
         otherUser.setFirstName("Other");
         otherUser.setLastName("User");
@@ -143,20 +138,16 @@ class ConversationRepositoryTest {
         otherUser.setPostalCode("99999");
         entityManager.persistAndFlush(otherUser);
 
-        // When
         List<ConversationSummaryDto> result = conversationRepository.findConversationsForUser(otherUser.getId());
 
-        // Then
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
 
     @Test
     void findByUser1IdOrUser2Id_shouldReturnConversations() {
-        // When
         List<Conversation> result = conversationRepository.findByUser1IdOrUser2Id(client.getId(), client.getId());
 
-        // Then
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(conversation.getId(), result.get(0).getId());
@@ -164,7 +155,6 @@ class ConversationRepositoryTest {
 
     @Test
     void findByUser1IdOrUser2Id_shouldReturnEmptyList_whenNoConversations() {
-        // Given
         User otherUser = new User();
         otherUser.setFirstName("Other");
         otherUser.setLastName("User");
@@ -177,27 +167,22 @@ class ConversationRepositoryTest {
         otherUser.setPostalCode("88888");
         entityManager.persistAndFlush(otherUser);
 
-        // When
         List<Conversation> result = conversationRepository.findByUser1IdOrUser2Id(otherUser.getId(), otherUser.getId());
 
-        // Then
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
 
     @Test
     void findByUser1IdAndUser2Id_shouldReturnConversation() {
-        // When
         Optional<Conversation> result = conversationRepository.findByUser1IdAndUser2Id(client.getId(), provider.getId());
 
-        // Then
         assertTrue(result.isPresent());
         assertEquals(conversation.getId(), result.get().getId());
     }
 
     @Test
     void findByUser1IdAndUser2Id_shouldReturnEmpty_whenNoConversation() {
-        // Given
         User otherUser = new User();
         otherUser.setFirstName("Other");
         otherUser.setLastName("User");
@@ -210,26 +195,21 @@ class ConversationRepositoryTest {
         otherUser.setPostalCode("77777");
         entityManager.persistAndFlush(otherUser);
 
-        // When
         Optional<Conversation> result = conversationRepository.findByUser1IdAndUser2Id(client.getId(), otherUser.getId());
 
-        // Then
         assertFalse(result.isPresent());
     }
 
     @Test
     void findByUser2IdAndUser1Id_shouldReturnConversation() {
-        // When
         Optional<Conversation> result = conversationRepository.findByUser2IdAndUser1Id(provider.getId(), client.getId());
 
-        // Then
         assertTrue(result.isPresent());
         assertEquals(conversation.getId(), result.get().getId());
     }
 
     @Test
     void findByUser2IdAndUser1Id_shouldReturnEmpty_whenNoConversation() {
-        // Given
         User otherUser = new User();
         otherUser.setFirstName("Other");
         otherUser.setLastName("User");
@@ -242,16 +222,14 @@ class ConversationRepositoryTest {
         otherUser.setPostalCode("66666");
         entityManager.persistAndFlush(otherUser);
 
-        // When
         Optional<Conversation> result = conversationRepository.findByUser2IdAndUser1Id(provider.getId(), otherUser.getId());
 
-        // Then
         assertFalse(result.isPresent());
     }
 
     @Test
     void findConversationsForUser_shouldOrderByDateDesc() {
-        // Given - Créer une deuxième réservation avec une date antérieure
+        // Créer une deuxième réservation avec une date antérieure
         Reservation oldReservation = new Reservation();
         oldReservation.setClient(client);
         oldReservation.setProvider(provider);
@@ -268,10 +246,8 @@ class ConversationRepositoryTest {
         oldReservation.setConversation(oldConversation);
         entityManager.persistAndFlush(oldReservation);
 
-        // When
         List<ConversationSummaryDto> result = conversationRepository.findConversationsForUser(client.getId());
 
-        // Then
         assertNotNull(result);
         assertEquals(2, result.size());
         

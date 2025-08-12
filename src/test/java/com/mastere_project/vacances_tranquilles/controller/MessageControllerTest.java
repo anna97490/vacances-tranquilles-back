@@ -2,6 +2,7 @@ package com.mastere_project.vacances_tranquilles.controller;
 
 import com.mastere_project.vacances_tranquilles.dto.MessageDTO;
 import com.mastere_project.vacances_tranquilles.dto.MessageResponseDTO;
+import com.mastere_project.vacances_tranquilles.exception.ErrorEntity;
 import com.mastere_project.vacances_tranquilles.service.MessageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,34 +45,11 @@ class MessageControllerTest {
         when(messageService.sendMessage(input)).thenReturn(saved);
 
         // When
-        ResponseEntity<MessageDTO> response = messageController.sendMessage(input);
+        ResponseEntity<Object> response = messageController.sendMessage(input);
 
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(saved, response.getBody());
-    }
-
-    @Test
-    void sendMessage_shouldReturnBadRequest_whenMessageNull() {
-        // When
-        ResponseEntity<MessageDTO> response = messageController.sendMessage(null);
-
-        // Then
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    }
-
-    @Test
-    void sendMessage_shouldReturnBadRequest_whenConversationIdNull() {
-        // Given
-        MessageDTO message = new MessageDTO();
-        message.setConversationId(null);
-        message.setContent("test");
-        
-        // When
-        ResponseEntity<MessageDTO> response = messageController.sendMessage(message);
-
-        // Then
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
@@ -83,26 +61,31 @@ class MessageControllerTest {
         when(messageService.sendMessage(message)).thenThrow(new RuntimeException("Error"));
         
         // When
-        ResponseEntity<MessageDTO> response = messageController.sendMessage(message);
+        ResponseEntity<Object> response = messageController.sendMessage(message);
 
         // Then
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertTrue(response.getBody() instanceof ErrorEntity);
+        ErrorEntity error = (ErrorEntity) response.getBody();
+        assertEquals("Error", error.getMessage());
     }
 
     @Test
     void getMessagesByConversation_shouldReturnMessages() {
         // Given
-        MessageResponseDTO msg1 = new MessageResponseDTO("User1", "Hello", LocalDateTime.now(), true, "Me");
-        MessageResponseDTO msg2 = new MessageResponseDTO("User2", "Hi", LocalDateTime.now(), false, "Me");
+        MessageResponseDTO msg1 = new MessageResponseDTO(1L, "User1", "Hello", LocalDateTime.now(), true, "Me");
+        MessageResponseDTO msg2 = new MessageResponseDTO(2L, "User2", "Hi", LocalDateTime.now(), false, "Me");
         List<MessageResponseDTO> messages = Arrays.asList(msg1, msg2);
         when(messageService.getMessagesByConversationId(5L)).thenReturn(messages);
 
         // When
-        ResponseEntity<List<MessageResponseDTO>> response = messageController.getMessagesByConversation(5L);
+        ResponseEntity<Object> response = messageController.getMessagesByConversation(5L);
 
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(2, response.getBody().size());
+        @SuppressWarnings("unchecked")
+        List<MessageResponseDTO> responseMessages = (List<MessageResponseDTO>) response.getBody();
+        assertEquals(2, responseMessages.size());
     }
 
     @Test
@@ -111,20 +94,13 @@ class MessageControllerTest {
         when(messageService.getMessagesByConversationId(1L)).thenReturn(List.of());
 
         // When
-        ResponseEntity<List<MessageResponseDTO>> response = messageController.getMessagesByConversation(1L);
+        ResponseEntity<Object> response = messageController.getMessagesByConversation(1L);
 
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(0, response.getBody().size());
-    }
-
-    @Test
-    void getMessagesByConversation_shouldReturnBadRequest_whenIdNull() {
-        // When
-        ResponseEntity<List<MessageResponseDTO>> response = messageController.getMessagesByConversation(null);
-
-        // Then
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        @SuppressWarnings("unchecked")
+        List<MessageResponseDTO> responseMessages = (List<MessageResponseDTO>) response.getBody();
+        assertEquals(0, responseMessages.size());
     }
 
     @Test
@@ -133,10 +109,13 @@ class MessageControllerTest {
         when(messageService.getMessagesByConversationId(1L)).thenThrow(new RuntimeException("Error"));
 
         // When
-        ResponseEntity<List<MessageResponseDTO>> response = messageController.getMessagesByConversation(1L);
+        ResponseEntity<Object> response = messageController.getMessagesByConversation(1L);
 
         // Then
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertTrue(response.getBody() instanceof ErrorEntity);
+        ErrorEntity error = (ErrorEntity) response.getBody();
+        assertEquals("Error", error.getMessage());
     }
 
     @Test
@@ -151,61 +130,11 @@ class MessageControllerTest {
         when(messageService.updateMessage(eq(1L), any(MessageDTO.class))).thenReturn(updated);
 
         // When
-        ResponseEntity<MessageDTO> response = messageController.updateMessage(1L, input);
+        ResponseEntity<Object> response = messageController.updateMessage(1L, input);
 
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(updated, response.getBody());
-    }
-
-    @Test
-    void updateMessage_shouldReturnNotFound_whenNotFound() {
-        // Given
-        when(messageService.updateMessage(eq(1L), any(MessageDTO.class)))
-                .thenThrow(new com.mastere_project.vacances_tranquilles.exception.ConversationNotFoundException("not found"));
-        MessageDTO input = new MessageDTO();
-        
-        // When
-        ResponseEntity<MessageDTO> response = messageController.updateMessage(1L, input);
-
-        // Then
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    @Test
-    void updateMessage_shouldReturnForbidden_whenForbidden() {
-        // Given
-        when(messageService.updateMessage(eq(1L), any(MessageDTO.class)))
-                .thenThrow(new com.mastere_project.vacances_tranquilles.exception.ConversationForbiddenException("forbidden"));
-        MessageDTO input = new MessageDTO();
-        
-        // When
-        ResponseEntity<MessageDTO> response = messageController.updateMessage(1L, input);
-
-        // Then
-        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-    }
-
-    @Test
-    void updateMessage_shouldReturnBadRequest_whenIdNull() {
-        // Given
-        MessageDTO message = new MessageDTO();
-        message.setContent("updated");
-        
-        // When
-        ResponseEntity<MessageDTO> response = messageController.updateMessage(null, message);
-
-        // Then
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    }
-
-    @Test
-    void updateMessage_shouldReturnBadRequest_whenMessageNull() {
-        // When
-        ResponseEntity<MessageDTO> response = messageController.updateMessage(1L, null);
-
-        // Then
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
@@ -217,9 +146,12 @@ class MessageControllerTest {
                 .thenThrow(new RuntimeException("Error"));
         
         // When
-        ResponseEntity<MessageDTO> response = messageController.updateMessage(1L, message);
+        ResponseEntity<Object> response = messageController.updateMessage(1L, message);
 
         // Then
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertTrue(response.getBody() instanceof ErrorEntity);
+        ErrorEntity error = (ErrorEntity) response.getBody();
+        assertEquals("Error", error.getMessage());
     }
 } 

@@ -1,61 +1,29 @@
 package com.mastere_project.vacances_tranquilles.dto;
 
 import java.time.LocalDateTime;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+/**
+ * DTO représentant un message dans une conversation avec les informations d'affichage.
+ */
+@Data
+@NoArgsConstructor
 public class MessageResponseDTO {
+    
+    private Long id;
     private String senderName;
     private String content;
     private LocalDateTime sentAt;
     private Boolean isRead;
     private String myName;
 
-    public MessageResponseDTO(String senderName, String content, LocalDateTime sentAt, Boolean isRead, String myName) {
+    public MessageResponseDTO(Long id, String senderName, String content, LocalDateTime sentAt, Boolean isRead, String myName) {
+        this.id = id;
         this.senderName = senderName;
         this.content = content;
         this.sentAt = sentAt;
         this.isRead = isRead;
         this.myName = myName;
-    }
-
-    // getters et setters
-
-    public String getMyName(){
-        return this.myName;
-    }
-
-    public void setMyName(String myName){
-        this.myName = myName;
-    }
-
-    public String getSenderName() {
-        return senderName;
-    }
-
-    public void setSenderName(String senderName) {
-        this.senderName = senderName;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public LocalDateTime getSentAt() {
-        return sentAt;
-    }
-
-    public void setSentAt(LocalDateTime sentAt) {
-        this.sentAt = sentAt;
-    }
-
-    public void setIsRead(Boolean isRead){
-        this.isRead = isRead;
-    }
-
-    public Boolean getIsRead(){
-        return this.isRead;
     }
 }
