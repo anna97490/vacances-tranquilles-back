@@ -126,7 +126,8 @@ class ApplicationControllerAdviceTest {
     @Test
     @DisplayName("handleUnexpectedLoginException should return 500 and error entity")
     void handleUnexpectedLoginException_shouldReturn500() {
-        UnexpectedLoginException ex = new UnexpectedLoginException("Unexpected login error", new RuntimeException("Cause"));
+        UnexpectedLoginException ex = new UnexpectedLoginException("Unexpected login error",
+                new RuntimeException("Cause"));
         ResponseEntity<ErrorEntity> response = advice.handleUnexpectedLoginException(ex);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);

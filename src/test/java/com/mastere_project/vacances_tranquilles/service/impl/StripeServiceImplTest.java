@@ -3,16 +3,13 @@ package com.mastere_project.vacances_tranquilles.service.impl;
 import com.mastere_project.vacances_tranquilles.dto.ReservationDTO;
 import com.mastere_project.vacances_tranquilles.dto.StripeCheckoutSessionRequestDTO;
 import com.mastere_project.vacances_tranquilles.entity.Service;
-import com.mastere_project.vacances_tranquilles.exception.ServiceNotFoundException;
 import com.mastere_project.vacances_tranquilles.exception.StripeSessionCreationException;
 import com.mastere_project.vacances_tranquilles.repository.ServiceRepository;
 import com.mastere_project.vacances_tranquilles.service.ReservationService;
 import com.stripe.exception.StripeException;
-import com.stripe.exception.ApiException;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -38,12 +35,6 @@ class StripeServiceImplTest {
 
     @InjectMocks
     private StripeServiceImpl stripeService;
-
-    @BeforeEach
-    void setup() {
-        // stripeService.setStripeApiKey("sk_test_dummy");
-        // stripeService.setFrontendBaseUrl("http://localhost:4200");
-    }
 
     @Test
     void createCheckoutSession_shouldReturnSessionId() {

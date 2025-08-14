@@ -294,4 +294,28 @@ public class ApplicationControllerAdvice {
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
 
+    /**
+     * Gère l'exception levée lorsqu'une erreur survient lors des opérations Stripe.
+     *
+     * @param ex l'exception StripeException
+     * @return une réponse HTTP 500 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(StripeException.class)
+    public ResponseEntity<ErrorEntity> handleStripeException(StripeException ex) {
+        ErrorEntity error = new ErrorEntity("STRIPE_ERROR", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * Gère l'exception levée lorsqu'une erreur survient lors de la création d'une
+     * session de paiement Stripe.
+     *
+     * @param ex l'exception StripeSessionCreationException
+     * @return une réponse HTTP 500 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(StripeSessionCreationException.class)
+    public ResponseEntity<ErrorEntity> handleStripeSessionCreationException(StripeSessionCreationException ex) {
+        ErrorEntity error = new ErrorEntity("STRIPE_SESSION_CREATION_ERROR", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }
