@@ -6,7 +6,7 @@ package com.mastere_project.vacances_tranquilles.exception;
 public class LoginInternalException extends RuntimeException {
     /**
      * Construit une nouvelle LoginInternalException avec un message et une cause.
-     * 
+     *
      * @param message le message d'erreur
      * @param cause   la cause de l'exception
      */

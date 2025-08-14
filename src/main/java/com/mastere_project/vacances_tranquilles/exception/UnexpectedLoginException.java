@@ -5,7 +5,8 @@ package com.mastere_project.vacances_tranquilles.exception;
  */
 public class UnexpectedLoginException extends RuntimeException {
     /**
-     * Construit une nouvelle exception avec le message et la cause spécifiés.
+     * Construit une nouvelle exception UnexpectedLoginException avec le message et la cause spécifiés.
+     *
      * @param message le message d'erreur
      * @param cause la cause de l'exception
      */

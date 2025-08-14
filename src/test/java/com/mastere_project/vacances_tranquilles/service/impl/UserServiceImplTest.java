@@ -241,7 +241,7 @@ class UserServiceImplTest {
             when(userRepository.findById(userId)).thenReturn(Optional.empty());
             
             AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> userService.getUserProfile());
-            assertEquals("Utilisateur non trouvé.", exception.getMessage());
+            assertEquals("Utilisateur non trouvé", exception.getMessage());
             
             verify(userRepository).findById(userId);
             verify(userMapper, never()).toUserProfileDTO(any());

@@ -26,9 +26,9 @@ public class AuthController {
 
     /**
      * Inscription d'un nouveau client.
-     * 
-     * @param registerClientDTO Données du client à enregistrer
-     * @return Réponse HTTP 200 si succès
+     *
+     * @param registerClientDTO les données du client à enregistrer
+     * @return une réponse HTTP 200 si l'inscription est un succès
      */
     @PostMapping("/register/client")
     public ResponseEntity<String> registerClient(@Valid @RequestBody RegisterClientDTO registerClientDTO) {
@@ -36,11 +36,12 @@ public class AuthController {
         return ResponseEntity.ok("Client registered successfully");
     }
 
+
     /**
      * Inscription d'un nouveau prestataire.
-     * 
-     * @param registerProviderDTO Données du prestataire à enregistrer
-     * @return Réponse HTTP 200 si succès
+     *
+     * @param registerProviderDTO les données du prestataire à enregistrer
+     * @return une réponse HTTP 200 si l'inscription est un succès
      */
     @PostMapping("/register/provider")
     public ResponseEntity<String> registerProvider(@Valid @RequestBody RegisterProviderDTO registerProviderDTO) {
@@ -48,11 +49,12 @@ public class AuthController {
         return ResponseEntity.ok("Provider registered successfully");
     }
 
+    
     /**
      * Connexion d'un utilisateur (client ou prestataire).
-     * 
-     * @param userDTO Données de connexion (email, mot de passe)
-     * @return Token JWT et rôle utilisateur si succès
+     *
+     * @param userDTO les données de connexion de l'utilisateur (email, mot de passe)
+     * @return une réponse contenant le token JWT et le rôle de l'utilisateur si la connexion est un succès
      */
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody UserDTO userDTO) {

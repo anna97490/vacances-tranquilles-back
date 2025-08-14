@@ -7,7 +7,8 @@ package com.mastere_project.vacances_tranquilles.exception;
 public class WrongPasswordException extends RuntimeException {
 
     /**
-     * Construit une nouvelle exception avec le message spécifié.
+     * Construit une nouvelle exception WrongPasswordException avec le message spécifié.
+     *
      * @param message le message d'erreur
      */
     public WrongPasswordException(String message) {
