@@ -7,11 +7,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * DTO représentant une réservation effectuée par un client auprès d'un
- * prestataire.
+ * DTO représentant une réservation effectuée par un client auprès d'un prestataire.
  */
 @Data
 public class ReservationDTO {
+
     private Long id;
     private ReservationStatus status; 
     private LocalDateTime reservationDate;

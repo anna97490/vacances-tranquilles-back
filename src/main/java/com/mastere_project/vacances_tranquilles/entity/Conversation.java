@@ -3,9 +3,8 @@ package com.mastere_project.vacances_tranquilles.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
-
 /**
- * Entité JPA représentant une conversation entre deux utilisateurs.
+ * Entité représentant une conversation entre deux utilisateurs (client ou prestataire).
  */
 @Entity
 @Table(name = "conversations")
@@ -18,6 +17,14 @@ public class Conversation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private LocalDateTime createdAt;
+    @ManyToOne
+    @JoinColumn(name = "user1_id", nullable = false)
+    private User user1;
 
+    @ManyToOne
+    @JoinColumn(name = "user2_id", nullable = false)
+    private User user2;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

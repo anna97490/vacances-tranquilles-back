@@ -15,7 +15,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Entité JPA représentant un service proposé par un prestataire.
+ * Représente un service proposé par un prestataire.
  */
 @Entity
 @Table(name = "service")

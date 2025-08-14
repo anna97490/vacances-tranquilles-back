@@ -1,19 +1,13 @@
 package com.mastere_project.vacances_tranquilles.model.enums;
 
 /**
- * Enumération des rôles utilisateurs de l’application.
+ * Enumération des rôles d'utilisateur dans l'application.
  */
 public enum UserRole {
-    /**
-     * Rôle client.
-     */
+    /** Rôle pour un utilisateur client. */
     CLIENT,
-    /**
-     * Rôle prestataire.
-     */
+    /** Rôle pour un utilisateur prestataire. */
     PROVIDER,
-    /**
-     * Rôle administrateur.
-     */
+    /** Rôle pour un administrateur de la plateforme. */
     ADMIN
 }

@@ -4,15 +4,13 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * Point d'entrée principal de l'application Vacances Tranquilles.
- * Lance l'application Spring Boot.
+ * Point d'entrée principal de l'application Vacances Tranquilles (Spring Boot).
  */
 @SpringBootApplication
 public class VacancesTranquillesApplication {
 
 	/**
-	 * Méthode principale qui démarre l'application Spring Boot.
-	 * 
+	 * Méthode principale qui lance l'application Spring Boot.
 	 * @param args arguments de la ligne de commande
 	 */
 	public static void main(String[] args) {

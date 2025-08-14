@@ -8,23 +8,23 @@ import java.util.Optional;
 
 /**
  * Repository Spring Data JPA pour l'entité User.
- * Fournit des méthodes de recherche utilisateur par email.
  */
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     /**
-     * Recherche un utilisateur par son email.
-     * 
+     * Recherche un utilisateur par email.
+     *
      * @param email l'email à rechercher
-     * @return un Optional contenant l'utilisateur s'il existe
+     * @return un Optional contenant l'utilisateur s'il existe, sinon vide
      */
     Optional<User> findByEmail(String email);
 
+    
     /**
-     * Vérifie l'existence d'un utilisateur par email.
-     * 
+     * Vérifie si un utilisateur existe avec l'email donné.
+     *
      * @param email l'email à vérifier
-     * @return true si un utilisateur existe avec cet email, false sinon
+     * @return true si l'utilisateur existe, false sinon
      */
     boolean existsByEmail(String email);
 
@@ -35,4 +35,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return un Optional contenant l'utilisateur s'il existe
      */
     Optional<User> findById(Long id);
+
+    /**
+     * Recherche un utilisateur par son nom de famille.
+     *
+     * @param lastName le nom de famille à rechercher
+     * @return un Optional contenant l'utilisateur s'il existe, sinon vide
+     */
+    Optional<User> findByLastName(String lastName);
 }
