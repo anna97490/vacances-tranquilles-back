@@ -182,6 +182,9 @@ class ReservationControllerTest {
         dto.setStartDate(LocalDateTime.now());
         dto.setEndDate(LocalDateTime.now().plusHours(2));
         dto.setTotalPrice(new BigDecimal("100.0"));
+        dto.setServiceId(1L);
+        dto.setServiceName("Test Service");
+        dto.setServiceDescription("Test Description");
 
         return dto;
     }

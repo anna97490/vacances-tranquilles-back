@@ -99,6 +99,13 @@ public class ReservationMapperImpl implements ReservationMapper {
             dto.setProviderEmail(reservation.getProvider().getEmail());
         }
         
+        // Mapper les informations du service
+        if (reservation.getService() != null) {
+            dto.setServiceId(reservation.getService().getId());
+            dto.setServiceName(reservation.getService().getTitle());
+            dto.setServiceDescription(reservation.getService().getDescription());
+        }
+        
         // Mapper l'ID de la conversation si elle existe
         if (reservation.getConversation() != null) {
             dto.setConversationId(reservation.getConversation().getId());
