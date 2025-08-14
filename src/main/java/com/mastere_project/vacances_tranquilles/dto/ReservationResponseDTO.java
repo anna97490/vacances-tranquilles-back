@@ -27,6 +27,11 @@ public class ReservationResponseDTO {
     private String providerName;
     private String providerEmail;
     
+    // Informations sur le service
+    private Long serviceId;
+    private String serviceName;
+    private String serviceDescription;
+    
     // ID de la conversation si elle existe
     private Long conversationId;
 } 
