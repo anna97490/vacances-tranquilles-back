@@ -160,7 +160,6 @@ public class ApplicationControllerAdvice {
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
-
     /**
      * Gère toutes les exceptions non spécifiquement gérées.
      *
@@ -234,8 +233,9 @@ public class ApplicationControllerAdvice {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-      /**
-     * Gère l'exception levée lorsqu'un accès est refusé (utilisateur non trouvé, anonymisé, etc.).
+    /**
+     * Gère l'exception levée lorsqu'un accès est refusé (utilisateur non trouvé,
+     * anonymisé, etc.).
      *
      * @param ex l'exception AccessDeniedException
      * @return une réponse HTTP 403 avec un code d'erreur spécifique
