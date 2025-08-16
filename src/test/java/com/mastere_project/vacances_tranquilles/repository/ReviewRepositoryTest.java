@@ -205,6 +205,50 @@ class ReviewRepositoryTest {
     }
 
     @Test
+    @DisplayName("findByReservationId should return all reviews for a specific reservation")
+    void findByReservationId_shouldReturnAllReviewsForSpecificReservation() {
+        // Créer un autre avis pour la même réservation
+        Review additionalReview = new Review();
+        additionalReview.setNote(4);
+        additionalReview.setCommentaire("Bon service aussi");
+        additionalReview.setReservationId(1L); // Même réservation que review1
+        additionalReview.setReviewer(user3);
+        additionalReview.setReviewed(user2);
+        additionalReview.setCreatedAt(LocalDateTime.now());
+        entityManager.persistAndFlush(additionalReview);
+
+        // Test pour la réservation 1 qui a maintenant 2 avis
+        List<Review> reviewsForReservation1 = reviewRepository.findByReservationId(1L);
+        
+        assertThat(reviewsForReservation1).hasSize(2);
+        assertThat(reviewsForReservation1).extracting("reservationId")
+                .containsOnly(1L);
+        assertThat(reviewsForReservation1).extracting("reviewer.id")
+                .containsExactlyInAnyOrder(user1.getId(), user3.getId());
+    }
+
+    @Test
+    @DisplayName("findByReservationId should return single review when only one exists")
+    void findByReservationId_shouldReturnSingleReviewWhenOnlyOneExists() {
+        // Test pour la réservation 2 qui a 1 avis
+        List<Review> reviewsForReservation2 = reviewRepository.findByReservationId(2L);
+        
+        assertThat(reviewsForReservation2).hasSize(1);
+        assertThat(reviewsForReservation2.get(0).getReservationId()).isEqualTo(2L);
+        assertThat(reviewsForReservation2.get(0).getReviewer().getId()).isEqualTo(user2.getId());
+        assertThat(reviewsForReservation2.get(0).getReviewed().getId()).isEqualTo(user1.getId());
+    }
+
+    @Test
+    @DisplayName("findByReservationId should return empty list when reservation has no reviews")
+    void findByReservationId_shouldReturnEmptyListWhenReservationHasNoReviews() {
+        // Test pour une réservation qui n'existe pas
+        List<Review> reviews = reviewRepository.findByReservationId(999L);
+        
+        assertThat(reviews).isEmpty();
+    }
+
+    @Test
     @DisplayName("existsByReservationIdAndReviewerId should return true when review exists")
     void existsByReservationIdAndReviewerId_shouldReturnTrueWhenReviewExists() {
         // Test pour une réservation et reviewer qui existent
@@ -356,5 +400,65 @@ class ReviewRepositoryTest {
         assertThat(foundReview).isPresent();
         assertThat(foundReview.get().getCommentaire()).isEqualTo(longComment);
         assertThat(foundReview.get().getCommentaire().length()).isEqualTo(1000);
+    }
+
+    @Test
+    @DisplayName("Repository should handle bidirectional relationships correctly")
+    void repository_shouldHandleBidirectionalRelationshipsCorrectly() {
+        // Vérifier que les relations bidirectionnelles sont correctes
+        List<Review> reviewsByUser1 = reviewRepository.findByReviewerId(user1.getId());
+        List<Review> reviewsForUser2 = reviewRepository.findByReviewedId(user2.getId());
+        
+        // user1 a écrit 2 avis, user2 en a reçu 2
+        assertThat(reviewsByUser1).hasSize(2);
+        assertThat(reviewsForUser2).hasSize(2);
+        
+        // Vérifier que les relations sont cohérentes
+        assertThat(reviewsByUser1).extracting("reviewer.id").containsOnly(user1.getId());
+        assertThat(reviewsForUser2).extracting("reviewed.id").containsOnly(user2.getId());
+    }
+
+    @Test
+    @DisplayName("Repository should handle all reservation IDs correctly")
+    void repository_shouldHandleAllReservationIdsCorrectly() {
+        // Tester toutes les réservations existantes
+        List<Review> reviewsForReservation1 = reviewRepository.findByReservationId(1L);
+        List<Review> reviewsForReservation2 = reviewRepository.findByReservationId(2L);
+        List<Review> reviewsForReservation3 = reviewRepository.findByReservationId(3L);
+        List<Review> reviewsForReservation4 = reviewRepository.findByReservationId(4L);
+        
+        assertThat(reviewsForReservation1).hasSize(1);
+        assertThat(reviewsForReservation2).hasSize(1);
+        assertThat(reviewsForReservation3).hasSize(1);
+        assertThat(reviewsForReservation4).hasSize(1);
+        
+        // Vérifier que chaque réservation a le bon ID
+        assertThat(reviewsForReservation1.get(0).getReservationId()).isEqualTo(1L);
+        assertThat(reviewsForReservation2.get(0).getReservationId()).isEqualTo(2L);
+        assertThat(reviewsForReservation3.get(0).getReservationId()).isEqualTo(3L);
+        assertThat(reviewsForReservation4.get(0).getReservationId()).isEqualTo(4L);
+    }
+
+    @Test
+    @DisplayName("Repository should handle concurrent access patterns")
+    void repository_shouldHandleConcurrentAccessPatterns() {
+        // Simuler des accès concurrents en appelant plusieurs méthodes
+        List<Review> reviewsByUser1 = reviewRepository.findByReviewerId(user1.getId());
+        List<Review> reviewsForUser2 = reviewRepository.findByReviewedId(user2.getId());
+        boolean existsReview = reviewRepository.existsByReservationIdAndReviewerId(1L, user1.getId());
+        Optional<Review> specificReview = reviewRepository.findByReservationIdAndReviewerId(1L, user1.getId());
+        List<Review> reviewsForReservation1 = reviewRepository.findByReservationId(1L);
+        
+        // Vérifier que tous les résultats sont cohérents
+        assertThat(reviewsByUser1).hasSize(2);
+        assertThat(reviewsForUser2).hasSize(2);
+        assertThat(existsReview).isTrue();
+        assertThat(specificReview).isPresent();
+        assertThat(reviewsForReservation1).hasSize(1);
+        
+        // Vérifier la cohérence des données
+        assertThat(specificReview.get().getReservationId()).isEqualTo(1L);
+        assertThat(reviewsForReservation1.get(0).getReservationId()).isEqualTo(1L);
+        assertThat(reviewsForReservation1.get(0).getId()).isEqualTo(specificReview.get().getId());
     }
 }

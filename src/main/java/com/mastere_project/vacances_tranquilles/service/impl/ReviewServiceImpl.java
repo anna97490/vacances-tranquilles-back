@@ -1,6 +1,7 @@
 package com.mastere_project.vacances_tranquilles.service.impl;
 
 import com.mastere_project.vacances_tranquilles.dto.ReviewDTO;
+import com.mastere_project.vacances_tranquilles.dto.ReviewWithReviewerDTO;
 import com.mastere_project.vacances_tranquilles.entity.Review;
 import com.mastere_project.vacances_tranquilles.entity.Reservation;
 import com.mastere_project.vacances_tranquilles.entity.User;
@@ -246,6 +247,67 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         List<Review> reviews = reviewRepository.findByReviewedId(currentUserId);
+        return reviews.stream()
+                .map(reviewMapper::toDTO)
+                .toList();
+    }
+
+    /**
+     * Récupère tous les avis reçus par un prestataire spécifique.
+     * Cette méthode est publique et ne nécessite pas d'authentification.
+     *
+     * @param providerId l'identifiant du prestataire
+     * @return la liste des avis reçus par le prestataire
+     */
+    @Override
+    public List<ReviewDTO> getReviewsByProviderId(Long providerId) {
+        List<Review> reviews = reviewRepository.findByReviewedId(providerId);
+        return reviews.stream()
+                .map(reviewMapper::toDTO)
+                .toList();
+    }
+
+    /**
+     * Récupère tous les avis reçus par un prestataire spécifique avec les informations du reviewer.
+     * Cette méthode est publique et ne nécessite pas d'authentification.
+     *
+     * @param providerId l'identifiant du prestataire
+     * @return la liste des avis reçus par le prestataire avec les informations du reviewer
+     */
+    @Override
+    public List<ReviewWithReviewerDTO> getReviewsWithReviewerByProviderId(Long providerId) {
+        List<Review> reviews = reviewRepository.findByReviewedId(providerId);
+        
+        return reviews.stream()
+                .map(review -> {
+                    ReviewWithReviewerDTO dto = new ReviewWithReviewerDTO();
+                    dto.setId(review.getId());
+                    dto.setNote(review.getNote());
+                    dto.setCommentaire(review.getCommentaire());
+                    dto.setReservationId(review.getReservationId());
+                    dto.setReviewerId(review.getReviewer().getId());
+                    dto.setReviewedId(review.getReviewed().getId());
+                    dto.setCreatedAt(review.getCreatedAt());
+                    
+                    // Récupérer les informations du reviewer
+                    User reviewer = review.getReviewer();
+                    dto.setReviewerFirstName(reviewer.getFirstName());
+                    
+                    return dto;
+                })
+                .toList();
+    }
+
+    /**
+     * Récupère tous les avis pour une réservation spécifique.
+     * Cette méthode est publique et ne nécessite pas d'authentification.
+     *
+     * @param reservationId l'identifiant de la réservation
+     * @return la liste des avis pour la réservation
+     */
+    @Override
+    public List<ReviewDTO> getReviewsByReservationId(Long reservationId) {
+        List<Review> reviews = reviewRepository.findByReservationId(reservationId);
         return reviews.stream()
                 .map(reviewMapper::toDTO)
                 .toList();

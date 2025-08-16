@@ -55,4 +55,12 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
      * @return l'avis existant s'il existe
      */
     java.util.Optional<Review> findByReservationIdAndReviewerId(Long reservationId, Long reviewerId);
+
+    /**
+     * Recherche toutes les évaluations pour une réservation spécifique.
+     *
+     * @param reservationId l'identifiant de la réservation
+     * @return la liste des évaluations pour cette réservation
+     */
+    List<Review> findByReservationId(Long reservationId);
 }

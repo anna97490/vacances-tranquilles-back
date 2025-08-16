@@ -1,6 +1,7 @@
 package com.mastere_project.vacances_tranquilles.controller;
 
 import com.mastere_project.vacances_tranquilles.dto.ReviewDTO;
+import com.mastere_project.vacances_tranquilles.dto.ReviewWithReviewerDTO;
 import com.mastere_project.vacances_tranquilles.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -66,6 +67,48 @@ public class ReviewController {
     @GetMapping("/received")
     public ResponseEntity<List<ReviewDTO>> getReviewsReceivedByUser() {
         List<ReviewDTO> reviews = reviewService.getReviewsReceivedByUser();
+        
+        return ResponseEntity.ok(reviews);
+    }
+
+    /**
+     * Reviews reçues par un prestataire spécifique
+     * Endpoint public accessible sans authentification
+     * 
+     * @param providerId l'identifiant du prestataire
+     * @return liste des avis reçus par le prestataire
+     */
+    @GetMapping("/provider/{providerId}")
+    public ResponseEntity<List<ReviewDTO>> getReviewsByProviderId(@PathVariable Long providerId) {
+        List<ReviewDTO> reviews = reviewService.getReviewsByProviderId(providerId);
+        
+        return ResponseEntity.ok(reviews);
+    }
+
+    /**
+     * Reviews reçues par un prestataire spécifique avec les informations du reviewer
+     * Endpoint public accessible sans authentification
+     * 
+     * @param providerId l'identifiant du prestataire
+     * @return liste des avis reçus par le prestataire avec les informations du reviewer
+     */
+    @GetMapping("/provider/{providerId}/with-reviewer")
+    public ResponseEntity<List<ReviewWithReviewerDTO>> getReviewsWithReviewerByProviderId(@PathVariable Long providerId) {
+        List<ReviewWithReviewerDTO> reviews = reviewService.getReviewsWithReviewerByProviderId(providerId);
+        
+        return ResponseEntity.ok(reviews);
+    }
+
+    /**
+     * Reviews pour une réservation spécifique
+     * Endpoint public accessible sans authentification
+     * 
+     * @param reservationId l'identifiant de la réservation
+     * @return liste des avis pour la réservation
+     */
+    @GetMapping("/reservation/{reservationId}")
+    public ResponseEntity<List<ReviewDTO>> getReviewsByReservationId(@PathVariable Long reservationId) {
+        List<ReviewDTO> reviews = reviewService.getReviewsByReservationId(reservationId);
         
         return ResponseEntity.ok(reviews);
     }

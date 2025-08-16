@@ -1,6 +1,7 @@
 package com.mastere_project.vacances_tranquilles.service;
 
 import com.mastere_project.vacances_tranquilles.dto.ReviewDTO;
+import com.mastere_project.vacances_tranquilles.dto.ReviewWithReviewerDTO;
 import java.util.List;
 
 /**
@@ -37,4 +38,28 @@ public interface ReviewService {
      * @return la liste des avis reçus
      */
     List<ReviewDTO> getReviewsReceivedByUser();
+
+    /**
+     * Récupère tous les avis reçus par un prestataire spécifique.
+     *
+     * @param providerId l'identifiant du prestataire
+     * @return la liste des avis reçus par le prestataire
+     */
+    List<ReviewDTO> getReviewsByProviderId(Long providerId);
+
+    /**
+     * Récupère tous les avis reçus par un prestataire spécifique avec les informations du reviewer.
+     *
+     * @param providerId l'identifiant du prestataire
+     * @return la liste des avis reçus par le prestataire avec les informations du reviewer
+     */
+    List<ReviewWithReviewerDTO> getReviewsWithReviewerByProviderId(Long providerId);
+
+    /**
+     * Récupère tous les avis pour une réservation spécifique.
+     *
+     * @param reservationId l'identifiant de la réservation
+     * @return la liste des avis pour la réservation
+     */
+    List<ReviewDTO> getReviewsByReservationId(Long reservationId);
 }
