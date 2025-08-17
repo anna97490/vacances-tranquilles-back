@@ -120,7 +120,7 @@ class ReviewRepositoryTest {
     void findByReviewedId_shouldReturnAllReviewsReceivedByUser() {
         // Test pour user2 (provider) qui a reçu 2 avis
         List<Review> reviewsReceivedByUser2 = reviewRepository.findByReviewedId(user2.getId());
-        
+
         assertThat(reviewsReceivedByUser2).hasSize(2);
         assertThat(reviewsReceivedByUser2).extracting("reviewer.id")
                 .containsExactlyInAnyOrder(user1.getId(), user3.getId());
@@ -145,7 +145,7 @@ class ReviewRepositoryTest {
         entityManager.persistAndFlush(userWithoutReviews);
 
         List<Review> reviews = reviewRepository.findByReviewedId(userWithoutReviews.getId());
-        
+
         assertThat(reviews).isEmpty();
     }
 
@@ -154,7 +154,7 @@ class ReviewRepositoryTest {
     void findByReviewerId_shouldReturnAllReviewsWrittenByUser() {
         // Test pour user1 qui a écrit 2 avis
         List<Review> reviewsWrittenByUser1 = reviewRepository.findByReviewerId(user1.getId());
-        
+
         assertThat(reviewsWrittenByUser1).hasSize(2);
         assertThat(reviewsWrittenByUser1).extracting("reviewer.id")
                 .containsOnly(user1.getId());
@@ -179,7 +179,7 @@ class ReviewRepositoryTest {
         entityManager.persistAndFlush(userWithoutWrittenReviews);
 
         List<Review> reviews = reviewRepository.findByReviewerId(userWithoutWrittenReviews.getId());
-        
+
         assertThat(reviews).isEmpty();
     }
 
@@ -187,8 +187,9 @@ class ReviewRepositoryTest {
     @DisplayName("findByReviewerIdAndReviewedId should return reviews between specific users")
     void findByReviewerIdAndReviewedId_shouldReturnReviewsBetweenSpecificUsers() {
         // Test pour les avis de user1 vers user2
-        List<Review> reviewsFromUser1ToUser2 = reviewRepository.findByReviewerIdAndReviewedId(user1.getId(), user2.getId());
-        
+        List<Review> reviewsFromUser1ToUser2 = reviewRepository.findByReviewerIdAndReviewedId(user1.getId(),
+                user2.getId());
+
         assertThat(reviewsFromUser1ToUser2).hasSize(1);
         assertThat(reviewsFromUser1ToUser2.get(0).getReviewer().getId()).isEqualTo(user1.getId());
         assertThat(reviewsFromUser1ToUser2.get(0).getReviewed().getId()).isEqualTo(user2.getId());
@@ -200,7 +201,7 @@ class ReviewRepositoryTest {
     void findByReviewerIdAndReviewedId_shouldReturnEmptyListWhenNoReviewsBetweenUsers() {
         // Test pour des utilisateurs qui n'ont pas d'avis entre eux
         List<Review> reviews = reviewRepository.findByReviewerIdAndReviewedId(user1.getId(), user1.getId());
-        
+
         assertThat(reviews).isEmpty();
     }
 
@@ -219,7 +220,7 @@ class ReviewRepositoryTest {
 
         // Test pour la réservation 1 qui a maintenant 2 avis
         List<Review> reviewsForReservation1 = reviewRepository.findByReservationId(1L);
-        
+
         assertThat(reviewsForReservation1).hasSize(2);
         assertThat(reviewsForReservation1).extracting("reservationId")
                 .containsOnly(1L);
@@ -232,7 +233,7 @@ class ReviewRepositoryTest {
     void findByReservationId_shouldReturnSingleReviewWhenOnlyOneExists() {
         // Test pour la réservation 2 qui a 1 avis
         List<Review> reviewsForReservation2 = reviewRepository.findByReservationId(2L);
-        
+
         assertThat(reviewsForReservation2).hasSize(1);
         assertThat(reviewsForReservation2.get(0).getReservationId()).isEqualTo(2L);
         assertThat(reviewsForReservation2.get(0).getReviewer().getId()).isEqualTo(user2.getId());
@@ -244,7 +245,7 @@ class ReviewRepositoryTest {
     void findByReservationId_shouldReturnEmptyListWhenReservationHasNoReviews() {
         // Test pour une réservation qui n'existe pas
         List<Review> reviews = reviewRepository.findByReservationId(999L);
-        
+
         assertThat(reviews).isEmpty();
     }
 
@@ -253,7 +254,7 @@ class ReviewRepositoryTest {
     void existsByReservationIdAndReviewerId_shouldReturnTrueWhenReviewExists() {
         // Test pour une réservation et reviewer qui existent
         boolean exists = reviewRepository.existsByReservationIdAndReviewerId(1L, user1.getId());
-        
+
         assertThat(exists).isTrue();
     }
 
@@ -262,7 +263,7 @@ class ReviewRepositoryTest {
     void existsByReservationIdAndReviewerId_shouldReturnFalseWhenReviewDoesNotExist() {
         // Test pour une réservation qui n'existe pas
         boolean exists = reviewRepository.existsByReservationIdAndReviewerId(999L, user1.getId());
-        
+
         assertThat(exists).isFalse();
     }
 
@@ -271,7 +272,7 @@ class ReviewRepositoryTest {
     void existsByReservationIdAndReviewerId_shouldReturnFalseWhenReviewerDoesNotExist() {
         // Test pour un reviewer qui n'existe pas
         boolean exists = reviewRepository.existsByReservationIdAndReviewerId(1L, 999L);
-        
+
         assertThat(exists).isFalse();
     }
 
@@ -280,7 +281,7 @@ class ReviewRepositoryTest {
     void findByReservationIdAndReviewerId_shouldReturnReviewWhenExists() {
         // Test pour une réservation et reviewer qui existent
         Optional<Review> review = reviewRepository.findByReservationIdAndReviewerId(1L, user1.getId());
-        
+
         assertThat(review).isPresent();
         assertThat(review.get().getReservationId()).isEqualTo(1L);
         assertThat(review.get().getReviewer().getId()).isEqualTo(user1.getId());
@@ -293,7 +294,7 @@ class ReviewRepositoryTest {
     void findByReservationIdAndReviewerId_shouldReturnEmptyWhenReviewDoesNotExist() {
         // Test pour une réservation qui n'existe pas
         Optional<Review> review = reviewRepository.findByReservationIdAndReviewerId(999L, user1.getId());
-        
+
         assertThat(review).isEmpty();
     }
 
@@ -302,7 +303,7 @@ class ReviewRepositoryTest {
     void findByReservationIdAndReviewerId_shouldReturnEmptyWhenReviewerDoesNotExist() {
         // Test pour un reviewer qui n'existe pas
         Optional<Review> review = reviewRepository.findByReservationIdAndReviewerId(1L, 999L);
-        
+
         assertThat(review).isEmpty();
     }
 
@@ -322,14 +323,14 @@ class ReviewRepositoryTest {
         // Vérifier que les deux avis existent pour la même réservation
         boolean existsUser1 = reviewRepository.existsByReservationIdAndReviewerId(1L, user1.getId());
         boolean existsUser3 = reviewRepository.existsByReservationIdAndReviewerId(1L, user3.getId());
-        
+
         assertThat(existsUser1).isTrue();
         assertThat(existsUser3).isTrue();
 
         // Vérifier que chaque reviewer peut récupérer son avis
         Optional<Review> reviewUser1 = reviewRepository.findByReservationIdAndReviewerId(1L, user1.getId());
         Optional<Review> reviewUser3 = reviewRepository.findByReservationIdAndReviewerId(1L, user3.getId());
-        
+
         assertThat(reviewUser1).isPresent();
         assertThat(reviewUser3).isPresent();
         assertThat(reviewUser1.get().getReviewer().getId()).isEqualTo(user1.getId());
@@ -351,7 +352,7 @@ class ReviewRepositoryTest {
 
         // Vérifier que l'avis est trouvé
         Optional<Review> foundReview = reviewRepository.findByReservationIdAndReviewerId(5L, user1.getId());
-        
+
         assertThat(foundReview).isPresent();
         assertThat(foundReview.get().getCommentaire()).isNull();
         assertThat(foundReview.get().getNote()).isEqualTo(3);
@@ -372,7 +373,7 @@ class ReviewRepositoryTest {
 
         // Vérifier que l'avis est trouvé
         Optional<Review> foundReview = reviewRepository.findByReservationIdAndReviewerId(0L, user1.getId());
-        
+
         assertThat(foundReview).isPresent();
         assertThat(foundReview.get().getNote()).isEqualTo(1);
         assertThat(foundReview.get().getCommentaire()).isEmpty();
@@ -384,7 +385,7 @@ class ReviewRepositoryTest {
     @DisplayName("Repository should handle very long commentaire")
     void repository_shouldHandleVeryLongCommentaire() {
         String longComment = "A".repeat(1000); // Commentaire très long
-        
+
         Review longCommentReview = new Review();
         longCommentReview.setNote(5);
         longCommentReview.setCommentaire(longComment);
@@ -396,10 +397,9 @@ class ReviewRepositoryTest {
 
         // Vérifier que l'avis est trouvé avec le commentaire complet
         Optional<Review> foundReview = reviewRepository.findByReservationIdAndReviewerId(6L, user1.getId());
-        
+
         assertThat(foundReview).isPresent();
-        assertThat(foundReview.get().getCommentaire()).isEqualTo(longComment);
-        assertThat(foundReview.get().getCommentaire().length()).isEqualTo(1000);
+        assertThat(foundReview.get().getCommentaire()).isEqualTo(longComment).hasSize(1000);
     }
 
     @Test
@@ -408,11 +408,11 @@ class ReviewRepositoryTest {
         // Vérifier que les relations bidirectionnelles sont correctes
         List<Review> reviewsByUser1 = reviewRepository.findByReviewerId(user1.getId());
         List<Review> reviewsForUser2 = reviewRepository.findByReviewedId(user2.getId());
-        
+
         // user1 a écrit 2 avis, user2 en a reçu 2
         assertThat(reviewsByUser1).hasSize(2);
         assertThat(reviewsForUser2).hasSize(2);
-        
+
         // Vérifier que les relations sont cohérentes
         assertThat(reviewsByUser1).extracting("reviewer.id").containsOnly(user1.getId());
         assertThat(reviewsForUser2).extracting("reviewed.id").containsOnly(user2.getId());
@@ -426,12 +426,12 @@ class ReviewRepositoryTest {
         List<Review> reviewsForReservation2 = reviewRepository.findByReservationId(2L);
         List<Review> reviewsForReservation3 = reviewRepository.findByReservationId(3L);
         List<Review> reviewsForReservation4 = reviewRepository.findByReservationId(4L);
-        
+
         assertThat(reviewsForReservation1).hasSize(1);
         assertThat(reviewsForReservation2).hasSize(1);
         assertThat(reviewsForReservation3).hasSize(1);
         assertThat(reviewsForReservation4).hasSize(1);
-        
+
         // Vérifier que chaque réservation a le bon ID
         assertThat(reviewsForReservation1.get(0).getReservationId()).isEqualTo(1L);
         assertThat(reviewsForReservation2.get(0).getReservationId()).isEqualTo(2L);
@@ -448,14 +448,14 @@ class ReviewRepositoryTest {
         boolean existsReview = reviewRepository.existsByReservationIdAndReviewerId(1L, user1.getId());
         Optional<Review> specificReview = reviewRepository.findByReservationIdAndReviewerId(1L, user1.getId());
         List<Review> reviewsForReservation1 = reviewRepository.findByReservationId(1L);
-        
+
         // Vérifier que tous les résultats sont cohérents
         assertThat(reviewsByUser1).hasSize(2);
         assertThat(reviewsForUser2).hasSize(2);
         assertThat(existsReview).isTrue();
         assertThat(specificReview).isPresent();
         assertThat(reviewsForReservation1).hasSize(1);
-        
+
         // Vérifier la cohérence des données
         assertThat(specificReview.get().getReservationId()).isEqualTo(1L);
         assertThat(reviewsForReservation1.get(0).getReservationId()).isEqualTo(1L);

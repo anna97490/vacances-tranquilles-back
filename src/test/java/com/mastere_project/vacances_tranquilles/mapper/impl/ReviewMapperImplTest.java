@@ -255,8 +255,8 @@ class ReviewMapperImplTest {
         dto.setNote(2);
         dto.setCommentaire("Test");
         dto.setReservationId(104L);
-        dto.setReviewerId(999L); 
-        dto.setReviewedId(888L); 
+        dto.setReviewerId(999L);
+        dto.setReviewedId(888L);
         dto.setCreatedAt(LocalDateTime.now());
 
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
@@ -285,7 +285,7 @@ class ReviewMapperImplTest {
         dto.setCommentaire("Test");
         dto.setReservationId(105L);
         dto.setReviewerId(7L);
-        dto.setReviewedId(999L); 
+        dto.setReviewedId(999L);
         dto.setCreatedAt(LocalDateTime.now());
 
         User mockReviewer = new User();
@@ -312,20 +312,20 @@ class ReviewMapperImplTest {
     @DisplayName("toDTO should handle edge case values")
     void toDTO_shouldHandleEdgeCaseValues() {
         Review review = new Review();
-        review.setId(0L); 
-        review.setNote(1); 
-        review.setCommentaire(""); 
-        review.setReservationId(0L); 
+        review.setId(0L);
+        review.setNote(1);
+        review.setCommentaire("");
+        review.setReservationId(0L);
         review.setReviewer(null);
         review.setReviewed(null);
-        review.setCreatedAt(LocalDateTime.of(2020, 1, 1, 0, 0)); 
+        review.setCreatedAt(LocalDateTime.of(2020, 1, 1, 0, 0));
 
         ReviewDTO dto = mapper.toDTO(review);
 
         assertThat(dto.getId()).isZero();
         assertThat(dto.getNote()).isEqualTo(1);
-        assertThat(dto.getCommentaire()).isEqualTo("");
-        assertThat(dto.getReservationId()).isEqualTo(0L);
+        assertThat(dto.getCommentaire()).isEmpty();
+        assertThat(dto.getReservationId()).isZero();
         assertThat(dto.getReviewerId()).isNull();
         assertThat(dto.getReviewedId()).isNull();
         assertThat(dto.getCreatedAt()).isEqualTo(LocalDateTime.of(2020, 1, 1, 0, 0));
@@ -335,10 +335,10 @@ class ReviewMapperImplTest {
     @DisplayName("toEntity should handle edge case values")
     void toEntity_shouldHandleEdgeCaseValues() {
         ReviewDTO dto = new ReviewDTO();
-        dto.setId(0L); 
-        dto.setNote(5); 
+        dto.setId(0L);
+        dto.setNote(5);
         dto.setCommentaire("");
-        dto.setReservationId(0L); 
+        dto.setReservationId(0L);
         dto.setReviewerId(null);
         dto.setReviewedId(null);
         dto.setCreatedAt(LocalDateTime.of(2030, 12, 31, 23, 59)); // Edge case: future date
@@ -348,7 +348,7 @@ class ReviewMapperImplTest {
         assertThat(entity.getId()).isZero();
         assertThat(entity.getNote()).isEqualTo(5);
         assertThat(entity.getCommentaire()).isEmpty();
-        assertThat(entity.getReservationId()).isEqualTo(0L);
+        assertThat(entity.getReservationId()).isZero();
         assertThat(entity.getReviewer()).isNull();
         assertThat(entity.getReviewed()).isNull();
         assertThat(entity.getCreatedAt()).isEqualTo(LocalDateTime.of(2030, 12, 31, 23, 59));
@@ -358,7 +358,7 @@ class ReviewMapperImplTest {
     @DisplayName("toDTO should handle very long commentaire")
     void toDTO_shouldHandleVeryLongCommentaire() {
         String longComment = "A".repeat(1000);
-        
+
         Review review = new Review();
         review.setId(110L);
         review.setNote(3);
@@ -383,7 +383,7 @@ class ReviewMapperImplTest {
     @DisplayName("toEntity should handle very long commentaire")
     void toEntity_shouldHandleVeryLongCommentaire() {
         String longComment = "B".repeat(1000); // Very long comment
-        
+
         ReviewDTO dto = new ReviewDTO();
         dto.setId(111L);
         dto.setNote(4);
@@ -398,7 +398,7 @@ class ReviewMapperImplTest {
         assertThat(entity.getId()).isEqualTo(111L);
         assertThat(entity.getNote()).isEqualTo(4);
         assertThat(entity.getCommentaire()).isEqualTo(longComment);
-        assertThat(entity.getCommentaire().length()).isEqualTo(1000);
+        assertThat(entity.getCommentaire()).hasSize(1000);
         assertThat(entity.getReservationId()).isEqualTo(107L);
         assertThat(entity.getReviewer()).isNull();
         assertThat(entity.getReviewed()).isNull();

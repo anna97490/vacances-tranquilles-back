@@ -63,9 +63,8 @@ class ReviewNotFoundExceptionTest {
     @DisplayName("Exception should be throwable")
     void exception_shouldBeThrowable() {
         ReviewNotFoundException ex = new ReviewNotFoundException("Test exception");
-        
-        assertThat(ex).isInstanceOf(RuntimeException.class);
-        assertThat(ex).isInstanceOf(ReviewNotFoundException.class);
+
+        assertThat(ex).isInstanceOf(RuntimeException.class).isInstanceOf(ReviewNotFoundException.class);
     }
 
     @Test
@@ -73,13 +72,13 @@ class ReviewNotFoundExceptionTest {
     void exception_shouldMaintainMessageWhenThrownAndCaught() {
         String errorMessage = "Avis introuvable pour l'utilisateur";
         ReviewNotFoundException thrownException = null;
-        
+
         try {
             throw new ReviewNotFoundException(errorMessage);
         } catch (ReviewNotFoundException e) {
             thrownException = e;
         }
-        
+
         assertThat(thrownException).isNotNull();
         assertThat(thrownException.getMessage()).isEqualTo(errorMessage);
     }
@@ -90,11 +89,11 @@ class ReviewNotFoundExceptionTest {
         // Test avec message simple
         ReviewNotFoundException ex1 = new ReviewNotFoundException("Simple message");
         assertThat(ex1.getMessage()).isEqualTo("Simple message");
-        
+
         // Test avec message contenant des chiffres
         ReviewNotFoundException ex2 = new ReviewNotFoundException("Review ID 456 not found");
         assertThat(ex2.getMessage()).isEqualTo("Review ID 456 not found");
-        
+
         // Test avec message contenant des caractères spéciaux
         ReviewNotFoundException ex3 = new ReviewNotFoundException("Avis #123-456 introuvable");
         assertThat(ex3.getMessage()).isEqualTo("Avis #123-456 introuvable");
@@ -106,11 +105,11 @@ class ReviewNotFoundExceptionTest {
         // Test avec message très court
         ReviewNotFoundException ex1 = new ReviewNotFoundException("!");
         assertThat(ex1.getMessage()).isEqualTo("!");
-        
+
         // Test avec message contenant des espaces multiples
         ReviewNotFoundException ex2 = new ReviewNotFoundException("   Avis   introuvable   ");
         assertThat(ex2.getMessage()).isEqualTo("   Avis   introuvable   ");
-        
+
         // Test avec message contenant des caractères unicode
         ReviewNotFoundException ex3 = new ReviewNotFoundException("Avis introuvable: éàçù");
         assertThat(ex3.getMessage()).isEqualTo("Avis introuvable: éàçù");
