@@ -318,4 +318,55 @@ public class ApplicationControllerAdvice {
         ErrorEntity error = new ErrorEntity("STRIPE_SESSION_CREATION_ERROR", ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    /**
+     * Gère l'exception levée lorsqu'un avis n'est pas trouvé.
+     *
+     * @param ex l'exception ReviewNotFoundException
+     * @return une réponse HTTP 404 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(ReviewNotFoundException.class)
+    public ResponseEntity<ErrorEntity> handleReviewNotFoundException(ReviewNotFoundException ex) {
+        ErrorEntity error = new ErrorEntity("REVIEW_NOT_FOUND", ex.getMessage());
+        
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    /**
+     * Gère l'exception levée lorsqu'une réservation n'est pas terminée.
+     *
+     * @param ex l'exception ReservationNotCompletedException
+     * @return une réponse HTTP 400 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(ReservationNotCompletedException.class)
+    public ResponseEntity<ErrorEntity> handleReservationNotCompletedException(ReservationNotCompletedException ex) {
+        ErrorEntity error = new ErrorEntity("RESERVATION_NOT_COMPLETED", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Gère l'exception levée lorsque les utilisateurs ne correspondent pas à la réservation.
+     *
+     * @param ex l'exception InvalidReviewUserException
+     * @return une réponse HTTP 400 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(InvalidReviewUserException.class)
+    public ResponseEntity<ErrorEntity> handleInvalidReviewUserException(InvalidReviewUserException ex) {
+        ErrorEntity error = new ErrorEntity("INVALID_REVIEW_USERS", ex.getMessage());
+        
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Gère l'exception levée lorsqu'un avis existe déjà pour une réservation.
+     *
+     * @param ex l'exception ReviewAlreadyExistsException
+     * @return une réponse HTTP 409 avec un code d'erreur spécifique
+     */
+    @ExceptionHandler(ReviewAlreadyExistsException.class)
+    public ResponseEntity<ErrorEntity> handleReviewAlreadyExistsException(ReviewAlreadyExistsException ex) {
+        ErrorEntity error = new ErrorEntity("REVIEW_ALREADY_EXISTS", ex.getMessage());
+        
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
 }
