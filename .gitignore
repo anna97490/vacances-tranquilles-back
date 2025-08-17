@@ -35,3 +35,5 @@ build/
 .env
 
 .config_env.ps1
+
+/src/main/resources/application-local.properties

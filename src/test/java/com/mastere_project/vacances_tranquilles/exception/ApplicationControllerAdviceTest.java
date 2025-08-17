@@ -137,17 +137,6 @@ class ApplicationControllerAdviceTest {
     }
 
     @Test
-    @DisplayName("handleIllegalArgumentException should return 400 and error entity")
-    void handleIllegalArgumentException_shouldReturn400() {
-        IllegalArgumentException ex = new IllegalArgumentException("Note invalide");
-        ResponseEntity<ErrorEntity> response = advice.handleIllegalArgument(ex);
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getCode()).isEqualTo("INVALID_ARGUMENT");
-        assertThat(response.getBody().getMessage()).isEqualTo("Note invalide");
-    }
-
-    @Test
     @DisplayName("handleAllExceptions should return 500 and error entity")
     void handleAllExceptions_shouldReturn500() {
         Exception ex = new Exception("Erreur inconnue");
@@ -312,5 +301,131 @@ class ApplicationControllerAdviceTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("STRIPE_SESSION_CREATION_ERROR");
         assertThat(response.getBody().getMessage()).isEqualTo("La création de la session Stripe a échoué");
+    }
+
+    @Test
+    @DisplayName("handleValidationErrors with empty field errors should return 400 with empty message")
+    void handleValidationErrors_withEmptyFieldErrors_shouldReturn400WithEmptyMessage() {
+        BindingResult bindingResult = mock(BindingResult.class);
+        when(bindingResult.getFieldErrors()).thenReturn(List.of());
+
+        MethodArgumentNotValidException ex = mock(MethodArgumentNotValidException.class);
+        when(ex.getBindingResult()).thenReturn(bindingResult);
+
+        ResponseEntity<ErrorEntity> response = advice.handleValidationErrors(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("VALIDATION_ERROR");
+        assertThat(response.getBody().getMessage()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("handleValidationErrors with single field error should return 400 with single message")
+    void handleValidationErrors_withSingleFieldError_shouldReturn400WithSingleMessage() {
+        FieldError fieldError = new FieldError("object", "field", "Single error");
+        List<FieldError> fieldErrors = List.of(fieldError);
+
+        BindingResult bindingResult = mock(BindingResult.class);
+        when(bindingResult.getFieldErrors()).thenReturn(fieldErrors);
+
+        MethodArgumentNotValidException ex = mock(MethodArgumentNotValidException.class);
+        when(ex.getBindingResult()).thenReturn(bindingResult);
+
+        ResponseEntity<ErrorEntity> response = advice.handleValidationErrors(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("VALIDATION_ERROR");
+        assertThat(response.getBody().getMessage()).isEqualTo("Single error");
+    }
+
+    @Test
+    @DisplayName("Authentication exception handlers should return non-null ErrorEntity")
+    void authenticationExceptionHandlers_shouldReturnNonNullErrorEntity() {
+        assertThat(advice.handleEmailAlreadyExists(new EmailAlreadyExistsException("test"))).isNotNull();
+        assertThat(advice.handleMissingField(new MissingFieldException("test"))).isNotNull();
+        assertThat(advice.handleIllegalArgument(new IllegalArgumentException("test"))).isNotNull();
+        assertThat(advice.handleAccountLockedException(new AccountLockedException("test"))).isNotNull();
+        assertThat(advice.handleLoginInternalException(new LoginInternalException("test", new RuntimeException()))).isNotNull();
+        assertThat(advice.handleEmailNotFoundException(new EmailNotFoundException("test"))).isNotNull();
+        assertThat(advice.handleWrongPasswordException(new WrongPasswordException("test"))).isNotNull();
+        assertThat(advice.handleUnexpectedLoginException(new UnexpectedLoginException("test", new RuntimeException()))).isNotNull();
+        assertThat(advice.handleAllExceptions(new Exception("test"))).isNotNull();
+        assertThat(advice.handleAccessDenied(new AccessDeniedException("test"))).isNotNull();
+        assertThat(advice.handleInvalidToken(new InvalidTokenException("test"))).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Reservation exception handlers should return non-null ErrorEntity")
+    void reservationExceptionHandlers_shouldReturnNonNullErrorEntity() {
+        assertThat(advice.handleReservationNotFound(new ReservationNotFoundException("test"))).isNotNull();
+        assertThat(advice.handleUnauthorizedAccess(new UnauthorizedReservationAccessException("test"))).isNotNull();
+        assertThat(advice.handleMissingReservationData(new MissingReservationDataException("test"))).isNotNull();
+        assertThat(advice.handleInvalidReservationStatus(new InvalidReservationStatusException("test"))).isNotNull();
+        assertThat(advice.handleInvalidReservationStatusTransition(new InvalidReservationStatusTransitionException("test"))).isNotNull();
+        assertThat(advice.handleServiceNotFound(new ServiceNotFoundException("test"))).isNotNull();
+        assertThat(advice.handleUserNotFound(new UserNotFoundException("test"))).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Conversation and payment exception handlers should return non-null ErrorEntity")
+    void conversationAndPaymentExceptionHandlers_shouldReturnNonNullErrorEntity() {
+        assertThat(advice.handleConversationNotFound(new ConversationNotFoundException("test"))).isNotNull();
+        assertThat(advice.handleConversationForbidden(new ConversationForbiddenException("test"))).isNotNull();
+        assertThat(advice.handleConversationAlreadyExists(new ConversationAlreadyExistsException("test"))).isNotNull();
+        assertThat(advice.handleStripeException(new StripeException("test"))).isNotNull();
+        assertThat(advice.handleStripeSessionCreationException(new StripeSessionCreationException("test"))).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Review exception handlers should return non-null ErrorEntity")
+    void reviewExceptionHandlers_shouldReturnNonNullErrorEntity() {
+        assertThat(advice.handleReviewNotFoundException(new ReviewNotFoundException("test"))).isNotNull();
+        assertThat(advice.handleReservationNotCompletedException(new ReservationNotCompletedException("test"))).isNotNull();
+        assertThat(advice.handleInvalidReviewUserException(new InvalidReviewUserException("test"))).isNotNull();
+        assertThat(advice.handleReviewAlreadyExistsException(new ReviewAlreadyExistsException("test"))).isNotNull();
+    }
+
+    @Test
+    @DisplayName("handleReviewNotFoundException should return 404 and error entity")
+    void handleReviewNotFoundException_shouldReturn404() {
+        ReviewNotFoundException ex = new ReviewNotFoundException("Avis introuvable");
+        ResponseEntity<ErrorEntity> response = advice.handleReviewNotFoundException(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("REVIEW_NOT_FOUND");
+        assertThat(response.getBody().getMessage()).isEqualTo("Avis introuvable");
+    }
+
+    @Test
+    @DisplayName("handleReservationNotCompletedException should return 400 and error entity")
+    void handleReservationNotCompletedException_shouldReturn400() {
+        ReservationNotCompletedException ex = new ReservationNotCompletedException("Réservation non terminée");
+        ResponseEntity<ErrorEntity> response = advice.handleReservationNotCompletedException(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("RESERVATION_NOT_COMPLETED");
+        assertThat(response.getBody().getMessage()).isEqualTo("Réservation non terminée");
+    }
+
+    @Test
+    @DisplayName("handleInvalidReviewUserException should return 400 and error entity")
+    void handleInvalidReviewUserException_shouldReturn400() {
+        InvalidReviewUserException ex = new InvalidReviewUserException("Utilisateurs invalides pour cet avis");
+        ResponseEntity<ErrorEntity> response = advice.handleInvalidReviewUserException(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("INVALID_REVIEW_USERS");
+        assertThat(response.getBody().getMessage()).isEqualTo("Utilisateurs invalides pour cet avis");
+    }
+
+    @Test
+    @DisplayName("handleReviewAlreadyExistsException should return 409 and error entity")
+    void handleReviewAlreadyExistsException_shouldReturn409() {
+        ReviewAlreadyExistsException ex = new ReviewAlreadyExistsException("Vous avez déjà créé un avis pour cette réservation");
+        ResponseEntity<ErrorEntity> response = advice.handleReviewAlreadyExistsException(ex);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("REVIEW_ALREADY_EXISTS");
+        assertThat(response.getBody().getMessage()).isEqualTo("Vous avez déjà créé un avis pour cette réservation");
     }
 }
