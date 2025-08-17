@@ -73,7 +73,6 @@ public class ReviewController {
 
     /**
      * Reviews reçues par un prestataire spécifique
-     * Endpoint public accessible sans authentification
      * 
      * @param providerId l'identifiant du prestataire
      * @return liste des avis reçus par le prestataire
@@ -87,7 +86,6 @@ public class ReviewController {
 
     /**
      * Reviews reçues par un prestataire spécifique avec les informations du reviewer
-     * Endpoint public accessible sans authentification
      * 
      * @param providerId l'identifiant du prestataire
      * @return liste des avis reçus par le prestataire avec les informations du reviewer
@@ -101,7 +99,6 @@ public class ReviewController {
 
     /**
      * Reviews pour une réservation spécifique
-     * Endpoint public accessible sans authentification
      * 
      * @param reservationId l'identifiant de la réservation
      * @return liste des avis pour la réservation

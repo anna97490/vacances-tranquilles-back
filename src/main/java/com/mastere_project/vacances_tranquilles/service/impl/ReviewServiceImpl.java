@@ -6,6 +6,7 @@ import com.mastere_project.vacances_tranquilles.entity.Review;
 import com.mastere_project.vacances_tranquilles.entity.Reservation;
 import com.mastere_project.vacances_tranquilles.entity.User;
 import com.mastere_project.vacances_tranquilles.mapper.ReviewMapper;
+import com.mastere_project.vacances_tranquilles.model.enums.ReservationStatus;
 import com.mastere_project.vacances_tranquilles.repository.ReviewRepository;
 import com.mastere_project.vacances_tranquilles.repository.ReservationRepository;
 import com.mastere_project.vacances_tranquilles.repository.UserRepository;
@@ -139,7 +140,7 @@ public class ReviewServiceImpl implements ReviewService {
      * @throws ReservationNotCompletedException si la réservation n'a pas le statut CLOSED
      */
     private void validateReservationStatus(Reservation reservation) {
-        if (reservation.getStatus() == null || !reservation.getStatus().equals(com.mastere_project.vacances_tranquilles.model.enums.ReservationStatus.CLOSED)) {
+        if (reservation.getStatus() == null || !reservation.getStatus().equals(ReservationStatus.CLOSED)) {
             throw new ReservationNotCompletedException("La réservation doit avoir le statut CLOSED pour pouvoir écrire un avis");
         }
     }
@@ -254,7 +255,6 @@ public class ReviewServiceImpl implements ReviewService {
 
     /**
      * Récupère tous les avis reçus par un prestataire spécifique.
-     * Cette méthode est publique et ne nécessite pas d'authentification.
      *
      * @param providerId l'identifiant du prestataire
      * @return la liste des avis reçus par le prestataire
@@ -269,7 +269,6 @@ public class ReviewServiceImpl implements ReviewService {
 
     /**
      * Récupère tous les avis reçus par un prestataire spécifique avec les informations du reviewer.
-     * Cette méthode est publique et ne nécessite pas d'authentification.
      *
      * @param providerId l'identifiant du prestataire
      * @return la liste des avis reçus par le prestataire avec les informations du reviewer
@@ -300,7 +299,6 @@ public class ReviewServiceImpl implements ReviewService {
 
     /**
      * Récupère tous les avis pour une réservation spécifique.
-     * Cette méthode est publique et ne nécessite pas d'authentification.
      *
      * @param reservationId l'identifiant de la réservation
      * @return la liste des avis pour la réservation

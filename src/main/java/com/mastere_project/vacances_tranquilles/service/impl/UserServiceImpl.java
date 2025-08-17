@@ -230,23 +230,8 @@ public class UserServiceImpl implements UserService {
             throw new AccessDeniedException("Utilisateur anonymisé - accès refusé");
         }
 
-        // Log de début de suppression pour conformité RGPD
-        logger.info("=== DÉBUT SUPPRESSION COMPTE RGPD ===");
-        logger.info("Utilisateur ID: {}", currentUserId);
-        logger.info("Email: {}", user.getEmail());
-        logger.info("Rôle: {}", user.getUserRole());
-        logger.info("Raison de suppression: Demande utilisateur");
-        logger.info("Anonymisation obligatoire: true (conformité RGPD)");
-        logger.info("Timestamp: {}", LocalDateTime.now());
-
         // Anonymisation RGPD-compliant obligatoire
         anonymizeUserData(user);
-        logger.info("Compte utilisateur anonymisé avec succès");
-
-        // Log de fin de suppression pour conformité RGPD
-        logger.info("=== FIN SUPPRESSION COMPTE RGPD ===");
-        logger.info("Action terminée avec succès");
-        logger.info("Timestamp: {}", LocalDateTime.now());
     }
 
     /**
@@ -289,9 +274,6 @@ public class UserServiceImpl implements UserService {
      * @param user l'utilisateur à anonymiser
      */
     private void anonymizeUserData(final User user) {
-        // Log de début d'anonymisation
-        logger.info("=== DÉBUT ANONYMISATION RGPD ===");
-        logger.info("Anonymisation des données pour l'utilisateur ID: {}", user.getId());
 
         // Anonymisation des données personnelles
         user.setFirstName("ANONYME");
@@ -315,11 +297,6 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(user);
 
-        // Log de fin d'anonymisation
-        logger.info("Anonymisation terminée avec succès");
-        logger.info("Données personnelles supprimées conformément au RGPD");
-        logger.info("Métadonnées de suppression enregistrées");
-        logger.info("=== FIN ANONYMISATION RGPD ===");
     }
 
     /**
