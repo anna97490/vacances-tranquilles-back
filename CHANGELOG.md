@@ -1,76 +1,76 @@
-# Journal des Versions - API Vacances Tranquilles
+# Changelog - Vacances Tranquilles API
 
-Toutes les modifications notables de ce projet sont documentées dans ce fichier.
+All notable changes to this project will be documented in this file.
 
-Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
-et ce projet adhère au [Versionnage Sémantique](https://semver.org/lang/fr/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
-- Prochaines évolutions à venir.
+- Future developments to come.
 
 ---
 
 ## [0.8.0] - 2025-08-18
 
 ### Added
-- **Système d'avis et notations :** Les utilisateurs "Particulier" peuvent désormais laisser un avis et une note sur une prestation terminée.
+- **Review and Rating System:** "Client" users can now leave a review and a rating on a completed service.
 
 ## [0.7.1] - 2025-08-15
 
 ### Changed
-- **API de Réservation :** La réponse de l'API lors de la récupération d'une réservation a été enrichie avec les détails du service concerné pour éviter des appels supplémentaires depuis le front-end.
+- **Reservation API:** The API response when fetching a reservation has been enriched with the details of the related service to avoid extra calls from the front-end.
 
 ## [0.7.0] - 2025-08-12
 
 ### Added
-- **Messagerie interne :** Implémentation des endpoints permettant la communication entre particuliers et prestataires après une réservation confirmée.
+- **Internal Messaging:** Implemented endpoints for communication between clients and providers after a reservation is confirmed.
 
 ## [0.6.0] - 2025-08-11
 
 ### Added
-- **Intégration du paiement :** Ajout des endpoints pour la création d'une session de paiement sécurisé via l'API Stripe en mode test.
+- **Payment Integration:** Added endpoints for creating a secure payment session via the Stripe API in test mode.
 
 ## [0.5.0] - 2025-08-08
 
 ### Added
-- **Module de Réservation :** Création des API pour le parcours de réservation complet, incluant la gestion des différents statuts de réservation (confirmée, annulée, etc.).
+- **Reservation Module:** Created APIs for the complete booking flow, including management of different reservation statuses (confirmed, cancelled, etc.).
 
 ## [0.4.0] - 2025-08-05
 
 ### Added
-- **Supervision de l'application :** Mise en place d'un endpoint `/actuator/prometheus` pour exposer les métriques de performance et de santé de l'API.
+- **Application Monitoring:** Set up an `/actuator/prometheus` endpoint to expose API health and performance metrics.
 
 ## [0.3.0] - 2025-08-01
 
 ### Added
-- **Gestion des profils utilisateurs :** Implémentation des fonctionnalités permettant aux utilisateurs de consulter et mettre à jour leur profil.
+- **User Profile Management:** Implemented features allowing users to view and update their profile.
 
 ### Changed
-- **Refactoring des services :** Amélioration de la structure du code dans la couche service et augmentation de la couverture de test.
+- **Service Refactoring:** Improved the code structure in the service layer and increased test coverage.
 
 ## [0.2.0] - 2025-07-28
 
 ### Added
-- **Gestion des services :** API CRUD permettant aux prestataires de créer, lire, mettre à jour et supprimer les services qu'ils proposent.
-- **Sécurité :** Renforcement de la sécurité des endpoints de service avec une gestion des rôles.
+- **Service Management:** CRUD API allowing providers to create, read, update, and delete the services they offer.
+- **Security:** Enhanced the security of service endpoints with role-based management.
 
 ## [0.1.2] - 2025-07-26
 
 ### Fixed
-- **Configuration CORS :** Correction de la configuration Cross-Origin Resource Sharing pour autoriser uniquement l'origine du front-end via une variable d'environnement.
+- **CORS Configuration:** Fixed Cross-Origin Resource Sharing configuration to only allow the front-end origin via an environment variable.
 
 ## [0.1.1] - 2025-07-26
 
 ### Fixed
-- **Intégration Continue (CI) :** Amélioration des rapports de couverture de code et de la configuration SonarCloud.
+- **Continuous Integration (CI):** Improved code coverage reports and SonarCloud configuration.
 
 ## [0.1.0] - 2025-07-25
 
 ### Added
-- **MVP Initial :** Mise en place de la structure du projet Spring Boot.
-- **Authentification JWT :** Endpoints d'inscription (`/register`) et de connexion (`/login`) avec génération de jetons JWT.
-- **Modèle de Données :** Création des premières entités et DTOs.
-- **Configuration CI/CD :** Mise en place du workflow d'intégration continue avec Maven sur GitHub Actions.
+- **Initial MVP:** Set up the Spring Boot project structure.
+- **JWT Authentication:** Register (`/register`) and login (`/login`) endpoints with JWT generation.
+- **Data Model:** Created the initial entities and DTOs.
+- **CI/CD Configuration:** Set up the continuous integration workflow with Maven on GitHub Actions.
 
 [Unreleased]: https://github.com/anna97490/vacances-tranquilles-back/compare/v0.8.0...HEAD
 [0.8.0]: https://github.com/anna97490/vacances-tranquilles-back/compare/v0.7.1...v0.8.0
