@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
-- Future developments to come.
+- 
 
 ---
 
@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [0.7.1] - 2025-08-15
 
-### Changed
+### Fixed
 - **Reservation API:** The API response when fetching a reservation has been enriched with the details of the related service to avoid extra calls from the front-end.
 
 ## [0.7.0] - 2025-08-12
